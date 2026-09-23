@@ -1,0 +1,589 @@
+"use client";
+
+import Script from "next/script";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { encodeFile, postJson } from "@/lib/upload";
+import {
+  CURSOR_STYLES,
+  HERO_MODES,
+  INTRO_STYLES,
+  SLOTS,
+  type SiteContent,
+  type SiteImage,
+  type SiteSettings,
+  type SlotDef,
+} from "@/lib/slots";
+
+type Me = {
+  session: { email: string; name: string; picture: string } | null;
+  owner?: string;
+  admins?: string[];
+  backendConfigured?: boolean;
+  backendError?: string;
+  info?: { spreadsheetUrl: string; folderUrl: string; imagesFolderUrl: string; talentFolderUrl: string } | null;
+};
+
+type GoogleId = {
+  accounts: {
+    id: {
+      initialize: (o: { client_id: string; callback: (r: { credential: string }) => void; auto_select?: boolean }) => void;
+      renderButton: (el: HTMLElement, o: Record<string, unknown>) => void;
+      disableAutoSelect: () => void;
+    };
+  };
+};
+
+export default function AdminApp({ clientId, devBypass }: { clientId: string; devBypass: boolean }) {
+  const [me, setMe] = useState<Me | null>(null);
+  const [loginError, setLoginError] = useState("");
+  const [gsiReady, setGsiReady] = useState(false);
+  const btn = useRef<HTMLDivElement>(null);
+
+  const loadMe = useCallback(async () => {
+    const r = await fetch("/api/admin/me", { cache: "no-store" });
+    setMe(await r.json());
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount
+    loadMe();
+  }, [loadMe]);
+
+  useEffect(() => {
+    const g = (window as unknown as { google?: GoogleId }).google;
+    if (!gsiReady || !g || !clientId || !btn.current || me?.session) return;
+    g.accounts.id.initialize({
+      client_id: clientId,
+      callback: async ({ credential }) => {
+        setLoginError("");
+        try {
+          await postJson("/api/auth/google", { credential });
+          await loadMe();
+        } catch (err) {
+          setLoginError((err as Error).message);
+        }
+      },
+    });
+    g.accounts.id.renderButton(btn.current, { theme: "filled_black", size: "large", shape: "pill", text: "signin_with", width: 280 });
+  }, [gsiReady, clientId, me, loadMe]);
+
+  const logout = async () => {
+    await postJson("/api/auth/logout", {});
+    (window as unknown as { google?: GoogleId }).google?.accounts.id.disableAutoSelect();
+    setMe({ session: null });
+  };
+
+  if (!me) return <Centered>Loading…</Centered>;
+
+  if (!me.session) {
+    return (
+      <Centered>
+        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onReady={() => setGsiReady(true)} />
+        <p className="eyebrow">Mode Society</p>
+        <h1 className="font-display mt-3 text-4xl">Admin</h1>
+        <p className="mt-4 max-w-sm text-ink-2">Sign in with an approved Google account to manage the website&apos;s images and animations.</p>
+        <div className="mt-8 flex min-h-[44px] justify-center" ref={btn} />
+        {!clientId && <p className="mt-4 text-sm text-pin">NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set. See README → Keys.</p>}
+        {devBypass && (
+          <button
+            className="btn ghost mt-6"
+            onClick={async () => {
+              await postJson("/api/auth/dev", {});
+              await loadMe();
+            }}
+          >
+            Dev sign-in (local only)
+          </button>
+        )}
+        {loginError && <p className="mt-4 max-w-sm text-sm text-pin">{loginError}</p>}
+      </Centered>
+    );
+  }
+
+  return <Dashboard me={me} reloadMe={loadMe} onLogout={logout} />;
+}
+
+function Centered({ children }: { children: React.ReactNode }) {
+  return <div className="grid min-h-screen place-items-center px-6 text-center"><div>{children}</div></div>;
+}
+
+// ---------------------------------------------------------------------------
+
+type Tab = "images" | "animations" | "access";
+
+function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
+  const [tab, setTab] = useState<Tab>("images");
+  const [content, setContent] = useState<SiteContent | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [toast, setToast] = useState("");
+
+  const loadContent = useCallback(async () => {
+    setLoadError("");
+    try {
+      const r = await fetch("/api/admin/content", { cache: "no-store" });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error);
+      setContent(d.content);
+    } catch (err) {
+      setLoadError((err as Error).message);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount
+    if (me.backendConfigured) loadContent();
+  }, [me.backendConfigured, loadContent]);
+
+  const notify = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2600);
+  };
+
+  return (
+    <div className="pb-24">
+      <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
+        <div className="wrap flex h-16 items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="font-display text-sm">MODE SOCIETY</span>
+            <span className="eyebrow hidden sm:inline">Admin</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <a href="/" target="_blank" className="link-underline hidden sm:inline">View site ↗</a>
+            <span className="hidden text-muted md:inline">{me.session!.email}</span>
+            <button onClick={onLogout} className="btn ghost !px-4 !py-2">Sign out</button>
+          </div>
+        </div>
+        <nav className="wrap flex gap-6 text-[12px] uppercase tracking-[0.16em]">
+          {(["images", "animations", "access"] as Tab[]).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className={`border-b-2 pb-3 ${tab === t ? "border-ink" : "border-transparent text-muted"}`}>
+              {t}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      <div className="wrap mt-8">
+        {!me.backendConfigured && (
+          <Notice>
+            The Google Drive backend isn&apos;t connected yet. Set <code>APPS_SCRIPT_URL</code> and <code>APPS_SCRIPT_SECRET</code> (see README → Backend setup).
+            The site is currently showing its built-in default images.
+          </Notice>
+        )}
+        {(me.backendError || loadError) && <Notice>Couldn&apos;t reach Google Drive: {me.backendError || loadError}</Notice>}
+        {me.info && (
+          <div className="mb-8 flex flex-wrap gap-2 text-sm">
+            <a className="chip" href={me.info.spreadsheetUrl} target="_blank" rel="noreferrer">▦ Open Google Sheet</a>
+            <a className="chip" href={me.info.folderUrl} target="_blank" rel="noreferrer">▤ Website folder</a>
+            <a className="chip" href={me.info.talentFolderUrl} target="_blank" rel="noreferrer">▤ Talent applications</a>
+          </div>
+        )}
+
+        {tab === "images" && content && <ImagesTab content={content} reload={loadContent} notify={notify} />}
+        {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}
+        {tab === "animations" && (
+          <AnimationsTab key={JSON.stringify(content?.settings ?? null)} settings={content?.settings} disabled={!content} reload={loadContent} notify={notify} />
+        )}
+        {tab === "access" && <AccessTab me={me} reload={reloadMe} notify={notify} />}
+      </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-sm text-paper shadow-lg">{toast}</div>
+      )}
+    </div>
+  );
+}
+
+function Notice({ children }: { children: React.ReactNode }) {
+  return <div className="mb-6 border-l-2 border-pin bg-paper-2 p-4 text-sm text-ink-2">{children}</div>;
+}
+
+// ---------------------------------------------------------------------------
+// Images
+// ---------------------------------------------------------------------------
+
+function ImagesTab({ content, reload, notify }: { content: SiteContent; reload: () => Promise<void>; notify: (m: string) => void }) {
+  const pages = Array.from(new Set(SLOTS.map((s) => s.page)));
+  return (
+    <div className="grid gap-14">
+      <p className="max-w-2xl text-ink-2">
+        Every image on the site lives here. Uploads go straight into the <em>Website Images</em> folder in Google Drive and appear on the
+        site within a few seconds. Anything marked <span className="chip !px-2 !py-0.5 !text-xs">default</span> is a built-in placeholder.
+      </p>
+      {pages.map((page) => (
+        <section key={page}>
+          <h2 className="eyebrow mb-4 border-b border-line pb-3">{page}</h2>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {SLOTS.filter((s) => s.page === page).map((slot) => (
+              <SlotEditor key={slot.id} slot={slot} images={content.images[slot.id] || []} reload={reload} notify={notify} />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+type Item = { fileId: string; alt: string; src: string };
+
+function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: SiteImage[]; reload: () => Promise<void>; notify: (m: string) => void }) {
+  const uploaded: Item[] = images.filter((i) => i.fileId).map((i) => ({ fileId: i.fileId!, alt: i.alt, src: i.src }));
+  const usingDefaults = uploaded.length === 0;
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const input = useRef<HTMLInputElement>(null);
+  const max = slot.kind === "single" ? 1 : (slot.max ?? 20);
+
+  const save = async (items: Item[], msg: string) => {
+    setBusy("Saving…");
+    setError("");
+    try {
+      await postJson("/api/admin/images/slot", { slot: slot.id, items: items.map(({ fileId, alt }) => ({ fileId, alt })) });
+      await reload();
+      notify(msg);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const upload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setError("");
+    const room = slot.kind === "single" ? 1 : max - uploaded.length;
+    const list = Array.from(files).slice(0, Math.max(room, 0));
+    if (!list.length) {
+      setError(`This slot holds at most ${max} images. Remove one first.`);
+      return;
+    }
+    const added: Item[] = [];
+    try {
+      for (const [n, file] of list.entries()) {
+        setBusy(`Uploading ${n + 1} of ${list.length}…`);
+        const enc = await encodeFile(file);
+        const { fileId } = await postJson<{ fileId: string }>("/api/admin/images/upload", {
+          slot: slot.id,
+          filename: enc.filename,
+          mimeType: enc.mimeType,
+          data: enc.data,
+        });
+        added.push({ fileId, alt: slot.defaults[0]?.alt || slot.label, src: enc.previewUrl });
+      }
+      const next = slot.kind === "single" ? added.slice(0, 1) : [...uploaded, ...added];
+      await save(next, `${slot.label}: ${added.length} image${added.length > 1 ? "s" : ""} added`);
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy("");
+    } finally {
+      if (input.current) input.current.value = "";
+    }
+  };
+
+  const move = (i: number, d: number) => {
+    const next = [...uploaded];
+    const j = i + d;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j], next[i]];
+    save(next, "Order updated");
+  };
+
+  const shown = usingDefaults ? slot.defaults.map((d) => ({ ...d, fileId: "" })) : uploaded;
+
+  return (
+    <div className="border border-line bg-[#f8f5ef] p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-medium">{slot.label}</h3>
+          <p className="mt-1 text-sm text-muted">{slot.hint}</p>
+        </div>
+        {usingDefaults && shown.length > 0 && <span className="chip !px-2 !py-0.5 !text-xs">default</span>}
+      </div>
+
+      <div className={`mt-4 grid gap-3 ${slot.kind === "single" ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-3 sm:grid-cols-4"}`}>
+        {shown.map((img, i) => (
+          <figure key={`${img.src}-${i}`} className="group relative">
+            <div className="aspect-[4/5] overflow-hidden bg-paper-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.src} alt={img.alt} className={`h-full w-full object-cover ${usingDefaults ? "opacity-60" : ""}`} />
+            </div>
+            {!usingDefaults && (
+              <div className="mt-1 flex items-center justify-between text-xs">
+                <span className="text-muted">{slot.kind === "collection" ? `#${i + 1}` : ""}</span>
+                <span className="flex gap-2">
+                  {slot.kind === "collection" && (
+                    <>
+                      <button disabled={!!busy || i === 0} onClick={() => move(i, -1)} aria-label="Move earlier" className="disabled:opacity-30">←</button>
+                      <button disabled={!!busy || i === uploaded.length - 1} onClick={() => move(i, 1)} aria-label="Move later" className="disabled:opacity-30">→</button>
+                    </>
+                  )}
+                  <AltButton
+                    alt={img.alt}
+                    onSave={(alt) => save(uploaded.map((u, k) => (k === i ? { ...u, alt } : u)), "Description saved")}
+                  />
+                  <button
+                    disabled={!!busy}
+                    onClick={() => save(uploaded.filter((_, k) => k !== i), "Image removed")}
+                    className="text-pin"
+                    aria-label="Remove image"
+                  >
+                    ✕
+                  </button>
+                </span>
+              </div>
+            )}
+          </figure>
+        ))}
+        {shown.length === 0 && <p className="col-span-full text-sm text-muted">Empty — nothing is shown here yet.</p>}
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <button className="btn !py-3" disabled={!!busy} onClick={() => input.current?.click()}>
+          {slot.kind === "single" ? (usingDefaults ? "Upload image" : "Replace image") : usingDefaults ? "Upload images (replaces defaults)" : "Add images"}
+        </button>
+        {!usingDefaults && (
+          <button className="text-sm text-muted underline underline-offset-4" disabled={!!busy} onClick={() => save([], "Reverted to default")}>
+            {slot.defaults.length ? "Revert to default" : "Clear"}
+          </button>
+        )}
+        {busy && <span className="text-sm text-muted">{busy}</span>}
+      </div>
+      {error && <p className="mt-3 text-sm text-pin">{error}</p>}
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        multiple={slot.kind === "collection"}
+        hidden
+        onChange={(e) => upload(e.target.files)}
+      />
+    </div>
+  );
+}
+
+function AltButton({ alt, onSave }: { alt: string; onSave: (alt: string) => void }) {
+  return (
+    <button
+      title="Edit description (used by screen readers and Google)"
+      onClick={() => {
+        const next = window.prompt("Describe this image (for accessibility & SEO):", alt);
+        if (next !== null && next !== alt) onSave(next.slice(0, 200));
+      }}
+    >
+      Aa
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Animations
+// ---------------------------------------------------------------------------
+
+const PREVIEW: Record<string, string> = {
+  pinboard: "animate-[swing_2.4s_ease-in-out_infinite] origin-top",
+  scatter: "animate-[drift_4s_ease-in-out_infinite]",
+  orbit: "animate-[spin3d_5s_linear_infinite]",
+  gravity: "animate-[drop_1.8s_cubic-bezier(.5,0,.75,0)_infinite]",
+};
+
+function AnimationsTab({
+  settings,
+  disabled,
+  reload,
+  notify,
+}: {
+  settings?: SiteSettings;
+  disabled: boolean;
+  reload: () => Promise<void>;
+  notify: (m: string) => void;
+}) {
+  const [draft, setDraft] = useState<SiteSettings | null>(settings ?? null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  if (!draft) return <p className="text-muted">{disabled ? "Connect the backend to change animations." : "Loading…"}</p>;
+  const dirty = JSON.stringify(draft) !== JSON.stringify(settings);
+
+  const save = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      await postJson("/api/admin/settings", {
+        values: { ...draft, heroAutoCycle: String(draft.heroAutoCycle) },
+      });
+      await reload();
+      notify("Animations updated. Refresh the site to see them.");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-12">
+      <style>{`
+        @keyframes swing { 0%,100% { transform: rotate(-6deg) } 50% { transform: rotate(6deg) } }
+        @keyframes drift { 0%,100% { transform: translate(-6px,4px) rotate(-3deg) } 50% { transform: translate(6px,-4px) rotate(3deg) } }
+        @keyframes spin3d { from { transform: perspective(300px) rotateY(0) } to { transform: perspective(300px) rotateY(360deg) } }
+        @keyframes drop { 0% { transform: translateY(-40px) rotate(-20deg); opacity: 0 } 30% { opacity: 1 } 100% { transform: translateY(18px) rotate(8deg) } }
+      `}</style>
+
+      <section>
+        <h2 className="eyebrow mb-2">Homepage hero</h2>
+        <p className="mb-5 max-w-2xl text-sm text-ink-2">
+          Choose which interactive mode visitors see first. Visitors can still switch modes using the little dock in the hero corner.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {HERO_MODES.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setDraft({ ...draft, heroMode: m.id })}
+              className={`border p-5 text-left transition ${draft.heroMode === m.id ? "border-ink bg-ink text-paper" : "border-line hover:border-ink"}`}
+            >
+              <div className="mb-5 grid h-24 place-items-center overflow-hidden">
+                <div className={`h-16 w-12 bg-[#fbfaf6] p-1 pb-3 shadow-md ${PREVIEW[m.id]}`}>
+                  <div className="h-full w-full bg-[#c9bfae]" />
+                </div>
+              </div>
+              <h3 className="font-medium">{m.label}</h3>
+              <p className={`mt-1 text-sm ${draft.heroMode === m.id ? "text-paper/70" : "text-muted"}`}>{m.description}</p>
+            </button>
+          ))}
+        </div>
+        <label className="mt-6 flex cursor-pointer items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={draft.heroAutoCycle}
+            onChange={(e) => setDraft({ ...draft, heroAutoCycle: e.target.checked })}
+            className="h-4 w-4 accent-[var(--ink)]"
+          />
+          Rotate through all modes, so each visit starts on the next one
+        </label>
+      </section>
+
+      <OptionGroup
+        title="Page intro"
+        hint="Plays once per visit when someone first lands on the site."
+        options={INTRO_STYLES}
+        value={draft.introStyle}
+        onChange={(v) => setDraft({ ...draft, introStyle: v })}
+      />
+      <OptionGroup
+        title="Cursor"
+        hint="Desktop only. Phones and tablets always use touch."
+        options={CURSOR_STYLES}
+        value={draft.cursorStyle}
+        onChange={(v) => setDraft({ ...draft, cursorStyle: v })}
+      />
+
+      <div className="sticky bottom-6 flex items-center gap-4">
+        <button className="btn" disabled={!dirty || saving} onClick={save}>
+          {saving ? "Saving…" : "Save animation settings"}
+        </button>
+        {dirty && <span className="text-sm text-muted">Unsaved changes</span>}
+        {error && <span className="text-sm text-pin">{error}</span>}
+      </div>
+    </div>
+  );
+}
+
+function OptionGroup<T extends string>({
+  title,
+  hint,
+  options,
+  value,
+  onChange,
+}: {
+  title: string;
+  hint: string;
+  options: { id: T; label: string; description: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <section>
+      <h2 className="eyebrow mb-2">{title}</h2>
+      <p className="mb-4 text-sm text-ink-2">{hint}</p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {options.map((o) => (
+          <button
+            key={o.id}
+            onClick={() => onChange(o.id)}
+            className={`border p-4 text-left transition ${value === o.id ? "border-ink bg-ink text-paper" : "border-line hover:border-ink"}`}
+          >
+            <h3 className="font-medium">{o.label}</h3>
+            <p className={`mt-1 text-sm ${value === o.id ? "text-paper/70" : "text-muted"}`}>{o.description}</p>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Access
+// ---------------------------------------------------------------------------
+
+function AccessTab({ me, reload, notify }: { me: Me; reload: () => Promise<void>; notify: (m: string) => void }) {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const change = async (method: "POST" | "DELETE", target: string) => {
+    setBusy(true);
+    setError("");
+    try {
+      await postJson("/api/admin/admins", { email: target }, method);
+      await reload();
+      notify(method === "POST" ? `${target} can now sign in` : `${target} removed`);
+      setEmail("");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const others = (me.admins || []).filter((a) => a !== me.owner);
+
+  return (
+    <div className="max-w-2xl">
+      <p className="text-ink-2">
+        Only the Google accounts listed here can sign in to this admin panel. The list is stored in the <em>Admins</em> tab of the Google Sheet.
+      </p>
+      <ul className="mt-8 divide-y divide-line border-y border-line">
+        <li className="flex items-center justify-between py-4">
+          <span>{me.owner}</span>
+          <span className="eyebrow">Owner · permanent</span>
+        </li>
+        {others.map((a) => (
+          <li key={a} className="flex items-center justify-between py-4">
+            <span>{a}</span>
+            {a === me.session?.email ? (
+              <span className="eyebrow">You</span>
+            ) : (
+              <button disabled={busy} onClick={() => change("DELETE", a)} className="text-sm text-pin underline underline-offset-4">
+                Remove
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <form
+        className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (email) change("POST", email.trim().toLowerCase());
+        }}
+      >
+        <div className="field flex-1">
+          <label>Add a Google account</label>
+          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@gmail.com" />
+        </div>
+        <button className="btn" disabled={busy || !me.backendConfigured}>Grant access</button>
+      </form>
+      {!me.backendConfigured && <p className="mt-3 text-sm text-muted">Connect the backend to manage additional admins.</p>}
+      {error && <p className="mt-3 text-sm text-pin">{error}</p>}
+    </div>
+  );
+}

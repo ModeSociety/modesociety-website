@@ -20,7 +20,7 @@ Admin ─ Google sign-in ─┘                                              ├
 | Where | What it does |
 | --- | --- |
 | **Intro** | A black curtain lifts off the "MODE SOCIETY" wordmark (or a polaroid-style "develop" fade). It plays once per visit. |
-| **Home: The Wall** | The hero is a moodboard of pinned polaroids with four interactive modes. Visitors can switch modes with the dock in the bottom-right corner, and ⟲ shuffles the wall. <br>• **Pinboard**: cards hang from their pins and swing in the cursor's "breeze". Drag to rearrange; double-click to unpin and drop a card; drag it back up to re-pin it. <br>• **Scatter**: cards float in layered depth, drift with parallax, and push away from the cursor. <br>• **Orbit**: a 3D carousel. Drag to spin; click a card to bring it forward. <br>• **Gravity**: cards tumble in and pile up (matter-js physics). Grab and throw them, or flick the cursor fast to gust them. |
+| **Home: The Wall** | The hero is a moodboard of pinned polaroids with four interactive modes. The mode is set in the admin panel; visitors can play with it but can't switch modes. **Shuffle** rearranges the wall. <br>• **Pinboard**: cards hang from their pins and swing in the cursor's "breeze". Drag to rearrange; double-click to unpin and drop a card; drag it back up to re-pin it. <br>• **Scatter**: cards float in layered depth, drift with parallax, and push away from the cursor. <br>• **Orbit**: a 3D carousel. Drag to spin; click a card to bring it forward. <br>• **Gravity**: cards tumble in and pile up (matter-js physics). Grab and throw them, or flick the cursor fast to gust them. |
 | **Home: marquee** | "UGC 〰 INFLUENCERS 〰 MODELS…" ticker. It speeds up with scroll velocity and reverses when you scroll back up. |
 | **Home: the agency** | The paragraph "inks in" word by word as you scroll. |
 | **Home: services** | Five cards are dealt out of a stacked hand as you scroll. Hover (or tap) a card to flip it for details and an enquiry link. |
@@ -38,7 +38,7 @@ Admin ─ Google sign-in ─┘                                              ├
 Sign in with Google. Only approved accounts get in.
 
 - **Images:** every image on the site is listed by page. You can upload, replace, reorder (← →), remove, edit the description (**Aa**, used for accessibility and SEO), or **revert to default**. Uploads are compressed in the browser, then saved into `Website Images/<slot>` in Drive. Changes show on the live site within seconds.
-- **Animations:** choose which hero mode visitors see first, or tick *rotate* so each visit starts on the next mode. You can also pick the homepage game, the For brands / For talent style, the footer wordmark, the page intro (Curtain / Polaroid develop / None) and the cursor (Ring / Spotlight / System).
+- **Animations:** choose which hero mode visitors see first, or tick *rotate* to show a random mode on each visit (never the same one twice in a row). You can also pick the homepage game, the For brands / For talent style, the footer wordmark, the page intro (Curtain / Polaroid develop / None) and the cursor (Ring / Spotlight / System).
 - **Access:** add or remove Google accounts. The **owner** (`OWNER_EMAIL`, `rubayathdrjb@gmail.com` by default) is permanent, so you can never lock yourself out.
 - Shortcut buttons open the **Google Sheet**, the **website folder** and the **talent applications folder**.
 

@@ -13,29 +13,36 @@ const HINTS: Record<HeroMode, string> = {
   gravity: "Grab, throw, stack",
 };
 
-const CYCLE_KEY = "ms-hero-cycle";
+const LAST_KEY = "ms-hero-last";
 
 export default function Hero({ images, settings }: { images: SiteImage[]; settings: SiteSettings }) {
   const wall = useRef<HTMLDivElement>(null);
   const copy = useRef<HTMLDivElement>(null);
+  // Visitors can't change the mode; it comes from the admin panel.
   const [mode, setMode] = useState<HeroMode>(settings.heroMode);
   const [seed, setSeed] = useState(7);
   const [mobile, setMobile] = useState(false);
   const cards = mobile ? images.slice(0, 6) : images;
 
-  // Auto-cycle: each visit starts on the next mode in the rotation.
+  // Rotate: each visit gets a random mode, never the same one twice in a row.
   useEffect(() => {
     if (!settings.heroAutoCycle) return;
+    let last: string | null = null;
     try {
-      const ids = HERO_MODES.map((m) => m.id);
-      const next = (Number(localStorage.getItem(CYCLE_KEY) ?? ids.indexOf(settings.heroMode) - 1) + 1) % ids.length;
-      localStorage.setItem(CYCLE_KEY, String(next));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- visit counter lives in localStorage
-      setMode(ids[next]);
+      last = localStorage.getItem(LAST_KEY);
+    } catch {
+      /* storage blocked — still pick at random */
+    }
+    const options = HERO_MODES.map((m) => m.id).filter((id) => id !== last);
+    const next = options[Math.floor(Math.random() * options.length)];
+    try {
+      localStorage.setItem(LAST_KEY, next);
     } catch {
       /* ignore */
     }
-  }, [settings.heroAutoCycle, settings.heroMode]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- random pick must happen client-side
+    setMode(next);
+  }, [settings.heroAutoCycle]);
 
   useLayoutEffect(() => {
     const check = () => setMobile(window.innerWidth < 768);
@@ -166,29 +173,13 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
           </div>
           <div className="hero-fade pointer-events-auto flex flex-col items-start gap-2 md:items-end">
             <span className="font-serif text-sm italic text-ink-2">{HINTS[mode]}</span>
-            <div className="flex items-center gap-1 rounded-full border border-line bg-paper/80 p-1 backdrop-blur-md">
-              {HERO_MODES.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setMode(m.id)}
-                  aria-pressed={mode === m.id}
-                  title={m.description}
-                  className={`rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] transition-colors duration-300 ${
-                    mode === m.id ? "bg-ink text-paper" : "text-ink-2 hover:text-ink"
-                  }`}
-                >
-                  {m.label.replace("Parallax ", "").replace(" Drop", "")}
-                </button>
-              ))}
-              <button
-                onClick={() => setSeed((s) => s + 1)}
-                className="grid h-8 w-8 place-items-center rounded-full text-ink-2 transition-transform duration-500 hover:rotate-180 hover:text-ink"
-                aria-label="Shuffle the wall"
-                title="Shuffle"
-              >
-                ⟲
-              </button>
-            </div>
+            <button
+              onClick={() => setSeed((s) => s + 1)}
+              className="group flex items-center gap-2 rounded-full border border-line bg-paper/80 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-ink-2 backdrop-blur-md transition-colors hover:text-ink"
+              aria-label="Shuffle the wall"
+            >
+              <span className="inline-block transition-transform duration-500 group-hover:rotate-180">⟲</span> Shuffle
+            </button>
           </div>
         </div>
       </div>

@@ -435,7 +435,7 @@ function AnimationsTab({
       <section>
         <h2 className="eyebrow mb-2">Homepage hero</h2>
         <p className="mb-5 max-w-2xl text-sm text-ink-2">
-          Choose which interactive mode visitors see first. Visitors can still switch modes using the little dock in the hero corner.
+          Choose the interactive mode visitors see. Visitors can play with it but can’t switch to a different mode.
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {HERO_MODES.map((m) => (
@@ -461,7 +461,7 @@ function AnimationsTab({
             onChange={(e) => setDraft({ ...draft, heroAutoCycle: e.target.checked })}
             className="h-4 w-4 accent-[var(--ink)]"
           />
-          Rotate through all modes, so each visit starts on the next one
+          Rotate: show a random mode on each visit (overrides the choice above)
         </label>
       </section>
 

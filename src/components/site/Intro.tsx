@@ -44,7 +44,7 @@ export default function Intro({ style }: { style: IntroStyle }) {
   return (
     <div ref={curtain} className="intro-curtain" style={{ clipPath: "inset(0 0 0% 0)" }} aria-hidden>
       <div className="text-center">
-        <div className="font-display overflow-hidden text-[8vw] leading-[1.15] md:text-[6vw]">
+        <div className="font-display reveal-line text-[8vw] leading-[1.15] md:text-[6vw]">
           {"MODE SOCIETY".split("").map((c, i) => (
             <span key={i} className="intro-letter inline-block">
               {c === " " ? " " : c}

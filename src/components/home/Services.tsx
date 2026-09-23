@@ -37,7 +37,7 @@ export default function Services({ services }: { services: Service[] }) {
     <section ref={ref} className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden py-24">
       <div className="wrap">
         <div className="svc-heading mb-10 flex flex-col justify-between gap-6 md:mb-14 md:flex-row md:items-end">
-          <h2 className="font-display text-[clamp(32px,5vw,72px)]">
+          <h2 className="font-display flex flex-col text-[clamp(32px,5vw,72px)]">
             <span className="reveal-line"><span>What we</span></span>
             <span className="reveal-line"><span className="font-serif italic tracking-normal">bring to the table.</span></span>
           </h2>

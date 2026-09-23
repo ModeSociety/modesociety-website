@@ -64,7 +64,8 @@ export function RiseLines({
     { scope: ref },
   );
   return (
-    <Tag ref={ref} className={className}>
+    // flex column: stops the masks' negative margins collapsing, so line spacing is unchanged
+    <Tag ref={ref} className={`flex flex-col ${className}`}>
       {lines.map((l, i) => (
         <span key={i} className="reveal-line">
           <span>{l}</span>

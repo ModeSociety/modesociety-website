@@ -121,7 +121,7 @@ export default function Wordmark({ style }: { style: FooterStyle }) {
             className="ltr inline-block"
             style={{ transformOrigin: style === "swing" ? "50% 0%" : "50% 100%", willChange: "transform" }}
           >
-            <span className="block overflow-hidden pb-[0.04em]">
+            <span className="reveal-line">
               <span className="rise inline-block">
                 <span className="spin inline-block">{c}</span>
               </span>

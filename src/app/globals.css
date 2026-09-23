@@ -79,11 +79,12 @@ img {
 }
 
 @layer components {
+/* Boldonse caps are ~1.2em tall, so anything tighter than 1.2 makes stacked lines touch. */
 .font-display {
   font-family: var(--font-boldonse), serif;
   font-weight: 400;
   letter-spacing: -0.01em;
-  line-height: 1.12;
+  line-height: 1.2;
 }
 
 .font-serif {
@@ -462,11 +463,18 @@ textarea.input {
   overflow: hidden;
 }
 
+/*
+ * Slide-up text mask. Boldonse's ink overflows its line box (caps rise ~0.07em above it,
+ * descenders fall ~0.3em below at tight leading), so the mask is padded on both sides
+ * and pulled back with negative margins to keep the layout unchanged.
+ */
 .reveal-line {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.14em;
-  margin-bottom: -0.1em;
+  padding-top: 0.14em;
+  padding-bottom: 0.34em;
+  margin-top: -0.14em;
+  margin-bottom: -0.34em;
 }
 .reveal-line > span {
   display: inline-block;

@@ -32,20 +32,32 @@ export async function verifyGoogleCredential(credential: string) {
   };
 }
 
-let adminCache: { at: number; list: string[] } | null = null;
+let adminCache: { at: number; list: string[]; backendOwner: string } | null = null;
 
+/**
+ * Everyone allowed in besides the site owner: the Admins tab plus the backend's own
+ * OWNER_EMAIL script property (so a Drive owner set there can always sign in too).
+ */
 export async function listAdmins(force = false) {
   if (!force && adminCache && Date.now() - adminCache.at < 30_000) return adminCache.list;
   let list: string[] = [];
+  let backendOwner = "";
   try {
-    const data = await callBackend<{ admins: string[] }>("getAdmins");
-    list = data.admins;
+    const data = await callBackend<{ owner?: string; admins: string[] }>("getAdmins");
+    backendOwner = data.owner || "";
+    list = [...new Set([...(backendOwner ? [backendOwner] : []), ...data.admins])];
   } catch (err) {
     // Backend unreachable: only the owner can get in, so the panel is still usable for setup.
     console.error("[mode-society] admin list unavailable:", err);
   }
-  adminCache = { at: Date.now(), list };
+  adminCache = { at: Date.now(), list, backendOwner };
   return list;
+}
+
+/** The backend's OWNER_EMAIL script property (permanent, can't be removed from the panel). */
+export async function backendOwnerEmail() {
+  await listAdmins();
+  return adminCache?.backendOwner || "";
 }
 
 export function invalidateAdminCache() {

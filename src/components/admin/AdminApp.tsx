@@ -17,6 +17,7 @@ import {
 type Me = {
   session: { email: string; name: string; picture: string } | null;
   owner?: string;
+  backendOwner?: string;
   admins?: string[];
   backendConfigured?: boolean;
   backendError?: string;
@@ -544,7 +545,8 @@ function AccessTab({ me, reload, notify }: { me: Me; reload: () => Promise<void>
     }
   };
 
-  const others = (me.admins || []).filter((a) => a !== me.owner);
+  const permanent = [me.owner, me.backendOwner].filter((e, i, all): e is string => Boolean(e) && all.indexOf(e) === i);
+  const others = (me.admins || []).filter((a) => !permanent.includes(a));
 
   return (
     <div className="max-w-2xl">
@@ -552,10 +554,12 @@ function AccessTab({ me, reload, notify }: { me: Me; reload: () => Promise<void>
         Only the Google accounts listed here can sign in to this admin panel. The list is stored in the <em>Admins</em> tab of the Google Sheet.
       </p>
       <ul className="mt-8 divide-y divide-line border-y border-line">
-        <li className="flex items-center justify-between py-4">
-          <span>{me.owner}</span>
-          <span className="eyebrow">Owner · permanent</span>
-        </li>
+        {permanent.map((p) => (
+          <li key={p} className="flex items-center justify-between py-4">
+            <span>{p}</span>
+            <span className="eyebrow">{p === me.owner ? "Site owner" : "Drive owner"} · permanent</span>
+          </li>
+        ))}
         {others.map((a) => (
           <li key={a} className="flex items-center justify-between py-4">
             <span>{a}</span>

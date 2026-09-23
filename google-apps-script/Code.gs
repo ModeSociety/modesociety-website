@@ -6,7 +6,7 @@
  * a shared secret. See README.md → "Backend setup" for deployment steps.
  *
  * Script properties (Project Settings → Script properties):
- *   ROOT_FOLDER_ID  – the Drive folder the website lives in (required)
+ *   ROOT_FOLDER_ID  – the Drive folder the website lives in: its ID or its full URL (required)
  *   SHARED_SECRET   – long random string, must match APPS_SCRIPT_SECRET on the site (required)
  *   OWNER_EMAIL     – permanent admin that can never be removed (optional, recommended)
  * Everything else (SPREADSHEET_ID, sub-folder IDs) is created by setup().
@@ -49,7 +49,7 @@ var DEFAULT_SETTINGS = {
 // ---------------------------------------------------------------------------
 function setup() {
   var props = PropertiesService.getScriptProperties();
-  var rootId = props.getProperty('ROOT_FOLDER_ID');
+  var rootId = rootFolderId_();
   if (!rootId) throw new Error('Set the ROOT_FOLDER_ID script property first.');
   if (!props.getProperty('SHARED_SECRET')) throw new Error('Set the SHARED_SECRET script property first.');
   var root = DriveApp.getFolderById(rootId);
@@ -140,7 +140,7 @@ var ACTIONS = {
     var props = PropertiesService.getScriptProperties();
     return {
       spreadsheetUrl: spreadsheet_().getUrl(),
-      folderUrl: DriveApp.getFolderById(props.getProperty('ROOT_FOLDER_ID')).getUrl(),
+      folderUrl: DriveApp.getFolderById(rootFolderId_()).getUrl(),
       imagesFolderUrl: folder_('images').getUrl(),
       talentFolderUrl: folder_('talent').getUrl(),
     };
@@ -355,6 +355,13 @@ function readAdmins_() {
     if (email && out.indexOf(email) === -1) out.push(email);
   }
   return out;
+}
+
+/** Accepts either a bare folder ID or a pasted https://drive.google.com/drive/folders/<id> URL. */
+function rootFolderId_() {
+  var raw = String(PropertiesService.getScriptProperties().getProperty('ROOT_FOLDER_ID') || '').trim();
+  var fromUrl = raw.match(/folders\/([-\w]+)/) || raw.match(/[?&]id=([-\w]+)/);
+  return fromUrl ? fromUrl[1] : raw;
 }
 
 function ownerEmail_() {

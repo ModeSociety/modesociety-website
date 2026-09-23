@@ -1,4 +1,4 @@
-import { errorResponse, getAdminSession, listAdmins, ownerEmail } from "@/lib/auth";
+import { backendOwnerEmail, errorResponse, getAdminSession, listAdmins, ownerEmail } from "@/lib/auth";
 import { backendConfigured, callBackend } from "@/lib/backend";
 
 type Info = { spreadsheetUrl: string; folderUrl: string; imagesFolderUrl: string; talentFolderUrl: string };
@@ -21,6 +21,7 @@ export async function GET() {
       session,
       owner: ownerEmail(),
       admins: await listAdmins(true),
+      backendOwner: await backendOwnerEmail(),
       backendConfigured: backendConfigured(),
       backendError,
       info,

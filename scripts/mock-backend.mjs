@@ -20,7 +20,7 @@ const DB = join(DIR, "db.json");
 mkdirSync(FILES, { recursive: true });
 
 const empty = {
-  settings: { heroMode: "pinboard", heroAutoCycle: "false", introStyle: "curtain", cursorStyle: "ring" },
+  settings: { heroMode: "pinboard", heroAutoCycle: "false", introStyle: "curtain", cursorStyle: "ring", gameMode: "memory", ctaStyle: "split", footerStyle: "magnetic" },
   images: [],
   admins: [],
   talent: [],

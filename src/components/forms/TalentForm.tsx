@@ -50,6 +50,10 @@ export default function TalentForm() {
         image={workReady[0]?.preview}
         title="You're on the board."
         body="Thanks for applying to Mode Society. Our team reviews every application personally and will be in touch if it's a fit."
+        links={[
+          { href: "/about", label: "About Mode Society" },
+          { href: "https://instagram.com/modesocietyagency", label: "Follow us", external: true },
+        ]}
       />
     );
   }

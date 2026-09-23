@@ -16,7 +16,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <SiteShell settings={settings}>
       <Nav logo={images["brand.logo"]?.[0]} />
       <main>{children}</main>
-      <Footer />
+      <Footer style={settings.footerStyle} />
     </SiteShell>
   );
 }

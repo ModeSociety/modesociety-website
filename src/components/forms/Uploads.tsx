@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 
 export type UploadItem = { key: string; name: string; preview: string; status: "uploading" | "done" | "error"; fileId?: string; error?: string };
@@ -107,8 +109,45 @@ export function PolaroidUploads({
   );
 }
 
-/** Falling pins + a pinned polaroid for the success screen. */
-export function SuccessBoard({ title, body, reference, image }: { title: string; body: string; reference: string; image?: string }) {
+export type SuccessLink = { href: string; label: string; external?: boolean };
+
+const REDIRECT_SECONDS = 15;
+
+/**
+ * Falling pins + a pinned polaroid for the success screen, with clear next steps and a
+ * gentle auto-return to the homepage that the visitor can cancel.
+ */
+export function SuccessBoard({
+  title,
+  body,
+  reference,
+  image,
+  links,
+}: {
+  title: string;
+  body: string;
+  reference: string;
+  image?: string;
+  links: SuccessLink[];
+}) {
+  const router = useRouter();
+  const [left, setLeft] = useState(REDIRECT_SECONDS);
+  const [stay, setStay] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (stay) return;
+    if (left <= 0) {
+      router.push("/");
+      return;
+    }
+    const t = setTimeout(() => setLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [left, stay, router]);
+
   return (
     <div className="relative py-10 text-center">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -140,6 +179,41 @@ export function SuccessBoard({ title, body, reference, image }: { title: string;
       <p className="eyebrow mt-10">Reference {reference}</p>
       <h2 className="font-display mt-3 text-[clamp(28px,4vw,52px)]">{title}</h2>
       <p className="mx-auto mt-4 max-w-md text-ink-2">{body}</p>
+
+      <div className="mt-10 flex flex-wrap justify-center gap-3">
+        <Link href="/" className="btn">
+          Back to home <span className="arrow">→</span>
+        </Link>
+        {links.map((l) =>
+          l.external ? (
+            <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="btn ghost">
+              {l.label} ↗
+            </a>
+          ) : (
+            <Link key={l.href} href={l.href} className="btn ghost">
+              {l.label}
+            </Link>
+          ),
+        )}
+      </div>
+
+      <p className="mt-8 text-sm text-muted" aria-live="polite">
+        {stay ? (
+          "No rush. Take your time."
+        ) : (
+          <>
+            Taking you back to the homepage in {left}s ·{" "}
+            <button type="button" onClick={() => setStay(true)} className="underline underline-offset-4 hover:text-ink">
+              stay here
+            </button>
+          </>
+        )}
+      </p>
+      {!stay && (
+        <div className="mx-auto mt-3 h-px w-40 overflow-hidden bg-line">
+          <div className="h-full bg-ink" style={{ width: `${(left / REDIRECT_SECONDS) * 100}%`, transition: "width 1s linear" }} />
+        </div>
+      )}
       <style>{`
         @keyframes pinfall { to { transform: translateY(520px) rotate(360deg); opacity: 0; } }
         @keyframes pinin { from { transform: translateY(-120px) rotate(12deg); opacity: 0; } to { transform: rotate(-3deg); opacity: 1; } }

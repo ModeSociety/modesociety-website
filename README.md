@@ -24,12 +24,13 @@ Admin ─ Google sign-in ─┘                                              ├
 | **Home: marquee** | "UGC 〰 INFLUENCERS 〰 MODELS…" ticker. It speeds up with scroll velocity and reverses when you scroll back up. |
 | **Home: the agency** | The paragraph "inks in" word by word as you scroll. |
 | **Home: services** | Five cards are dealt out of a stacked hand as you scroll. Hover (or tap) a card to flip it for details and an enquiry link. |
-| **Home: The Casting Call** | A memory-match game with talent photos, a timer, a move counter and a personal best. Finishing it offers **"Book your cast"**, which opens the brand form with a *Casting Call champion* badge, and the score is saved on the enquiry. |
+| **Home: the game** | One playable section, chosen in the admin panel (or *Rotate* for a different one each visit). Every game has a personal best, and finishing offers **"Book your cast"**, which opens the brand form with a *champion* badge and saves the score on the enquiry. <br>• **Casting Call**: memory match against the clock. <br>• **The Shortlist**: swipe right to cast, left to pass, until three are shortlisted. <br>• **Eye on the Talent**: a shell game; follow the starred polaroid through the shuffle, faster every level. <br>• **Editorial Puzzle**: a 3×3 sliding-tile puzzle of a talent photo, with hold-to-peek. <br>• **Darkroom**: rub undeveloped polaroids to bring each photo through. |
 | **Home: niches & brands** | A giant niche marquee, plus a client-logo strip that only shows once logos are uploaded. |
-| **For brands / For talent** | Two image panels that widen on hover. |
+| **For brands / For talent** | Four looks, switchable in the admin panel: **Split** (panels widen and turn to colour), **Type reveal** (big rows, with a photo that follows the cursor), **Tilt** (3D polaroids with glare) and **Blinds** (ink slats open to reveal the photo). |
+| **Footer** | The giant MODESOCIETY always sizes itself to fit. It can be **Magnetic** (letters rise toward the cursor), **Swing** (letters hang and swing, and click to spin) or **Static**. |
 | **About** | Founder story with a parallax portrait. The industry frustrations get struck through in red as you scroll. A pinned horizontal polaroid gallery follows. |
 | **Work with us** (`/work-with-us`) | The brand enquiry form as three **levels** with a progress bar. It uses the same questions as the original site. |
-| **Apply** (`/apply-to-be-a-creator`) | The talent application as four levels. Photos "develop" like polaroids while they upload, and the success screen pins the applicant's own photo to the board. |
+| **Apply** (`/apply-to-be-a-creator`) | The talent application as four levels. Photos "develop" like polaroids while they upload, and the success screen pins the applicant's own photo to the board. Both forms end with links onward and return to the homepage after 15 seconds, unless the visitor chooses to stay. |
 | **Everywhere** | Smooth scrolling, a custom cursor that labels things (*drag, flip, spin, throw, copy*), a paper-grain finish, magnetic-fill buttons, and click-to-copy email in the footer. Visitors with *reduced motion* switched on get a calm, static version. |
 
 ### The admin panel: `/admin`
@@ -37,7 +38,7 @@ Admin ─ Google sign-in ─┘                                              ├
 Sign in with Google. Only approved accounts get in.
 
 - **Images:** every image on the site is listed by page. You can upload, replace, reorder (← →), remove, edit the description (**Aa**, used for accessibility and SEO), or **revert to default**. Uploads are compressed in the browser, then saved into `Website Images/<slot>` in Drive. Changes show on the live site within seconds.
-- **Animations:** choose which hero mode visitors see first, or tick *rotate* so each visit starts on the next mode. You can also pick the page intro (Curtain / Polaroid develop / None) and the cursor (Ring / Spotlight / System).
+- **Animations:** choose which hero mode visitors see first, or tick *rotate* so each visit starts on the next mode. You can also pick the homepage game, the For brands / For talent style, the footer wordmark, the page intro (Curtain / Polaroid develop / None) and the cursor (Ring / Spotlight / System).
 - **Access:** add or remove Google accounts. The **owner** (`OWNER_EMAIL`, `rubayathdrjb@gmail.com` by default) is permanent, so you can never lock yourself out.
 - Shortcut buttons open the **Google Sheet**, the **website folder** and the **talent applications folder**.
 
@@ -162,6 +163,7 @@ src/lib/slots.ts        Every image slot + animation option. Add a slot here and
 src/lib/backend.ts      Calls Apps Script; caches site content (refreshed instantly on admin save)
 src/lib/auth.ts         Google ID-token verification, allowlist, session cookie
 src/components/home/wall/engines.ts   The four hero modes
+src/components/home/games/            The homepage games (GameSection picks one)
 src/app/(site)/…        Public pages
 src/app/admin/          Admin panel
 src/app/media/[id]      Serves Drive images through the site (nothing in Drive is made public)

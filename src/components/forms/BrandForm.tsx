@@ -13,17 +13,19 @@ export default function BrandForm() {
   const [f, setF] = useState({ name: "", position: "", company: "", email: "", phone: "", website: "", business: "", target: "", goals: "" });
   const [services, setServices] = useState<Service[]>([]);
   const [budget, setBudget] = useState<Budget[]>([]);
-  const [casting, setCasting] = useState<{ time: string; moves: string } | null>(null);
+  const [played, setPlayed] = useState<{ game: string; score: string } | null>(null);
   const [honey, setHoney] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState<string | null>(null);
 
-  // Arriving from the Casting Call game carries the visitor's score along.
+  // Arriving from a homepage game carries the visitor's score along (?from=game&game=…&score=…).
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
+    const game = q.get("game")?.slice(0, 40);
+    const score = q.get("score")?.slice(0, 80);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- URL params are only known in the browser
-    if (q.get("from") === "casting") setCasting({ time: q.get("time") || "", moves: q.get("moves") || "" });
+    if (q.get("from") === "game" && game && score) setPlayed({ game, score });
     const svc = q.get("service");
     if (svc && (SERVICES as readonly string[]).includes(svc)) setServices([svc as Service]);
   }, []);
@@ -39,7 +41,7 @@ export default function BrandForm() {
           ...f,
           services,
           budget: budget[0] || "",
-          moodboard: casting ? [`Casting Call ${casting.time} / ${casting.moves} moves`] : [],
+          moodboard: played ? [`${played.game}: ${played.score}`] : [],
         },
         website_url: honey,
       });
@@ -57,18 +59,22 @@ export default function BrandForm() {
         reference={done}
         title="Brief received."
         body="Thank you. If it feels like the right fit, our team will be in touch to book a call."
+        links={[
+          { href: "/about", label: "How we work" },
+          { href: "https://instagram.com/modesocietyagency", label: "See our work", external: true },
+        ]}
       />
     );
   }
 
   return (
     <>
-      {casting && (
+      {played && (
         <div className="mb-10 flex items-center gap-4 border border-line bg-paper-2/60 p-4">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-ink font-serif text-lg italic text-paper">★</span>
           <p className="text-sm text-ink-2">
-            <strong className="font-medium text-ink">Casting Call champion.</strong> You matched the cast in {casting.time} with {casting.moves} moves, so
-            we&apos;ll mention it on your brief.
+            <strong className="font-medium text-ink">{played.game} champion.</strong> You finished with {played.score}, so we&apos;ll
+            mention it on your brief.
           </p>
         </div>
       )}

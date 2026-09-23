@@ -55,7 +55,7 @@ export default function Nav({ logo }: { logo?: SiteImage }) {
       stagger: 0.06,
     });
     return () => {
-      tween.kill();
+      tween.revert();
     };
   }, [open]);
 

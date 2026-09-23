@@ -34,7 +34,7 @@ export default function Intro({ style }: { style: IntroStyle }) {
       .to(el.querySelector(".intro-sub"), { opacity: 0, duration: 0.3 }, "<")
       .to(el, { clipPath: "inset(0 0 100% 0)", duration: 1, ease: "expo.inOut" }, "-=0.2");
     return () => {
-      tl.kill();
+      tl.revert();
     };
   }, [show, style]);
 

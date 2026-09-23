@@ -4,7 +4,10 @@ import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import {
+  CTA_STYLES,
   CURSOR_STYLES,
+  FOOTER_STYLES,
+  GAME_MODES,
   HERO_MODES,
   INTRO_STYLES,
   SLOTS,
@@ -470,6 +473,27 @@ function AnimationsTab({
         onChange={(v) => setDraft({ ...draft, introStyle: v })}
       />
       <OptionGroup
+        title="Homepage game"
+        hint="The playable section after the services. Games use The Wall photos (or the Casting Call faces for Memory and Darkroom)."
+        options={GAME_MODES}
+        value={draft.gameMode}
+        onChange={(v) => setDraft({ ...draft, gameMode: v })}
+      />
+      <OptionGroup
+        title="For brands / For talent section"
+        hint="The two-way call to action near the bottom of the homepage and on the contact page. Uses the Contact card images."
+        options={CTA_STYLES}
+        value={draft.ctaStyle}
+        onChange={(v) => setDraft({ ...draft, ctaStyle: v })}
+      />
+      <OptionGroup
+        title="Footer wordmark"
+        hint="How the giant MODESOCIETY at the bottom of every page reacts to the cursor."
+        options={FOOTER_STYLES}
+        value={draft.footerStyle}
+        onChange={(v) => setDraft({ ...draft, footerStyle: v })}
+      />
+      <OptionGroup
         title="Cursor"
         hint="Desktop only. Phones and tablets always use touch."
         options={CURSOR_STYLES}
@@ -477,7 +501,7 @@ function AnimationsTab({
         onChange={(v) => setDraft({ ...draft, cursorStyle: v })}
       />
 
-      <div className="sticky bottom-6 flex items-center gap-4">
+      <div className="sticky bottom-0 z-20 -mx-[var(--gutter)] flex items-center gap-4 border-t border-line bg-paper/90 px-[var(--gutter)] py-4 backdrop-blur">
         <button className="btn" disabled={!dirty || saving} onClick={save}>
           {saving ? "Saving…" : "Save animation settings"}
         </button>
@@ -505,7 +529,7 @@ function OptionGroup<T extends string>({
     <section>
       <h2 className="eyebrow mb-2">{title}</h2>
       <p className="mb-4 text-sm text-ink-2">{hint}</p>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-[repeat(auto-fill,minmax(230px,1fr))]">
         {options.map((o) => (
           <button
             key={o.id}

@@ -1,28 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { useState } from "react";
+import type { FooterStyle } from "@/lib/slots";
+import Wordmark from "./Wordmark";
 
 const EMAIL = "pr@modesociety.com.au";
 
-export default function Footer() {
-  const ref = useRef<HTMLElement>(null);
+export default function Footer({ style }: { style: FooterStyle }) {
   const [copied, setCopied] = useState(false);
-
-  useGSAP(
-    () => {
-      if (prefersReducedMotion()) return;
-      gsap.from(ref.current!.querySelectorAll(".big-letter"), {
-        yPercent: 100,
-        ease: "expo.out",
-        stagger: 0.04,
-        duration: 1.2,
-        scrollTrigger: { trigger: ref.current!.querySelector(".big-word"), start: "top 95%" },
-      });
-    },
-    { scope: ref },
-  );
 
   const copy = async () => {
     try {
@@ -35,7 +21,7 @@ export default function Footer() {
   };
 
   return (
-    <footer ref={ref} className="relative overflow-hidden bg-ink text-paper">
+    <footer className="relative overflow-hidden bg-ink text-paper">
       <div className="wrap grid gap-14 pb-10 pt-24 md:grid-cols-12 md:pt-32">
         <div className="md:col-span-7">
           <p className="eyebrow !text-paper/50">Let&apos;s connect</p>
@@ -77,18 +63,14 @@ export default function Footer() {
           </nav>
         </div>
       </div>
-      <div className="big-word wrap overflow-hidden pb-4">
-        <div className="font-display flex justify-between text-[9vw] leading-[1.15] text-paper" aria-hidden>
-          {"MODESOCIETY".split("").map((c, i) => (
-            <span key={i} className="big-letter inline-block">
-              {c}
-            </span>
-          ))}
-        </div>
+      <div className="wrap pb-6">
+        <Wordmark style={style} />
       </div>
-      <div className="wrap flex flex-wrap justify-between gap-2 border-t border-paper/10 py-6 text-xs text-paper/40">
-        <span>© {new Date().getFullYear()} Mode Society — Australian boutique talent agency.</span>
-        <span>UGC · Influencers · Models · Streamers · Content creators</span>
+      <div className="wrap">
+        <div className="flex flex-wrap justify-between gap-2 border-t border-paper/10 py-6 text-xs text-paper/40">
+          <span>© {new Date().getFullYear()} Mode Society — Australian boutique talent agency.</span>
+          <span>UGC · Influencers · Models · Streamers · Content creators</span>
+        </div>
       </div>
     </footer>
   );

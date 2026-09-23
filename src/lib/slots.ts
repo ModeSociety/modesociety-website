@@ -83,6 +83,9 @@ export const SLOT_IDS = new Set(SLOTS.map((s) => s.id));
 export type HeroMode = "pinboard" | "scatter" | "orbit" | "gravity";
 export type IntroStyle = "curtain" | "develop" | "none";
 export type CursorStyle = "ring" | "spotlight" | "off";
+export type GameMode = "memory" | "shortlist" | "shell" | "puzzle" | "darkroom" | "rotate" | "off";
+export type CtaStyle = "split" | "reveal" | "tilt" | "blinds";
+export type FooterStyle = "magnetic" | "swing" | "static";
 
 export const HERO_MODES: { id: HeroMode; label: string; description: string }[] = [
   { id: "pinboard", label: "Pinboard", description: "Pinned polaroids that swing in the cursor's breeze. Drag to rearrange, double-click to unpin." },
@@ -103,11 +106,37 @@ export const CURSOR_STYLES: { id: CursorStyle; label: string; description: strin
   { id: "off", label: "System cursor", description: "Normal cursor." },
 ];
 
+export const GAME_MODES: { id: GameMode; label: string; description: string }[] = [
+  { id: "memory", label: "Casting Call", description: "Memory match: flip cards and pair up the faces against the clock." },
+  { id: "shortlist", label: "The Shortlist", description: "Swipe right to cast, left to pass. Build a shortlist of three." },
+  { id: "shell", label: "Eye on the Talent", description: "Follow the starred polaroid as the cards shuffle. It gets faster every level." },
+  { id: "puzzle", label: "Editorial Puzzle", description: "A sliding-tile puzzle of a talent photo. Peek if you get stuck." },
+  { id: "darkroom", label: "Darkroom", description: "Rub the undeveloped polaroids to develop each photo." },
+  { id: "rotate", label: "Rotate", description: "A different game on each visit." },
+  { id: "off", label: "Hidden", description: "No game section on the homepage." },
+];
+
+export const CTA_STYLES: { id: CtaStyle; label: string; description: string }[] = [
+  { id: "split", label: "Split panels", description: "Two photo panels; the one you hover widens and turns to colour." },
+  { id: "reveal", label: "Type reveal", description: "Big typographic rows; a photo follows the cursor as you hover each one." },
+  { id: "tilt", label: "Tilt cards", description: "Two pinned polaroids that tilt in 3D toward the cursor, with a glare." },
+  { id: "blinds", label: "Blinds", description: "Ink slats open like venetian blinds to reveal each photo." },
+];
+
+export const FOOTER_STYLES: { id: FooterStyle; label: string; description: string }[] = [
+  { id: "magnetic", label: "Magnetic", description: "The giant wordmark's letters rise toward the cursor." },
+  { id: "swing", label: "Swing", description: "Letters hang like pinned cards and swing as the cursor passes. Click one to spin it." },
+  { id: "static", label: "Static", description: "A still wordmark." },
+];
+
 export type SiteSettings = {
   heroMode: HeroMode;
   heroAutoCycle: boolean;
   introStyle: IntroStyle;
   cursorStyle: CursorStyle;
+  gameMode: GameMode;
+  ctaStyle: CtaStyle;
+  footerStyle: FooterStyle;
 };
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -115,7 +144,15 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   heroAutoCycle: false,
   introStyle: "curtain",
   cursorStyle: "ring",
+  gameMode: "memory",
+  ctaStyle: "split",
+  footerStyle: "magnetic",
 };
+
+/** Only accepts values from the given option list. */
+export function pick<T extends string>(options: { id: T }[], value: unknown, fallback: T): T {
+  return options.some((o) => o.id === value) ? (value as T) : fallback;
+}
 
 export type SiteImage = { src: string; alt: string; fileId?: string };
 export type SiteContent = {

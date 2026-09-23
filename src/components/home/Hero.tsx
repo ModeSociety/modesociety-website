@@ -60,7 +60,8 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
     const ratio = 1.36; // polaroid height / width incl. border
     const cardW = Math.max(
       86,
-      Math.min(isMobile ? 150 : 240, ((width * 0.92) / cols) * (isMobile ? 0.9 : 0.8), ((bottom - top) / rows / ratio) * 1.05),
+      // leave a little air between rows so the wordmark behind always peeks through
+      Math.min(isMobile ? 150 : 220, ((width * 0.92) / cols) * (isMobile ? 0.9 : 0.8), ((bottom - top) / rows / ratio) * 0.88),
     );
     els.forEach((el) => el.style.setProperty("--w", `${cardW}px`));
     const ctx: EngineCtx = {
@@ -106,7 +107,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
     tl.from(copy.current.querySelectorAll(".hero-letter"), { yPercent: 110, duration: 1.3, ease: "expo.out", stagger: 0.04 })
       .from(copy.current.querySelectorAll(".hero-fade"), { opacity: 0, y: 16, duration: 1, ease: "expo.out", stagger: 0.08 }, "-=0.9");
     return () => {
-      tl.kill();
+      tl.revert();
     };
   }, []);
 
@@ -115,7 +116,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
       {/* giant wordmark behind the wall */}
       <div ref={copy} className="pointer-events-none absolute inset-0 flex flex-col">
         <div className="flex flex-1 items-center justify-center">
-          <h1 className="font-display select-none overflow-hidden text-center text-[15vw] leading-[1.15] text-ink/[0.9] md:text-[12.5vw]">
+          <h1 className="font-display select-none overflow-hidden text-center text-[min(15vw,19svh)] leading-[1.15] text-ink/[0.9] md:text-[min(12.5vw,22svh)]">
             <span className="sr-only">Mode Society</span>
             <span aria-hidden className="block overflow-hidden">
               {"MODE".split("").map((c, i) => (
@@ -131,7 +132,13 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
         </div>
       </div>
 
-      <div ref={wall} data-wall className="absolute inset-0 z-10" style={{ transformStyle: "preserve-3d" }}>
+      {/* centred and capped like the page content, so ultra-wide screens don't scatter cards to the far edges */}
+      <div
+        ref={wall}
+        data-wall
+        className="absolute inset-y-0 left-1/2 z-10 w-full max-w-[1600px] -translate-x-1/2"
+        style={{ transformStyle: "preserve-3d" }}
+      >
         {cards.map((img, i) => (
           <figure key={`${img.src}-${i}`} className="polaroid" style={{ opacity: 0 }}>
             <span className="pin" />

@@ -288,36 +288,45 @@ img {
     cursor: none !important;
   }
 }
-.cursor-ring {
+.cursor-pos {
   position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 200;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+.cursor-ring {
+  position: absolute;
   top: 0;
   left: 0;
   width: 14px;
   height: 14px;
-  margin: -7px 0 0 -7px;
   border-radius: 50%;
   border: 1px solid #fff;
-  pointer-events: none;
-  z-index: 200;
   display: grid;
   place-items: center;
-  mix-blend-mode: difference;
+  transform: translate(-50%, -50%) scale(var(--press, 1));
   transition:
     width 0.45s var(--ease-out),
     height 0.45s var(--ease-out),
-    margin 0.45s var(--ease-out),
-    background 0.3s;
+    background 0.3s,
+    transform 0.2s var(--ease-out);
 }
 .cursor-ring.hover {
   width: 44px;
   height: 44px;
-  margin: -22px 0 0 -22px;
 }
 .cursor-ring.active {
   width: 78px;
   height: 78px;
-  margin: -39px 0 0 -39px;
   background: #fff;
+}
+.cursor-ring.pressed {
+  --press: 0.82;
 }
 .cursor-ring span {
   font-size: 10px;
@@ -331,17 +340,13 @@ img {
   opacity: 1;
 }
 .cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: absolute;
+  top: -2px;
+  left: -2px;
   width: 4px;
   height: 4px;
-  margin: -2px 0 0 -2px;
   border-radius: 50%;
   background: #fff;
-  mix-blend-mode: difference;
-  pointer-events: none;
-  z-index: 201;
 }
 .cursor-spot {
   position: fixed;

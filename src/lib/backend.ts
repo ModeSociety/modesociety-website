@@ -1,5 +1,18 @@
 import { unstable_cache } from "next/cache";
-import { DEFAULT_SETTINGS, SLOTS, type SiteContent, type SiteImage, type SiteSettings } from "./slots";
+import {
+  CTA_STYLES,
+  CURSOR_STYLES,
+  DEFAULT_SETTINGS,
+  FOOTER_STYLES,
+  GAME_MODES,
+  HERO_MODES,
+  INTRO_STYLES,
+  pick,
+  SLOTS,
+  type SiteContent,
+  type SiteImage,
+  type SiteSettings,
+} from "./slots";
 
 /** Server-only client for the Google Apps Script backend (see google-apps-script/Code.gs). */
 
@@ -42,11 +55,15 @@ export function mediaUrl(fileId: string) {
 }
 
 function parseSettings(raw: Record<string, string> = {}): SiteSettings {
+  const d = DEFAULT_SETTINGS;
   return {
-    heroMode: (raw.heroMode as SiteSettings["heroMode"]) || DEFAULT_SETTINGS.heroMode,
+    heroMode: pick(HERO_MODES, raw.heroMode, d.heroMode),
     heroAutoCycle: raw.heroAutoCycle === "true",
-    introStyle: (raw.introStyle as SiteSettings["introStyle"]) || DEFAULT_SETTINGS.introStyle,
-    cursorStyle: (raw.cursorStyle as SiteSettings["cursorStyle"]) || DEFAULT_SETTINGS.cursorStyle,
+    introStyle: pick(INTRO_STYLES, raw.introStyle, d.introStyle),
+    cursorStyle: pick(CURSOR_STYLES, raw.cursorStyle, d.cursorStyle),
+    gameMode: pick(GAME_MODES, raw.gameMode, d.gameMode),
+    ctaStyle: pick(CTA_STYLES, raw.ctaStyle, d.ctaStyle),
+    footerStyle: pick(FOOTER_STYLES, raw.footerStyle, d.footerStyle),
   };
 }
 

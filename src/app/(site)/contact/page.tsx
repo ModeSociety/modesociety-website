@@ -6,7 +6,7 @@ import { getSiteContent } from "@/lib/backend";
 export const metadata: Metadata = { title: "Contact" };
 
 export default async function Contact() {
-  const { images } = await getSiteContent();
+  const { images, settings } = await getSiteContent();
   return (
     <>
       <section className="wrap grid gap-10 pb-20 pt-32 md:grid-cols-12 md:pb-28 md:pt-44">
@@ -35,7 +35,7 @@ export default async function Contact() {
           </a>
         </FadeUp>
       </section>
-      <DualCta brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} />
+      <DualCta style={settings.ctaStyle} brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} />
     </>
   );
 }

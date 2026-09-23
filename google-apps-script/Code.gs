@@ -41,6 +41,9 @@ var DEFAULT_SETTINGS = {
   heroAutoCycle: 'false',
   introStyle: 'curtain',
   cursorStyle: 'ring',
+  gameMode: 'memory',
+  ctaStyle: 'split',
+  footerStyle: 'magnetic',
 };
 
 // ---------------------------------------------------------------------------

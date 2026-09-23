@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       services: cleanList(f.services, SERVICES),
       budget: clean(f.budget, 80),
       moodboard: Array.isArray(f.moodboard)
-        ? f.moodboard.map((m: unknown) => clean(m, 40)).filter(Boolean).slice(0, 12)
+        ? f.moodboard.map((m: unknown) => clean(m, 120)).filter(Boolean).slice(0, 12)
         : [],
     };
     if (!fields.name || !fields.company || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fields.email)) {

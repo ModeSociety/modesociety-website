@@ -2,7 +2,7 @@ import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import Services from "@/components/home/Services";
 import { SERVICE_COPY } from "@/lib/content";
-import CastingGame from "@/components/home/CastingGame";
+import GameSection from "@/components/home/games/GameSection";
 import Clients from "@/components/home/Clients";
 import DualCta from "@/components/home/DualCta";
 import Marquee from "@/components/site/Marquee";
@@ -53,7 +53,7 @@ export default async function Home() {
 
       <Services services={services} />
 
-      <CastingGame faces={casting} />
+      <GameSection mode={settings.gameMode} faces={casting} pool={wall} />
 
       <section className="py-20 md:py-28">
         <div className="wrap mb-10">
@@ -78,7 +78,7 @@ export default async function Home() {
 
       <Clients logos={images["home.clients"]} />
 
-      <DualCta brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} />
+      <DualCta style={settings.ctaStyle} brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} />
     </>
   );
 }

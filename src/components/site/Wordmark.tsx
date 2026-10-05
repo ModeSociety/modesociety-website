@@ -121,10 +121,23 @@ export default function Wordmark({ style }: { style: FooterStyle }) {
       p.y = e.clientY - r.top;
       p.inside = p.y > -r.height * 1.2 && p.y < r.height * 1.4;
     };
+    // Spin the letter nearest the click. Hit-testing the shapes themselves missed clicks in the
+    // gaps, the holes of the o/d and the thin SOCIETY letters, so it only worked some of the time.
     const click = (e: MouseEvent) => {
-      const el = (e.target as Element).closest(".ltr");
-      const i = el ? letters.indexOf(el) : -1;
+      let i = -1;
+      let best = Infinity;
+      letters.forEach((l, k) => {
+        const r = l.getBoundingClientRect();
+        const dx = e.clientX < r.left ? r.left - e.clientX : e.clientX > r.right ? e.clientX - r.right : 0;
+        const dy = e.clientY < r.top ? r.top - e.clientY : e.clientY > r.bottom ? e.clientY - r.bottom : 0;
+        const d = Math.hypot(dx, dy * 1.5);
+        if (d < best) {
+          best = d;
+          i = k;
+        }
+      });
       if (i < 0) return;
+      const el = letters[i];
       if (style === "swing") state[i].v += (Math.random() > 0.5 ? 1 : -1) * 9;
       const spin = el!.querySelector(".spin") as HTMLElement | SVGElement | null;
       spin?.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(-1)" }, { transform: "scaleX(1)" }], {

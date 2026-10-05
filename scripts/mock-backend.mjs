@@ -39,7 +39,7 @@ function listMedia(path) {
 }
 
 const empty = {
-  settings: { heroMode: "gravity", heroAutoCycle: "false", introStyle: "curtain", cursorStyle: "logo", gameMode: "memory", ctaStyle: "reveal", footerStyle: "magnetic" },
+  settings: { heroMode: "gravity", heroAutoCycle: "false", introStyle: "curtain", cursorStyle: "ring", gameMode: "memory", ctaStyle: "reveal", footerStyle: "magnetic" },
   images: [],
   admins: [],
   talent: [],

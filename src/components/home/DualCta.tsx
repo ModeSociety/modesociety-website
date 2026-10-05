@@ -68,8 +68,8 @@ function Reveal({ panels }: { panels: Panel[] }) {
   const raf = useRef(0);
 
   const loop = () => {
-    pos.current.x += (target.current.x - pos.current.x) * 0.14;
-    pos.current.y += (target.current.y - pos.current.y) * 0.14;
+    pos.current.x += (target.current.x - pos.current.x) * 0.32;
+    pos.current.y += (target.current.y - pos.current.y) * 0.32;
     const vx = target.current.x - pos.current.x;
     if (float.current) {
       float.current.style.transform = `translate3d(${pos.current.x}px, ${pos.current.y}px, 0) translate(-50%, -50%) rotate(${Math.max(-12, Math.min(12, vx * 0.08))}deg)`;
@@ -92,7 +92,14 @@ function Reveal({ panels }: { panels: Panel[] }) {
   };
 
   return (
-    <section ref={section} className="relative overflow-hidden bg-paper py-20 md:py-28" onPointerMove={onMove} onPointerEnter={enter} onPointerLeave={leave}>
+    <section
+      ref={section}
+      data-cursor-hide
+      className="relative overflow-hidden bg-paper py-20 md:py-28 md:[&_*]:!cursor-none md:!cursor-none"
+      onPointerMove={onMove}
+      onPointerEnter={enter}
+      onPointerLeave={leave}
+    >
       <div className="wrap">
         <p className="eyebrow mb-8">Let&apos;s work together</p>
         {panels.map((p, i) => (
@@ -120,7 +127,7 @@ function Reveal({ panels }: { panels: Panel[] }) {
       </div>
       <div
         ref={float}
-        className="pointer-events-none absolute left-0 top-0 z-0 hidden text-ink md:block"
+        className="pointer-events-none absolute left-0 top-0 z-30 hidden text-ink md:block"
         style={{ opacity: active === null ? 0 : 1, transition: "opacity .35s" }}
         aria-hidden
       >

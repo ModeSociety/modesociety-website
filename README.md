@@ -38,7 +38,7 @@ Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` pag
 | **Services** (`/services`) | Five services with jump links. Each has how it works, what you get, who it's for, photos/video from its *Services/…* Drive folder, and enquiry buttons. No prices. |
 | **Get in touch** (`/get-in-touch`) | Three cards: For talent, For brands and Partner with us. Picking one opens its form. `/contact` redirects here. |
 | **Forms** | **Talent**: what you do; each channel with its follower count and engagement screenshots; niche; what you want from an agency; whether you're signed elsewhere; 18+ consent. **Book a call**: brand, website/Instagram, services, project, budget, timeline. **Partnerships**: business, type, partnership type, idea. All three end with "Thanks! We'll be in touch." |
-| **Everywhere** | Smooth scrolling, and the Mode Society pixel-hand cursor with small labels like *drop*, *flip* and *open*. Visitors with *reduced motion* switched on get a calm, static version. |
+| **Everywhere** | Smooth scrolling, and the original ring cursor with small labels like *drag*, *flip* and *open* (the pixel hand is an option in the admin panel). In the Let's work together section the logo itself becomes the cursor. Visitors with *reduced motion* switched on get a calm, static version. |
 
 ### The admin panel: `/admin`
 

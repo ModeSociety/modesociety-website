@@ -783,3 +783,9 @@ textarea.input {
     transform: translateY(110%);
   }
 }
+
+/* a section that draws its own cursor hides the site cursor while the pointer is over it */
+.cursor-hidden {
+  opacity: 0 !important;
+  transition: opacity 0.15s;
+}

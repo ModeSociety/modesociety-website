@@ -62,7 +62,7 @@ var DEFAULT_SETTINGS = {
   heroMode: 'gravity',
   heroAutoCycle: 'false',
   introStyle: 'curtain',
-  cursorStyle: 'logo',
+  cursorStyle: 'ring',
   gameMode: 'memory',
   ctaStyle: 'reveal',
   footerStyle: 'magnetic',

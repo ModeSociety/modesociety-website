@@ -156,8 +156,8 @@ export const INTRO_STYLES: { id: IntroStyle; label: string; description: string 
 ];
 
 export const CURSOR_STYLES: { id: CursorStyle; label: string; description: string }[] = [
-  { id: "logo", label: "Pixel hand", description: "The Mode Society pixel-hand cursor, with little labels on things you can interact with." },
   { id: "ring", label: "Ring", description: "A soft ring that grows and labels things you can drag or flip." },
+  { id: "logo", label: "Pixel hand", description: "The Mode Society pixel-hand cursor, with little labels on things you can interact with." },
   { id: "spotlight", label: "Spotlight", description: "A warm spotlight that follows the cursor." },
   { id: "off", label: "System cursor", description: "Normal cursor." },
 ];
@@ -199,7 +199,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   heroMode: "gravity",
   heroAutoCycle: false,
   introStyle: "curtain",
-  cursorStyle: "logo",
+  cursorStyle: "ring",
   gameMode: "memory",
   ctaStyle: "reveal",
   footerStyle: "magnetic",

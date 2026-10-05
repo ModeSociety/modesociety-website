@@ -40,6 +40,9 @@ export default function Cursor({ style }: { style: CursorStyle }) {
     const move = (e: PointerEvent) => {
       target.x = e.clientX;
       target.y = e.clientY;
+      // sections with their own cursor (e.g. the logo that follows the mouse) hide this one
+      const hide = Boolean((e.target as HTMLElement | null)?.closest?.("[data-cursor-hide]"));
+      for (const n of [ringPos.current, dotPos.current, logoPos.current, spot.current]) n?.classList.toggle("cursor-hidden", hide);
       const at = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       if (dotPos.current) dotPos.current.style.transform = at;
       if (logoPos.current) {

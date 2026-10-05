@@ -569,25 +569,25 @@ const gravity: Engine = (ctx) => {
       grab = null;
     }
   };
-  // hovering any pinned polaroid lets them all go
-  const over = (e: PointerEvent) => {
-    if (e.pointerType === "mouse" && (e.target as HTMLElement).closest(".polaroid")) dropAll();
-  };
   root.addEventListener("pointerdown", down);
-  root.addEventListener("pointerover", over);
   root.addEventListener("ms-drop-request", dropAll);
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
   window.addEventListener("pointercancel", up);
 
   let acc = 0;
+  let hoverFor = 0;
   const stopLoop = loop((dt) => {
-    if (!dropped && ctx.dropZone && p.inside) {
+    // Drop only on a deliberate hover: the pointer has to rest on the logo for a moment,
+    // so the cards never fall just because they slid in under a stationary mouse.
+    if (!dropped && ctx.dropZone && p.inside && p.vx !== 0) {
       const z = ctx.dropZone.getBoundingClientRect();
       const r0 = root.getBoundingClientRect();
       const x = p.x + r0.left;
       const y = p.y + r0.top;
-      if (x > z.left && x < z.right && y > z.top && y < z.bottom) dropAll();
+      const over = x > z.left && x < z.right && y > z.top && y < z.bottom;
+      hoverFor = over ? hoverFor + dt : 0;
+      if (hoverFor > 0.35) dropAll();
     }
     // a fast-moving cursor gusts nearby cards
     const speed = Math.hypot(p.vx, p.vy);
@@ -616,7 +616,6 @@ const gravity: Engine = (ctx) => {
     stopLoop();
     stopPointer();
     root.removeEventListener("pointerdown", down);
-    root.removeEventListener("pointerover", over);
     root.removeEventListener("ms-drop-request", dropAll);
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);

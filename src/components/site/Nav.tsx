@@ -52,12 +52,12 @@ export default function Nav() {
 
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-[100] transition-transform duration-500 ${hidden && !open ? "-translate-y-full" : ""}`}>
-        <div
-          className={`wrap flex h-16 items-center justify-between transition-colors duration-500 md:h-20 ${
-            scrolled && !open ? "bg-paper/85 backdrop-blur-md" : ""
-          }`}
-        >
+      <header
+        className={`fixed inset-x-0 top-0 z-[100] transition-[transform,background-color] duration-500 ${hidden && !open ? "-translate-y-full" : ""} ${
+          scrolled && !open ? "bg-paper/85 backdrop-blur-md" : ""
+        }`}
+      >
+        <div className="wrap flex h-16 items-center justify-between md:h-20">
           <Link href="/" aria-label="Mode Society home" className={`relative z-10 ${open ? "text-white" : "text-ink"}`}>
             <Logo className="h-9 max-w-[52vw] text-[14px] md:h-11 md:text-[18px] [&>svg]:max-w-full" />
           </Link>

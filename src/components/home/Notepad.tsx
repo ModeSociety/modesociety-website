@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 
 type Page = { key: string; body: React.ReactNode };
@@ -81,17 +81,40 @@ const PAGES: Page[] = [
  */
 const Notepad = forwardRef<HTMLDivElement, { autoFlip: boolean }>(function Notepad({ autoFlip }, ref) {
   const [page, setPage] = useState(0);
-  const next = useCallback(() => setPage((p) => (p + 1) % PAGES.length), []);
+  // once the visitor flips it themselves, the pad stops paging on its own
+  const [manual, setManual] = useState(false);
+  const rewinding = useRef(false);
+
+  const pageRef = useRef(0);
+  const go = (p: number) => {
+    pageRef.current = p;
+    setPage(p);
+  };
+
+  const next = useCallback(() => {
+    if (rewinding.current) return;
+    const p = pageRef.current;
+    if (p < PAGES.length - 1) return go(p + 1);
+    // last page: lay the pages back down one at a time instead of all at once
+    rewinding.current = true;
+    for (let k = 1; k <= p; k++) setTimeout(() => go(p - k), k * 160);
+    setTimeout(() => (rewinding.current = false), p * 160 + 900);
+  }, []);
+
+  const flipByHand = () => {
+    setManual(true);
+    next();
+  };
 
   useEffect(() => {
-    if (!autoFlip || prefersReducedMotion()) return;
+    if (!autoFlip || manual || prefersReducedMotion()) return;
     const t = setInterval(next, 3800);
     return () => clearInterval(t);
-  }, [autoFlip, next]);
+  }, [autoFlip, manual, next]);
 
   return (
-    <div ref={ref} className="notepad" data-cursor="flip" onClick={next} role="button" tabIndex={0} aria-label="Flip the notepad page"
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), next())}
+    <div ref={ref} className="notepad" data-cursor="flip" onClick={flipByHand} role="button" tabIndex={0} aria-label="Flip the notepad page"
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flipByHand())}
     >
       <span className="notepad-rings" aria-hidden>
         {Array.from({ length: 6 }).map((_, i) => (

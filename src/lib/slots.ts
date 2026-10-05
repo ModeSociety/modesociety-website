@@ -146,7 +146,7 @@ export const HERO_MODES: { id: HeroMode; label: string; description: string }[] 
   { id: "pinboard", label: "Pinboard", description: "Pinned polaroids that swing in the cursor's breeze. Drag to rearrange, double-click to unpin." },
   { id: "scatter", label: "Parallax Scatter", description: "Photos float in layered depth and drift away from the cursor like a magnet." },
   { id: "orbit", label: "Orbit", description: "A 3D carousel of polaroids. Drag to spin; click to bring one forward." },
-  { id: "gravity", label: "Gravity Drop", description: "Polaroids hang pinned around the notepad. Hover the notepad and they all drop; then grab and fling them." },
+  { id: "gravity", label: "Gravity Drop", description: "Polaroids tumble from above and pile up. Grab and fling them around." },
 ];
 
 export const INTRO_STYLES: { id: IntroStyle; label: string; description: string }[] = [

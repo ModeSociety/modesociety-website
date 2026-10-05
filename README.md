@@ -23,7 +23,7 @@ Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` pag
 | Where | What it does |
 | --- | --- |
 | **Header** | The logo on the left. On the right are a grey **MENU** keycap (it presses down when you hover it) and a **Contact us** button. The menu holds About us · For brands · For talent · Services · Partner with us · For Tech companies · Contact us. |
-| **Home: hero** | The Mode Society logo, large and centred, framed by caption-free pinned polaroids. In **Gravity** mode (the default), hovering a polaroid or the logo (or tapping on a phone) drops them all, and they can then be grabbed and thrown. In **Pinboard** mode, double-click a card to unpin it, and carry it back up the board to pin it again. The mode is set in the admin panel; visitors can't switch it. |
+| **Home: hero** | The original interactive wall, defaulting to **Gravity**: the polaroids tumble in from above and pile up, then visitors can grab and throw them (**Shuffle** drops a fresh set). Pinboard, Scatter and Orbit can be chosen in the admin panel instead; in Pinboard, double-click a card to unpin it and carry it back up the board to pin it again. Visitors can't switch modes. |
 | **Home: notepad** | The *"Not your average talent agency."* notepad sits on its own just below the hero, and flips its pages like a book once it's on screen (or when clicked). |
 | **Home: the agency** | A 3D orbit of creator videos (from the Drive folder *Home Page 2*) beside the "external PR team" intro and a **Get to know us** button. |
 | **Home: services** | Four plain cards (Influencer campaigns, UGC content, Event guest lists, Funding) dealt out as you scroll. Hover a card to flip it and read more. Funding links to Grant Help. |

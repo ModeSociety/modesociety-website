@@ -17,8 +17,6 @@ export type EngineCtx = {
   /** vertical band the wall may use (px) */
   top: number;
   bottom: number;
-  /** gravity mode: hovering this element (the hero logo) drops the pinned cards; on wide screens the layout keeps a lane for it */
-  dropZone?: HTMLElement | null;
 };
 export type Engine = (ctx: EngineCtx) => () => void;
 
@@ -45,15 +43,8 @@ export function layout(ctx: EngineCtx, seedOffset = 0) {
   const n = cards.length;
   const { rows, cols } = gridShape(n, mobile);
   const padX = width * (mobile ? 0.03 : 0.05);
-  let cellW = (width - padX * 2) / cols;
+  const cellW = (width - padX * 2) / cols;
   const cellH = (bottom - top) / rows;
-  // Keep a clear lane in the middle for the drop zone (the notepad) on wide screens.
-  const lane = !mobile && ctx.dropZone ? ctx.dropZone.offsetWidth * 0.82 : 0;
-  if (lane) cellW = (width - padX * 2 - lane) / cols;
-  const colX = (col: number) => {
-    const x = padX + cellW * (col + 0.5);
-    return lane && col >= cols / 2 ? x + lane : x;
-  };
   const span = Math.max(bottom - top - cardH, 0);
   // shuffle which card goes to which cell
   const order = cards.map((_, i) => i).sort(() => r() - 0.5);
@@ -65,7 +56,7 @@ export function layout(ctx: EngineCtx, seedOffset = 0) {
     const stagger = (col % 2 ? 0.06 : -0.03) * cellH + (r() - 0.5) * cellH * 0.1;
     return {
       index: i,
-      x: colX(col) + (r() - 0.5) * cellW * 0.28,
+      x: padX + cellW * (col + 0.5) + (r() - 0.5) * cellW * 0.28,
       y: Math.min(Math.max(base + stagger, top - 10), bottom - cardH),
       rot: (r() - 0.5) * 12,
       depth: 0.55 + r() * 0.75,
@@ -474,8 +465,8 @@ const orbit: Engine = (ctx) => {
 // ---------------------------------------------------------------------------
 const gravity: Engine = (ctx) => {
   const { root, cards, width, cardW, cardH } = ctx;
-  // the floor sits just above the copy band so the pile never hides the tagline or buttons
-  const height = ctx.bottom;
+  // the floor sits just above the copy band so the pile never hides the CTAs
+  const height = ctx.bottom + cardH * 0.15;
   const w = cardW * 0.9;
   const h = cardH * 0.9;
   const { Engine: MEngine, Bodies, Composite, Body, Constraint } = Matter;
@@ -487,62 +478,31 @@ const gravity: Engine = (ctx) => {
     Bodies.rectangle(-thick / 2, height / 2 - height, thick, height * 4, wallOpts),
     Bodies.rectangle(width + thick / 2, height / 2 - height, thick, height * 4, wallOpts),
   ]);
-  // Cards start pinned in the moodboard layout and fall when released.
-  const spots = layout({ ...ctx, cardW: w, cardH: h });
-  const pinned = new Set<number>();
+  const r = rng(ctx.seed + 3);
   const bodies = cards.map((el, i) => {
-    const s = spots[i];
-    resetCard(el, s.pin, w);
+    resetCard(el, "#c3362b", w);
+    el.classList.add("unpinned");
     el.style.transformOrigin = "50% 50%";
-    el.dataset.cursor = "drop";
-    const b = Bodies.rectangle(s.x, s.y + h / 2, w, h, {
-      angle: (s.rot * Math.PI) / 180 * 0.6,
+    el.dataset.cursor = "throw";
+    const b = Bodies.rectangle(w / 2 + r() * (width - w), -h - i * (h * 0.55), w, h, {
+      angle: (r() - 0.5) * 1.2,
       restitution: 0.35,
       friction: 0.5,
       frictionAir: 0.012,
       chamfer: { radius: 3 },
       density: 0.002,
     });
-    Body.setStatic(b, true); // created dynamic first so setStatic(false) restores its mass later
-    pinned.add(i);
     return b;
   });
   Composite.add(engine.world, bodies);
   const { p, stop: stopPointer } = trackPointer(root);
 
-  const release = (i: number, delay = 0) => {
-    if (!pinned.has(i)) return;
-    pinned.delete(i);
-    setTimeout(() => {
-      Body.setStatic(bodies[i], false);
-      Body.setAngularVelocity(bodies[i], (Math.random() - 0.5) * 0.08);
-      cards[i].classList.add("unpinned");
-      cards[i].dataset.cursor = "throw";
-    }, delay);
-  };
-  let dropped = false;
-  const dropAll = () => {
-    if (dropped) return;
-    dropped = true;
-    root.dispatchEvent(new CustomEvent("ms-drop"));
-    cards.map((_, i) => i).sort(() => Math.random() - 0.5).forEach((i, k) => release(i, k * 45));
-  };
-
   let grab: null | { c: Matter.Constraint; id: number } = null;
   const down = (e: PointerEvent) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>(".polaroid");
     const i = el ? cards.indexOf(el) : -1;
-    if (i < 0) {
-      if (e.pointerType !== "mouse") dropAll(); // touch: tapping the wall drops everything
-      return;
-    }
+    if (i < 0) return;
     e.preventDefault();
-    if (pinned.has(i)) {
-      Body.setStatic(bodies[i], false);
-      pinned.delete(i);
-      cards[i].classList.add("unpinned");
-      cards[i].dataset.cursor = "throw";
-    }
     const pt = local(root, e);
     const b = bodies[i];
     const off = { x: pt.x - b.position.x, y: pt.y - b.position.y };
@@ -570,25 +530,12 @@ const gravity: Engine = (ctx) => {
     }
   };
   root.addEventListener("pointerdown", down);
-  root.addEventListener("ms-drop-request", dropAll);
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
   window.addEventListener("pointercancel", up);
 
   let acc = 0;
-  let hoverFor = 0;
   const stopLoop = loop((dt) => {
-    // Drop only on a deliberate hover: the pointer has to rest on the logo for a moment,
-    // so the cards never fall just because they slid in under a stationary mouse.
-    if (!dropped && ctx.dropZone && p.inside && p.vx !== 0) {
-      const z = ctx.dropZone.getBoundingClientRect();
-      const r0 = root.getBoundingClientRect();
-      const x = p.x + r0.left;
-      const y = p.y + r0.top;
-      const over = x > z.left && x < z.right && y > z.top && y < z.bottom;
-      hoverFor = over ? hoverFor + dt : 0;
-      if (hoverFor > 0.35) dropAll();
-    }
     // a fast-moving cursor gusts nearby cards
     const speed = Math.hypot(p.vx, p.vy);
     if (!grab && speed > 600) {
@@ -616,7 +563,6 @@ const gravity: Engine = (ctx) => {
     stopLoop();
     stopPointer();
     root.removeEventListener("pointerdown", down);
-    root.removeEventListener("ms-drop-request", dropAll);
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);
     window.removeEventListener("pointercancel", up);

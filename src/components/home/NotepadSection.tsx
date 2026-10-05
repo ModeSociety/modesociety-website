@@ -18,7 +18,7 @@ export default function NotepadSection() {
 
   return (
     <section ref={ref} className="flex justify-center overflow-hidden py-20 md:py-28">
-      <div className="[&_.notepad]:w-[min(82vw,440px)]">
+      <div style={{ ["--pad-w" as string]: "min(86vw, 560px)" }}>
         <Notepad autoFlip={inView} />
       </div>
     </section>

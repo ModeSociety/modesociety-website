@@ -6,6 +6,7 @@ import Dither from "@/components/site/Dither";
 import { EXPECT, INSTAGRAM_URL, QUOTE } from "@/lib/content";
 import type { SiteImage } from "@/lib/slots";
 import { InstagramIcon } from "@/components/site/Icons";
+import { useDragScroll } from "@/lib/useDragScroll";
 
 /** A dropdown: the title is always visible, the body slides open. */
 export function Accordion({
@@ -64,6 +65,7 @@ export function Quote({ className = "" }: { className?: string }) {
 /** "What you can expect from us": swipe-through cards on the burgundy dithered background. */
 export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch?form=brands" } }: { cta?: { label: string; href: string } }) {
   const track = useRef<HTMLDivElement>(null);
+  useDragScroll(track);
   const scrollBy = (dir: number) => {
     const el = track.current;
     if (!el) return;
@@ -85,7 +87,7 @@ export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch
       </div>
       <div
         ref={track}
-        className="mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[var(--gutter)] pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-12 flex cursor-grab snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-6 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         data-cursor="swipe"
       >
         {EXPECT.cards.map((c, i) => (

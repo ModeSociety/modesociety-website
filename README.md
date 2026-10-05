@@ -23,7 +23,8 @@ Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` pag
 | Where | What it does |
 | --- | --- |
 | **Header** | The logo on the left. On the right are a grey **MENU** keycap (it presses down when you hover it) and a **Contact us** button. The menu holds About us · For brands · For talent · Services · Partner with us · For Tech companies · Contact us. |
-| **Home: hero** | The logo sits large in the background, with the *"Not your average talent agency."* notepad in the middle and caption-free polaroids pinned around it. In **Gravity** mode (the default), hovering the notepad (or tapping it on a phone) drops every polaroid. Visitors can then grab and throw them, and the notepad starts flipping its pages like a book. The other modes (Pinboard, Scatter, Orbit) are set in the admin panel; visitors can't switch. |
+| **Home: hero** | The Mode Society logo, large and centred, framed by caption-free pinned polaroids. In **Gravity** mode (the default), hovering a polaroid or the logo (or tapping on a phone) drops them all, and they can then be grabbed and thrown. In **Pinboard** mode, double-click a card to unpin it, and carry it back up the board to pin it again. The mode is set in the admin panel; visitors can't switch it. |
+| **Home: notepad** | The *"Not your average talent agency."* notepad sits on its own just below the hero, and flips its pages like a book once it's on screen (or when clicked). |
 | **Home: the agency** | A 3D orbit of creator videos (from the Drive folder *Home Page 2*) beside the "external PR team" intro and a **Get to know us** button. |
 | **Home: services** | Four plain cards (Influencer campaigns, UGC content, Event guest lists, Funding) dealt out as you scroll. Hover a card to flip it and read more. Funding links to Grant Help. |
 | **Home: the game** | An optional playable section, chosen in the admin panel: Casting Call, The Shortlist, Eye on the Talent, Editorial Puzzle, Darkroom, Rotate or Hidden. |
@@ -37,7 +38,7 @@ Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` pag
 | **Services** (`/services`) | Five services with jump links. Each has how it works, what you get, who it's for, photos/video from its *Services/…* Drive folder, and enquiry buttons. No prices. |
 | **Get in touch** (`/get-in-touch`) | Three cards: For talent, For brands and Partner with us. Picking one opens its form. `/contact` redirects here. |
 | **Forms** | **Talent**: what you do; each channel with its follower count and engagement screenshots; niche; what you want from an agency; whether you're signed elsewhere; 18+ consent. **Book a call**: brand, website/Instagram, services, project, budget, timeline. **Partnerships**: business, type, partnership type, idea. All three end with "Thanks! We'll be in touch." |
-| **Everywhere** | Smooth scrolling, and the logo as the cursor, with small labels like *drop*, *flip* and *open*. Visitors with *reduced motion* switched on get a calm, static version. |
+| **Everywhere** | Smooth scrolling, and the Mode Society pixel-hand cursor with small labels like *drop*, *flip* and *open*. Visitors with *reduced motion* switched on get a calm, static version. |
 
 ### The admin panel: `/admin`
 
@@ -201,6 +202,6 @@ src/app/media/[id]      Serves Drive images through the site (nothing in Drive i
 
 - Uploaded images are resized in the browser (max 2400 px) to keep uploads fast and under the host's 4.5 MB request limit. Transparent PNGs, such as logos, stay transparent.
 - Site content is cached for 10 minutes and refreshed immediately whenever an admin saves.
-- Placeholder images come from the original moodboard and are low resolution. Replace them by filling the Drive folders.
+- Built-in images come from *MS Edits/Website Assets* (optimised into `public/assets`), and the logo is vectorised from `Logo.PNG` (`public/brand/logo.svg`). Anything put in the Drive folders replaces them. Videos over ~7 MB weren't bundled; add them to Drive *Home Page 2* instead.
 - Still to supply (marked `TODO` in `src/lib/content.ts` and `src/lib/forms.ts`): the LinkedIn URL (the icon stays hidden until it's set), real infographic figures, the final budget and timeline options, the full AI "Where we draw the line" text, and the talent-agreement wording for *Flexible representation*. "For Tech companies" currently opens the partnership form.
 - Forms have a hidden honeypot field and basic rate limiting against spam.

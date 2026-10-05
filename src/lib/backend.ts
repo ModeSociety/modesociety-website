@@ -14,6 +14,7 @@ import {
   type SiteImage,
   type SiteSettings,
 } from "./slots";
+import { DEFAULT_LOGO_SVG } from "./defaultLogo";
 import { sanitizeLogoSvg } from "./svg";
 
 /** Server-only client for the Google Apps Script backend (see google-apps-script/Code.gs). */
@@ -107,13 +108,13 @@ export function buildContent(raw: RawSite | null): SiteContent {
       .sort((a, b) => a.order - b.order)
       .map((r) => ({ src: mediaUrl(r.fileId), alt: r.alt || slot.label, fileId: r.fileId, type: "image", source: "upload" }));
     const folder = slot.folder ? fromFolder(raw?.folders?.[slot.folder], slot.accept, slot.label) : [];
-    const list = uploaded.length ? uploaded : folder.length ? folder : slot.defaults.map((d) => ({ ...d, type: "image" as const, source: "default" as const }));
+    const list = uploaded.length ? uploaded : folder.length ? folder : slot.defaults.map((d) => ({ type: "image" as const, ...d, source: "default" as const }));
     images[slot.id] = slot.max ? list.slice(0, slot.max) : list;
   }
   return {
     settings: parseSettings(raw?.settings),
     images,
-    logoSvg: sanitizeLogoSvg(raw?.logoSvg || ""),
+    logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),
     connected: Boolean(raw),
   };
 }

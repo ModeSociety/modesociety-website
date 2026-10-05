@@ -19,10 +19,14 @@ export type SlotDef = {
   folder?: string;
   /** turn near-white backgrounds transparent on upload (logos) */
   knockout?: boolean;
-  defaults: { src: string; alt: string }[];
+  defaults: { src: string; alt: string; type?: "image" | "video" }[];
 };
 
-const wall = (n: number) => `/defaults/wall-${String(n).padStart(2, "0")}.jpg`;
+const pad = (n: number) => String(n).padStart(2, "0");
+const asset = (dir: string, n: number, ext = "jpg") => `/assets/${dir}/${pad(n)}.${ext}`;
+const range = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
+const BRAND_FILES = [1, 2, 3, 4, "5svg", 6, 7, 8, 9, 10, 11, 12, 13] as const;
+const BRAND_NAMES = ["Anua", "White Fox", "Vanguard", "Princess Polly", "EA Sports", "Shein", "Skims", "Edikted", "Teddi Lab", "Finesse", "Typebea", "Amazon", "Beginning Boutique"];
 
 export const SLOTS: SlotDef[] = [
   {
@@ -44,7 +48,7 @@ export const SLOTS: SlotDef[] = [
     max: 16,
     accept: "image",
     folder: "Home Page 1",
-    defaults: Array.from({ length: 12 }, (_, i) => ({ src: wall(i + 1), alt: "Mode Society talent" })),
+    defaults: range(11).map((n) => ({ src: asset("hero", n), alt: "Mode Society talent" })),
   },
   {
     id: "home.videos",
@@ -55,7 +59,7 @@ export const SLOTS: SlotDef[] = [
     max: 12,
     accept: "media",
     folder: "Home Page 2",
-    defaults: [3, 5, 7, 9, 11, 2].map((n) => ({ src: wall(n), alt: "Mode Society creator content" })),
+    defaults: range(5).map((n) => ({ src: asset("videos", n, "mp4"), alt: "Mode Society creator content", type: "video" as const })),
   },
   {
     id: "home.clients",
@@ -67,7 +71,10 @@ export const SLOTS: SlotDef[] = [
     accept: "image",
     folder: "Home Page 3",
     knockout: true,
-    defaults: [],
+    defaults: BRAND_FILES.map((f, i) => ({
+      src: typeof f === "number" ? asset("brands", f, "png") : asset("brands", 5, "svg"),
+      alt: BRAND_NAMES[i],
+    })),
   },
   {
     id: "about.team",
@@ -77,7 +84,7 @@ export const SLOTS: SlotDef[] = [
     kind: "single",
     accept: "image",
     folder: "About Us 1",
-    defaults: [],
+    defaults: [{ src: "/assets/about/team.jpg", alt: "Asha Stonehouse, Tiana Scheirs and Patrick Finnegan" }],
   },
   {
     id: "brands.instagram",
@@ -88,18 +95,18 @@ export const SLOTS: SlotDef[] = [
     max: 9,
     accept: "image",
     folder: "Instagram",
-    defaults: [1, 6, 8, 12, 4, 10].map((n) => ({ src: wall(n), alt: "Mode Society on Instagram" })),
+    defaults: range(9).map((n) => ({ src: asset("instagram", n), alt: "Mode Society on Instagram" })),
   },
   ...(
     [
-      ["service.influencer", "01 Influencer Campaigns", 7],
-      ["service.ugc", "02 UGC Content", 12],
-      ["service.events", "03 Event Guest Lists", 9],
-      ["service.funding", "04 Funding", 6],
-      ["service.ai", "05 AI Campaigns", 5],
+      ["service.influencer", "01 Influencer Campaigns", ["influencer-1", "influencer-2"]],
+      ["service.ugc", "02 UGC Content", ["ugc-1", "ugc-2"]],
+      ["service.events", "03 Event Guest Lists", ["events-1"]],
+      ["service.funding", "04 Funding", ["funding-1"]],
+      ["service.ai", "05 AI Campaigns", ["ai-1"]],
     ] as const
   ).map(
-    ([id, name, n]): SlotDef => ({
+    ([id, name, files]): SlotDef => ({
       id,
       label: `Services — ${name.slice(3)}`,
       page: "Services",
@@ -108,21 +115,21 @@ export const SLOTS: SlotDef[] = [
       max: 6,
       accept: "media",
       folder: `Services/${name}`,
-      defaults: [{ src: wall(n), alt: name.slice(3) }],
+      defaults: files.map((f) => ({ src: `/assets/services/${f}.jpg`, alt: name.slice(3) })),
     }),
   ),
   {
     id: "home.casting",
     label: "Game faces (optional)",
     page: "Home",
-    hint: "Photos for the homepage game. Leave empty to reuse the hero polaroids.",
+    hint: "Photos for the homepage game.",
     kind: "collection",
     max: 6,
     accept: "image",
-    defaults: [],
+    defaults: range(6).map((n) => ({ src: asset("game", n), alt: "Mode Society talent" })),
   },
-  { id: "contact.brands", label: "For brands panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: wall(3), alt: "For brands" }] },
-  { id: "contact.talent", label: "For talent panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: wall(2), alt: "For talent" }] },
+  { id: "contact.brands", label: "For brands panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: asset("instagram", 4), alt: "For brands" }] },
+  { id: "contact.talent", label: "For talent panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: asset("game", 2), alt: "For talent" }] },
   { id: "meta.share", label: "Social share image", page: "Link previews", hint: "Shown when the site is shared on socials/iMessage. Landscape 1200×630.", kind: "single", accept: "image", defaults: [] },
 ];
 
@@ -149,7 +156,7 @@ export const INTRO_STYLES: { id: IntroStyle; label: string; description: string 
 ];
 
 export const CURSOR_STYLES: { id: CursorStyle; label: string; description: string }[] = [
-  { id: "logo", label: "Logo", description: "The Mode Society logo follows the cursor." },
+  { id: "logo", label: "Pixel hand", description: "The Mode Society pixel-hand cursor, with little labels on things you can interact with." },
   { id: "ring", label: "Ring", description: "A soft ring that grows and labels things you can drag or flip." },
   { id: "spotlight", label: "Spotlight", description: "A warm spotlight that follows the cursor." },
   { id: "off", label: "System cursor", description: "Normal cursor." },

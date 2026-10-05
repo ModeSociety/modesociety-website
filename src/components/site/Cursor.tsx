@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import type { CursorStyle } from "@/lib/slots";
-import Logo from "./Logo";
 
 const FINE = "(pointer: fine)";
 const subscribeFine = (cb: () => void) => {
@@ -101,9 +100,8 @@ export default function Cursor({ style }: { style: CursorStyle }) {
   if (style === "logo") {
     return (
       <div ref={logoPos} className="cursor-pos cursor-logo" aria-hidden>
-        <span className="cursor-logo-mark">
-          <Logo compact className="h-full" />
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/cursor-hand.png" alt="" className="cursor-logo-mark" draggable={false} />
         <span ref={logoTag} className="cursor-logo-tag" />
       </div>
     );

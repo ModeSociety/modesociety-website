@@ -17,7 +17,7 @@ export type EngineCtx = {
   /** vertical band the wall may use (px) */
   top: number;
   bottom: number;
-  /** gravity mode: cards hang pinned until the pointer enters this element (e.g. the notepad) */
+  /** gravity mode: hovering this element (the hero logo) drops the pinned cards; on wide screens the layout keeps a lane for it */
   dropZone?: HTMLElement | null;
 };
 export type Engine = (ctx: EngineCtx) => () => void;
@@ -138,28 +138,57 @@ const pinboard: Engine = (ctx) => {
   const spots = layout(ctx);
   const { p, stop: stopPointer } = trackPointer(root);
   let zTop = 10;
+  // the floor sits above the tagline/buttons band so a fallen card can always be picked up again
+  const floor = () => Math.min(height - cardH - 6, ctx.bottom - cardH * 0.8);
+  /** a fallen card re-pins only if it's carried at least this far above the floor */
+  const repinLift = cardH * 0.6;
 
-  const state = cards.map((el, i) => {
+  type Card = {
+    el: HTMLElement;
+    px: number;
+    py: number;
+    angle: number;
+    rest: number;
+    av: number;
+    pinned: boolean;
+    vx: number;
+    vy: number;
+    intro: number;
+    drag: null | { ox: number; oy: number; lastX: number; lastY: number; lastT: number; moved: number; id: number };
+    lastTap: number;
+  };
+
+  const state: Card[] = cards.map((el, i) => {
     const s = spots[i];
     resetCard(el, s.pin, cardW);
     el.style.zIndex = String(i + 1);
     el.dataset.cursor = "drag";
-    return {
-      el,
-      px: s.x,
-      py: s.y,
-      angle: ((s.rot * Math.PI) / 180) * 0.6,
-      rest: ((s.rot * Math.PI) / 180) * 0.6,
-      av: 0,
-      drag: null as null | { ox: number; oy: number; lastX: number; id: number },
-      fallen: false,
-      vx: 0,
-      vy: 0,
-      intro: -i * 0.07,
-    };
+    const rest = ((s.rot * Math.PI) / 180) * 0.6;
+    return { el, px: s.x, py: s.y, angle: rest, rest, av: 0, pinned: true, vx: 0, vy: 0, intro: -i * 0.07, drag: null, lastTap: 0 };
   });
-
   const byEl = new Map(state.map((s) => [s.el, s]));
+
+  const popPin = (s: Card) =>
+    s.el.querySelector(".pin")?.animate([{ scale: 1.8 }, { scale: 1 }], { duration: 380, easing: "cubic-bezier(.16,1,.3,1)" });
+
+  const unpin = (s: Card) => {
+    if (!s.pinned) return;
+    s.pinned = false;
+    s.drag = null;
+    s.vx = (Math.random() - 0.5) * 220;
+    s.vy = -160;
+    s.el.classList.add("unpinned");
+    s.el.dataset.cursor = "pick up";
+  };
+  const repin = (s: Card) => {
+    s.pinned = true;
+    s.vx = s.vy = 0;
+    s.av = 0;
+    s.rest = (Math.random() - 0.5) * 0.12;
+    s.el.classList.remove("unpinned");
+    s.el.dataset.cursor = "drag";
+    popPin(s);
+  };
 
   const down = (e: PointerEvent) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>(".polaroid");
@@ -167,63 +196,86 @@ const pinboard: Engine = (ctx) => {
     if (!s) return;
     e.preventDefault();
     const pt = local(root, e);
-    s.drag = { ox: pt.x - s.px, oy: pt.y - s.py, lastX: pt.x, id: e.pointerId };
+    s.drag = { ox: pt.x - s.px, oy: pt.y - s.py, lastX: pt.x, lastY: pt.y, lastT: performance.now(), moved: 0, id: e.pointerId };
+    s.vx = s.vy = 0;
     el.setPointerCapture(e.pointerId);
     el.style.zIndex = String(++zTop);
-    if (s.fallen) {
-      s.fallen = false;
-      el.classList.remove("unpinned");
-    }
   };
   const move = (e: PointerEvent) => {
     for (const s of state) {
-      if (!s.drag || s.drag.id !== e.pointerId) continue;
+      const d = s.drag;
+      if (!d || d.id !== e.pointerId) continue;
       const pt = local(root, e);
-      const dx = pt.x - s.drag.lastX;
-      s.drag.lastX = pt.x;
-      s.px = pt.x - s.drag.ox;
-      s.py = Math.min(Math.max(pt.y - s.drag.oy, -cardH * 0.3), height - cardH * 0.4);
-      s.av -= dx * 0.02; // swing opposite to the direction of travel
+      const now = performance.now();
+      const dt = Math.max(now - d.lastT, 1) / 1000;
+      const dx = pt.x - d.lastX;
+      const dy = pt.y - d.lastY;
+      d.moved += Math.hypot(dx, dy);
+      s.vx = s.vx * 0.5 + (dx / dt) * 0.5; // remembered so a dropped card is thrown, not dropped dead
+      s.vy = s.vy * 0.5 + (dy / dt) * 0.5;
+      d.lastX = pt.x;
+      d.lastY = pt.y;
+      d.lastT = now;
+      s.px = pt.x - d.ox;
+      s.py = Math.min(Math.max(pt.y - d.oy, -cardH * 0.3), floor());
+      if (s.pinned) s.av -= dx * 0.02; // swing opposite to the direction of travel
     }
   };
   const up = (e: PointerEvent) => {
     for (const s of state) {
-      if (!s.drag || s.drag.id !== e.pointerId) continue;
+      const d = s.drag;
+      if (!d || d.id !== e.pointerId) continue;
       s.drag = null;
-      s.rest = (Math.random() - 0.5) * 0.12;
-      s.el.querySelector(".pin")?.animate([{ scale: 1.8 }, { scale: 1 }], { duration: 380, easing: "cubic-bezier(.16,1,.3,1)" });
+      const now = performance.now();
+      if (d.moved < 6) {
+        // a tap: two quick taps on a pinned card unpin it (works for mouse and touch alike)
+        if (s.pinned && now - s.lastTap < 350) {
+          s.lastTap = 0;
+          unpin(s);
+        } else {
+          s.lastTap = now;
+          if (s.pinned) popPin(s);
+        }
+        continue;
+      }
+      s.lastTap = 0;
+      if (s.pinned) {
+        s.rest = (Math.random() - 0.5) * 0.12;
+        popPin(s);
+      } else if (s.py < floor() - repinLift) {
+        repin(s); // carried back up the board: pin it where it was let go
+      } else {
+        s.vx = Math.max(Math.min(s.vx, 900), -900); // still low: let it fall again
+        s.vy = Math.min(s.vy, 0);
+      }
     }
-  };
-  const dbl = (e: MouseEvent) => {
-    const el = (e.target as HTMLElement).closest<HTMLElement>(".polaroid");
-    const s = el && byEl.get(el);
-    if (!s || s.fallen) return;
-    s.fallen = true;
-    s.vx = (Math.random() - 0.5) * 200;
-    s.vy = -180;
-    s.el.classList.add("unpinned");
   };
 
   root.addEventListener("pointerdown", down);
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
   window.addEventListener("pointercancel", up);
-  root.addEventListener("dblclick", dbl);
 
   const stopLoop = loop((dt) => {
-    const floor = height - cardH - 6;
+    const fl = floor();
     for (const s of state) {
       s.intro = Math.min(s.intro + dt * 1.1, 1);
-      if (s.fallen) {
-        s.vy += 2600 * dt;
-        s.px += s.vx * dt;
-        s.py += s.vy * dt;
-        s.angle += (s.vx * 0.002 - s.angle * 0.5) * dt * 4;
-        if (s.py > floor) {
-          s.py = floor;
-          s.vy *= -0.25;
-          s.vx *= 0.8;
-          if (Math.abs(s.vy) < 40) s.vy = 0;
+      if (!s.pinned) {
+        if (s.drag) {
+          // carried: hang level-ish from the fingers
+          s.angle += (s.vx * 0.0006 - s.angle) * Math.min(dt * 8, 1);
+        } else {
+          s.vy += 2600 * dt;
+          s.px += s.vx * dt;
+          s.py += s.vy * dt;
+          s.angle += (s.vx * 0.002 - s.angle * 0.5) * dt * 4;
+          s.px = Math.min(Math.max(s.px, cardW / 2), ctx.width - cardW / 2);
+          if (s.py > fl) {
+            s.py = fl;
+            s.vy *= -0.25;
+            s.vx *= 0.8;
+            if (Math.abs(s.vy) < 40) s.vy = 0;
+          }
         }
       } else {
         // damped pendulum around its resting angle
@@ -231,9 +283,7 @@ const pinboard: Engine = (ctx) => {
         const damping = s.drag ? 4 : 1.3;
         let torque = -k * (s.angle - s.rest) - damping * s.av;
         // breeze from a moving cursor
-        const cx = s.px;
-        const cy = s.py + cardH / 2;
-        const dist = Math.hypot(p.x - cx, p.y - cy);
+        const dist = Math.hypot(p.x - s.px, p.y - (s.py + cardH / 2));
         const reach = cardW * 1.4;
         if (!s.drag && dist < reach) {
           const f = 1 - dist / reach;
@@ -246,6 +296,8 @@ const pinboard: Engine = (ctx) => {
       }
       const drop = (1 - easeOut(s.intro)) * -(height * 0.9);
       const scale = s.drag ? 1.06 : 1;
+      // pinned cards swing from the pin; loose cards turn about their centre
+      s.el.style.transformOrigin = s.pinned ? "" : "50% 50%";
       s.el.style.transform = `translate3d(${s.px - cardW / 2}px, ${s.py + drop}px, 0) rotate(${s.angle}rad) scale(${scale})`;
       s.el.style.opacity = s.intro <= 0 ? "0" : "1";
     }
@@ -259,7 +311,6 @@ const pinboard: Engine = (ctx) => {
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);
     window.removeEventListener("pointercancel", up);
-    root.removeEventListener("dblclick", dbl);
   };
 };
 
@@ -518,7 +569,12 @@ const gravity: Engine = (ctx) => {
       grab = null;
     }
   };
+  // hovering any pinned polaroid lets them all go
+  const over = (e: PointerEvent) => {
+    if (e.pointerType === "mouse" && (e.target as HTMLElement).closest(".polaroid")) dropAll();
+  };
   root.addEventListener("pointerdown", down);
+  root.addEventListener("pointerover", over);
   root.addEventListener("ms-drop-request", dropAll);
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
@@ -560,6 +616,7 @@ const gravity: Engine = (ctx) => {
     stopLoop();
     stopPointer();
     root.removeEventListener("pointerdown", down);
+    root.removeEventListener("pointerover", over);
     root.removeEventListener("ms-drop-request", dropAll);
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);

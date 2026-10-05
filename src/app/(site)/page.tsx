@@ -5,6 +5,7 @@ import GameSection from "@/components/home/games/GameSection";
 import Clients from "@/components/home/Clients";
 import DualCta from "@/components/home/DualCta";
 import Infographic from "@/components/home/Infographic";
+import NotepadSection from "@/components/home/NotepadSection";
 import VideoOrbit from "@/components/home/VideoOrbit";
 import { FadeUp } from "@/components/site/Reveal";
 import { AGENCY_INTRO, SERVICE_COPY } from "@/lib/content";
@@ -18,6 +19,8 @@ export default async function Home() {
   return (
     <>
       <Hero images={wall} settings={settings} />
+
+      <NotepadSection />
 
       <section className="wrap grid items-center gap-10 py-20 md:grid-cols-12 md:py-28">
         <div className="md:col-span-5">

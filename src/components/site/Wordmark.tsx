@@ -180,7 +180,7 @@ export default function Wordmark({ style }: { style: FooterStyle }) {
   return (
     <div ref={box} className="relative w-full select-none text-white" aria-hidden data-cursor={style === "static" ? undefined : "play"}>
       {svg ? (
-        <div className="w-full [&>svg]:block [&>svg]:h-auto [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
+        <div className="mx-auto w-full max-w-[min(100%,760px)] [&>svg]:block [&>svg]:h-auto [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
       ) : (
         <div ref={word} className="font-display flex w-max whitespace-nowrap leading-[1.12]" style={{ fontSize: "100px" }}>
           {WORD.split("").map((c, i) => (

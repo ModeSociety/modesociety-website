@@ -430,10 +430,12 @@ img {
 }
 .cursor-logo-mark {
   position: absolute;
-  top: -7px;
-  left: -3px;
+  /* the hand's fingertip is ~30% across the image */
+  top: -2px;
+  left: -10px;
   display: block;
-  height: 14px;
+  height: 32px;
+  width: auto;
   color: var(--ink);
   filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 2px 4px rgba(74, 5, 7, 0.35));
   font-size: 15px;

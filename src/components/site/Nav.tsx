@@ -59,7 +59,7 @@ export default function Nav() {
           }`}
         >
           <Link href="/" aria-label="Mode Society home" className={`relative z-10 ${open ? "text-white" : "text-ink"}`}>
-            <Logo className="h-5 max-w-[52vw] text-[14px] sm:h-6 sm:text-[16px] md:h-7 md:text-[18px] [&>svg]:max-w-full" />
+            <Logo className="h-9 max-w-[52vw] text-[14px] md:h-11 md:text-[18px] [&>svg]:max-w-full" />
           </Link>
           <div className="relative z-10 flex items-center gap-3 md:gap-4">
             <MenuKey open={open} onClick={() => setOpen((o) => !o)} />

@@ -41,7 +41,8 @@ export async function callBackend<T = unknown>(action: string, payload: Record<s
   try {
     body = JSON.parse(text);
   } catch {
-    if (/violation of our\s+Terms of Service/i.test(text)) {
+    // Google wraps "Terms of Service" in a link, so match on the page's plain text.
+    if (/violation of our\s+Terms of Service/i.test(text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " "))) {
       throw new Error("Google has blocked the Apps Script backend for a Terms of Service review. See README → Troubleshooting.");
     }
     throw new Error(`Backend returned non-JSON (HTTP ${res.status}). Check the Apps Script deployment URL and access setting.`);

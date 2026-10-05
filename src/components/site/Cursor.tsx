@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import type { CursorStyle } from "@/lib/slots";
+import Logo from "./Logo";
 
 const FINE = "(pointer: fine)";
 const subscribeFine = (cb: () => void) => {
@@ -23,13 +24,15 @@ export default function Cursor({ style }: { style: CursorStyle }) {
   const ring = useRef<HTMLDivElement>(null);
   const dotPos = useRef<HTMLDivElement>(null);
   const spot = useRef<HTMLDivElement>(null);
+  const logoPos = useRef<HTMLDivElement>(null);
+  const logoTag = useRef<HTMLSpanElement>(null);
   const fine = useSyncExternalStore(subscribeFine, () => matchMedia(FINE).matches, () => false);
   const enabled = fine && style !== "off";
 
   useEffect(() => {
     if (!enabled) return;
     const html = document.documentElement;
-    if (style === "ring") html.classList.add("has-custom-cursor");
+    if (style === "ring" || style === "logo") html.classList.add("has-custom-cursor");
     const target = { x: innerWidth / 2, y: innerHeight / 2 };
     const pos = { ...target };
     let raf = 0;
@@ -38,11 +41,21 @@ export default function Cursor({ style }: { style: CursorStyle }) {
     const move = (e: PointerEvent) => {
       target.x = e.clientX;
       target.y = e.clientY;
-      if (dotPos.current) dotPos.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      const at = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      if (dotPos.current) dotPos.current.style.transform = at;
+      if (logoPos.current) {
+        logoPos.current.style.transform = at;
+        logoPos.current.classList.add("live");
+      }
       const el = (e.target as HTMLElement | null)?.closest<HTMLElement>(
         "[data-cursor], a, button, [role=button], input, textarea, select, label",
       );
       const next = el?.dataset.cursor ?? (el ? "" : null);
+      if (logoTag.current) {
+        logoTag.current.textContent = next || "";
+        logoTag.current.classList.toggle("show", Boolean(next));
+        logoPos.current?.classList.toggle("hover", next !== null);
+      }
       if (ring.current) {
         ring.current.classList.toggle("active", Boolean(next));
         ring.current.classList.toggle("hover", next === "");
@@ -61,8 +74,14 @@ export default function Cursor({ style }: { style: CursorStyle }) {
       if (spot.current) spot.current.style.transform = t;
       raf = requestAnimationFrame(loop);
     };
-    const down = () => ring.current?.classList.add("pressed");
-    const up = () => ring.current?.classList.remove("pressed");
+    const down = () => {
+      ring.current?.classList.add("pressed");
+      logoPos.current?.classList.add("pressed");
+    };
+    const up = () => {
+      ring.current?.classList.remove("pressed");
+      logoPos.current?.classList.remove("pressed");
+    };
     addEventListener("pointermove", move, { passive: true });
     addEventListener("pointerdown", down);
     addEventListener("pointerup", up);
@@ -79,6 +98,16 @@ export default function Cursor({ style }: { style: CursorStyle }) {
   }, [enabled, style]);
 
   if (!enabled) return null;
+  if (style === "logo") {
+    return (
+      <div ref={logoPos} className="cursor-pos cursor-logo" aria-hidden>
+        <span className="cursor-logo-mark">
+          <Logo compact className="h-full" />
+        </span>
+        <span ref={logoTag} className="cursor-logo-tag" />
+      </div>
+    );
+  }
   if (style === "spotlight") return <div ref={spot} className="cursor-spot" aria-hidden />;
   return (
     <>

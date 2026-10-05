@@ -230,8 +230,9 @@ function ImagesTab({ content, reload, notify }: { content: SiteContent; reload: 
 type Item = { fileId: string; alt: string; src: string };
 
 function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: SiteImage[]; reload: () => Promise<void>; notify: (m: string) => void }) {
-  const uploaded: Item[] = images.filter((i) => i.fileId).map((i) => ({ fileId: i.fileId!, alt: i.alt, src: i.src }));
+  const uploaded: Item[] = images.filter((i) => i.source === "upload" && i.fileId).map((i) => ({ fileId: i.fileId!, alt: i.alt, src: i.src }));
   const usingDefaults = uploaded.length === 0;
+  const fromFolder = usingDefaults && images.some((i) => i.source === "folder");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -264,7 +265,7 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
     try {
       for (const [n, file] of list.entries()) {
         setBusy(`Uploading ${n + 1} of ${list.length}…`);
-        const enc = await encodeFile(file);
+        const enc = await encodeFile(file, 2400, 0.86, { knockout: slot.knockout });
         const { fileId } = await postJson<{ fileId: string }>("/api/admin/images/upload", {
           slot: slot.id,
           filename: enc.filename,
@@ -291,7 +292,8 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
     save(next, "Order updated");
   };
 
-  const shown = usingDefaults ? slot.defaults.map((d) => ({ ...d, fileId: "" })) : uploaded;
+  // with no uploads, show what the site is actually using: the Drive folder's files or the built-in defaults
+  const shown: (Item & { type?: string })[] = usingDefaults ? images.map((d) => ({ ...d, fileId: "" })) : uploaded;
 
   return (
     <div className="border border-line bg-[#f8f5ef] p-5">
@@ -300,15 +302,31 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
           <h3 className="font-medium">{slot.label}</h3>
           <p className="mt-1 text-sm text-muted">{slot.hint}</p>
         </div>
-        {usingDefaults && shown.length > 0 && <span className="chip !px-2 !py-0.5 !text-xs">default</span>}
+        {usingDefaults && shown.length > 0 && (
+          <span className="chip shrink-0 !px-2 !py-0.5 !text-xs">{fromFolder ? "from Drive" : "default"}</span>
+        )}
       </div>
+      {slot.folder && (
+        <p className="mt-2 text-xs text-ink-2">
+          Drive folder: <strong>{slot.folder}</strong>
+          {usingDefaults ? " (files added there appear automatically)" : " (uploads below take priority over it)"}
+        </p>
+      )}
 
       <div className={`mt-4 grid gap-3 ${slot.kind === "single" ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-3 sm:grid-cols-4"}`}>
         {shown.map((img, i) => (
           <figure key={`${img.src}-${i}`} className="group relative">
             <div className="aspect-[4/5] overflow-hidden bg-paper-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.src} alt={img.alt} className={`h-full w-full object-cover ${usingDefaults ? "opacity-60" : ""}`} />
+              {img.type === "video" ? (
+                <video src={img.src} muted loop autoPlay playsInline className="h-full w-full object-cover" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  className={`h-full w-full ${slot.accept === "svg" || slot.knockout ? "object-contain p-2" : "object-cover"} ${usingDefaults && !fromFolder ? "opacity-60" : ""}`}
+                />
+              )}
             </div>
             {!usingDefaults && (
               <div className="mt-1 flex items-center justify-between text-xs">
@@ -342,20 +360,29 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button className="btn !py-3" disabled={!!busy} onClick={() => input.current?.click()}>
-          {slot.kind === "single" ? (usingDefaults ? "Upload image" : "Replace image") : usingDefaults ? "Upload images (replaces defaults)" : "Add images"}
+          {slot.kind === "single"
+            ? usingDefaults
+              ? `Upload ${slot.accept === "svg" ? "SVG" : "image"}`
+              : "Replace"
+            : usingDefaults
+              ? `Upload images (replaces ${fromFolder ? "the Drive folder" : "defaults"})`
+              : "Add images"}
         </button>
         {!usingDefaults && (
-          <button className="text-sm text-muted underline underline-offset-4" disabled={!!busy} onClick={() => save([], "Reverted to default")}>
-            {slot.defaults.length ? "Revert to default" : "Clear"}
+          <button className="text-sm text-muted underline underline-offset-4" disabled={!!busy} onClick={() => save([], "Uploads cleared")}>
+            {slot.folder ? "Clear uploads (use the Drive folder)" : slot.defaults.length ? "Revert to default" : "Clear"}
           </button>
         )}
         {busy && <span className="text-sm text-muted">{busy}</span>}
       </div>
+      {(slot.accept === "media" || slot.accept === "video") && (
+        <p className="mt-3 text-xs text-muted">Videos are too large to upload here. Add them to the Drive folder above instead.</p>
+      )}
       {error && <p className="mt-3 text-sm text-pin">{error}</p>}
       <input
         ref={input}
         type="file"
-        accept="image/*"
+        accept={slot.accept === "svg" ? ".svg,image/svg+xml" : "image/*"}
         multiple={slot.kind === "collection"}
         hidden
         onChange={(e) => upload(e.target.files)}

@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { HERO_MODES, type HeroMode, type SiteImage, type SiteSettings } from "@/lib/slots";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import Logo from "@/components/site/Logo";
+import Notepad from "./Notepad";
 import { ENGINES, staticLayout, type EngineCtx } from "./wall/engines";
 
 const HINTS: Record<HeroMode, string> = {
   pinboard: "Drag to rearrange · double-click to unpin",
   scatter: "Move through the crowd",
   orbit: "Drag to spin · click to bring forward",
-  gravity: "Grab, throw, stack",
+  gravity: "Hover the notepad to drop the polaroids",
 };
 
 const LAST_KEY = "ms-hero-last";
@@ -18,10 +20,12 @@ const LAST_KEY = "ms-hero-last";
 export default function Hero({ images, settings }: { images: SiteImage[]; settings: SiteSettings }) {
   const wall = useRef<HTMLDivElement>(null);
   const copy = useRef<HTMLDivElement>(null);
+  const pad = useRef<HTMLDivElement>(null);
   // Visitors can't change the mode; it comes from the admin panel.
   const [mode, setMode] = useState<HeroMode>(settings.heroMode);
   const [seed, setSeed] = useState(7);
   const [mobile, setMobile] = useState(false);
+  const [dropped, setDropped] = useState(false);
   const cards = mobile ? images.slice(0, 6) : images;
 
   // Rotate: each visit gets a random mode, never the same one twice in a row.
@@ -64,10 +68,11 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
     const cols = Math.ceil(n / rows);
     const top = isMobile ? 70 : 96;
     const bottom = height - (isMobile ? 262 : 178);
-    const ratio = 1.36; // polaroid height / width incl. border
+    const ratio = 1.27; // polaroid height / width incl. border (no caption strip)
+    const lane = !isMobile && pad.current ? pad.current.offsetWidth * 0.82 : 0;
     const cardW = Math.max(
       86,
-      Math.min(isMobile ? 150 : 240, ((width * 0.92) / cols) * (isMobile ? 0.9 : 0.8), ((bottom - top) / rows / ratio) * 1.05),
+      Math.min(isMobile ? 150 : 240, ((width * 0.92 - lane) / cols) * (isMobile ? 0.9 : 0.86), ((bottom - top) / rows / ratio) * 1.05),
     );
     els.forEach((el) => el.style.setProperty("--w", `${cardW}px`));
     const ctx: EngineCtx = {
@@ -81,12 +86,18 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
       mobile: isMobile,
       top,
       bottom,
+      dropZone: pad.current,
     };
     const engine = prefersReducedMotion() ? staticLayout : ENGINES[mode];
     return engine(ctx);
   }, [mode, seed]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a fresh wall starts pinned
+    setDropped(false);
+    const root = wall.current;
+    const onDrop = () => setDropped(true);
+    root?.addEventListener("ms-drop", onDrop);
     let stop = start();
     let timer: ReturnType<typeof setTimeout>;
     let lastW = window.innerWidth;
@@ -103,6 +114,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
     return () => {
       clearTimeout(timer);
       removeEventListener("resize", onResize);
+      root?.removeEventListener("ms-drop", onDrop);
       stop();
     };
   }, [start, mobile, cards.length]);
@@ -110,7 +122,8 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
   useEffect(() => {
     if (!copy.current || prefersReducedMotion()) return;
     const tl = gsap.timeline({ delay: 0.3 });
-    tl.from(copy.current.querySelectorAll(".hero-letter"), { yPercent: 110, duration: 1.3, ease: "expo.out", stagger: 0.04 })
+    tl.from(copy.current.querySelectorAll(".hero-logo"), { yPercent: 18, opacity: 0, duration: 1.4, ease: "expo.out" })
+      .from(pad.current, { y: 60, rotate: -6, opacity: 0, duration: 1.2, ease: "expo.out" }, "-=1.1")
       .from(copy.current.querySelectorAll(".hero-fade"), { opacity: 0, y: 16, duration: 1, ease: "expo.out", stagger: 0.08 }, "-=0.9");
     return () => {
       tl.revert();
@@ -118,49 +131,43 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
   }, []);
 
   return (
-    <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden" aria-label="Mode Society talent wall">
-      {/* giant wordmark behind the wall */}
-      <div ref={copy} className="pointer-events-none absolute inset-0 flex flex-col">
-        <div className="flex flex-1 items-center justify-center">
-          <h1 className="font-display flex select-none flex-col items-center text-center text-[min(15vw,21svh)] leading-[1.22] text-ink/[0.9] md:text-[min(12.5vw,24svh)]">
-            <span className="sr-only">Mode Society</span>
-            <span aria-hidden className="reveal-line">
-              {"MODE".split("").map((c, i) => (
-                <span key={i} className="hero-letter inline-block">{c}</span>
-              ))}
-            </span>
-            <span aria-hidden className="reveal-line">
-              {"SOCIETY".split("").map((c, i) => (
-                <span key={i} className="hero-letter inline-block">{c}</span>
-              ))}
-            </span>
+    <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden text-ink" aria-label="Mode Society">
+      <div ref={copy} className="absolute inset-0">
+        {/* the logo, large, behind everything */}
+        <div className="pointer-events-none absolute inset-x-0 top-[11%] flex justify-center md:top-[10%]">
+          <h1 className="hero-logo select-none">
+            <span className="sr-only">Mode Society — not your average talent agency</span>
+            <Logo className="h-[min(13vw,15svh)] text-[min(10vw,15svh)] opacity-95 [&>svg]:max-w-[88vw]" />
           </h1>
+        </div>
+
+        {/* the notepad, centre stage */}
+        <div className="absolute inset-x-0 top-[50%] z-[5] flex -translate-y-1/2 justify-center md:top-[55%]">
+          {/* a tap/click on the notepad also drops the cards (touch screens have no hover) */}
+          <div onPointerDown={() => wall.current?.dispatchEvent(new CustomEvent("ms-drop-request"))}>
+            <Notepad ref={pad} autoFlip={dropped} />
+          </div>
         </div>
       </div>
 
-      <div ref={wall} data-wall className="absolute inset-0 z-10" style={{ transformStyle: "preserve-3d" }}>
+      <div ref={wall} data-wall className="absolute inset-0 z-10" style={{ transformStyle: "preserve-3d", pointerEvents: "none" }}>
         {cards.map((img, i) => (
-          <figure key={`${img.src}-${i}`} className="polaroid" style={{ opacity: 0 }}>
+          <figure key={`${img.src}-${i}`} className="polaroid no-caption" style={{ opacity: 0, pointerEvents: "auto" }}>
             <span className="pin" />
             <div className="photo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={img.src} alt={img.alt} draggable={false} loading={i < 6 ? "eager" : "lazy"} />
             </div>
-            <figcaption className="caption">
-              <span>No. {String(i + 1).padStart(2, "0")}</span>
-              <span className="opacity-60">MS</span>
-            </figcaption>
           </figure>
         ))}
       </div>
 
-      {/* bottom band: copy, CTAs and the mode dock */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-paper via-paper/80 to-transparent pt-10">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-paper via-paper/85 to-transparent pt-10">
         <div className="wrap flex flex-col gap-5 pb-6 md:flex-row md:items-end md:justify-between md:pb-8">
           <div className="pointer-events-auto max-w-md">
-            <p className="hero-fade eyebrow hidden md:block">Boutique talent &amp; creator agency · Australia → worldwide</p>
-            <p className="hero-fade font-serif text-[22px] md:mt-2 leading-[1.15] md:text-[28px]">
-              <em>Models, influencers, UGC creators &amp; streamers,</em> cast for fit, not follower count.
+            <p className="hero-fade eyebrow hidden md:block">Boutique talent &amp; creator agency · Melbourne → worldwide</p>
+            <p className="hero-fade font-serif text-[22px] leading-[1.15] md:mt-2 md:text-[28px]">
+              <em>Influencers, UGC creators, models &amp; streamers,</em> cast for fit, not follower count.
             </p>
             <div className="hero-fade mt-4 flex flex-wrap gap-2">
               <Link href="/work-with-us" className="btn">
@@ -172,13 +179,14 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
             </div>
           </div>
           <div className="hero-fade pointer-events-auto flex flex-col items-start gap-2 md:items-end">
-            <span className="font-serif text-sm italic text-ink-2">{HINTS[mode]}</span>
+            <span className="font-serif text-sm italic text-ink-2">{dropped && mode === "gravity" ? "Grab and throw them · click the notepad to flip" : HINTS[mode]}</span>
             <button
               onClick={() => setSeed((s) => s + 1)}
               className="group flex items-center gap-2 rounded-full border border-line bg-paper/80 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-ink-2 backdrop-blur-md transition-colors hover:text-ink"
-              aria-label="Shuffle the wall"
+              aria-label={mode === "gravity" ? "Pin the polaroids back up" : "Shuffle the wall"}
             >
-              <span className="inline-block transition-transform duration-500 group-hover:rotate-180">⟲</span> Shuffle
+              <span className="inline-block transition-transform duration-500 group-hover:rotate-180">⟲</span>{" "}
+              {mode === "gravity" ? "Pin them back" : "Shuffle"}
             </button>
           </div>
         </div>

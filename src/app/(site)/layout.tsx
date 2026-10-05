@@ -11,10 +11,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const { settings, images } = await getSiteContent();
+  const { settings, logoSvg } = await getSiteContent();
   return (
-    <SiteShell settings={settings}>
-      <Nav logo={images["brand.logo"]?.[0]} />
+    <SiteShell settings={settings} logoSvg={logoSvg}>
+      <Nav />
       <main>{children}</main>
       <Footer style={settings.footerStyle} />
     </SiteShell>

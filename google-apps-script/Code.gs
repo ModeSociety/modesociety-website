@@ -17,14 +17,19 @@ var TABS = {
   images: { name: 'Images', headers: ['Slot', 'Order', 'File ID', 'Alt Text', 'File Link', 'Updated At', 'Updated By'] },
   admins: { name: 'Admins', headers: ['Email', 'Added By', 'Added At'] },
   talent: {
-    name: 'Talent Applications',
-    headers: ['Submitted At', 'Status', 'Name', 'Email', 'Phone', 'Why Mode Society', 'Niches', 'Instagram', 'TikTok',
-      'Portfolio / Other', 'Heard About Us', 'Application Folder', 'Previous Work', 'Analytics', 'Reference'],
+    name: 'Talent',
+    headers: ['Submitted At', 'Status', 'Full Name', 'Email', 'What They Do', 'Channels (handle · followers)', 'Niche',
+      'Wants From An Agency', 'Signed Elsewhere', '18+ / Consent', 'Application Folder', 'Screenshots', 'Reference'],
   },
-  brands: {
-    name: 'Brand Enquiries',
-    headers: ['Submitted At', 'Status', 'Full Name', 'Position', 'Company', 'Email', 'Phone', 'Website / Socials',
-      'About The Business', 'Target Market', 'Goals', 'Services', 'Budget', 'Moodboard Picks', 'Reference'],
+  bookings: {
+    name: 'Book a Call',
+    headers: ['Submitted At', 'Status', 'Brand Name', 'Website / Instagram', 'Your Name', 'Email', 'Services',
+      'About The Project', 'Budget', 'Timeline', 'Notes', 'Reference'],
+  },
+  partners: {
+    name: 'Partnerships',
+    headers: ['Submitted At', 'Status', 'Business Name', 'Type Of Business', 'Website / Instagram', 'Your Name', 'Email',
+      'Type Of Partnership', 'Partnership Idea', 'Reference'],
   },
 };
 
@@ -34,15 +39,32 @@ var FOLDERS = {
   incoming: '_Incoming Uploads',
 };
 
+/**
+ * Drive folders the client drops media into. Whatever is inside appears on the site.
+ * Keep in sync with `folder` in src/lib/slots.ts.
+ */
+var MEDIA_FOLDERS = [
+  'Home Page 1',
+  'Home Page 2',
+  'Home Page 3',
+  'About Us 1',
+  'Instagram',
+  'Services/01 Influencer Campaigns',
+  'Services/02 UGC Content',
+  'Services/03 Event Guest Lists',
+  'Services/04 Funding',
+  'Services/05 AI Campaigns',
+];
+
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
 
 var DEFAULT_SETTINGS = {
-  heroMode: 'pinboard',
+  heroMode: 'gravity',
   heroAutoCycle: 'false',
   introStyle: 'curtain',
-  cursorStyle: 'ring',
+  cursorStyle: 'logo',
   gameMode: 'memory',
-  ctaStyle: 'split',
+  ctaStyle: 'reveal',
   footerStyle: 'magnetic',
 };
 
@@ -63,6 +85,7 @@ function setup() {
       props.setProperty(propName, childFolder_(root, FOLDERS[key]).getId());
     }
   });
+  MEDIA_FOLDERS.forEach(function (path) { folderByPath_(path, true); });
 
   var ssId = props.getProperty('SPREADSHEET_ID');
   var ss;
@@ -79,10 +102,10 @@ function setup() {
     var sheet = ss.getSheetByName(def.name) || ss.insertSheet(def.name);
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(def.headers);
-      sheet.getRange(1, 1, 1, def.headers.length).setFontWeight('bold').setBackground('#111111').setFontColor('#f4f1ea');
+      sheet.getRange(1, 1, 1, def.headers.length).setFontWeight('bold').setBackground('#7f090d').setFontColor('#ffffff');
       sheet.setFrozenRows(1);
     }
-    if (key === 'talent' || key === 'brands') {
+    if (key === 'talent' || key === 'bookings' || key === 'partners') {
       var rule = SpreadsheetApp.newDataValidation().requireValueInList(STATUSES, true).build();
       sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
     }
@@ -136,11 +159,16 @@ function doPost(e) {
 
 var ACTIONS = {
   getSite: function () {
-    return { settings: readSettings_(), images: readImages_() };
+    var folders = {};
+    MEDIA_FOLDERS.forEach(function (path) { folders[path] = listMedia_(path); });
+    var images = readImages_();
+    // An SVG uploaded to the logo slot in the admin panel wins over the one in "Home Page 1".
+    var uploadedLogo = images.filter(function (r) { return r.slot === 'brand.logo'; })[0];
+    var logoSvg = uploadedLogo ? svgText_(uploadedLogo.fileId) : '';
+    return { settings: readSettings_(), images: images, folders: folders, logoSvg: logoSvg || findLogoSvg_(folders['Home Page 1']) };
   },
 
   getInfo: function () {
-    var props = PropertiesService.getScriptProperties();
     return {
       spreadsheetUrl: spreadsheet_().getUrl(),
       folderUrl: DriveApp.getFolderById(rootFolderId_()).getUrl(),
@@ -220,10 +248,10 @@ var ACTIONS = {
     });
   },
 
-  /** Returns a website image's bytes. Only files inside "Website Images" are served. */
+  /** Returns a file's bytes. Only files inside the website folder are served. */
   getFile: function (p) {
     var file = DriveApp.getFileById(p.fileId);
-    if (!isInside_(file, folder_('images').getId())) throw new Error('not found');
+    if (!isInside_(file, rootFolderId_())) throw new Error('not found');
     var blob = file.getBlob();
     return { mimeType: blob.getContentType(), data: Utilities.base64Encode(blob.getBytes()) };
   },
@@ -241,25 +269,104 @@ var ACTIONS = {
     var date = Utilities.formatDate(new Date(), tz_(), 'yyyy-MM-dd');
     var person = safeName_(f.name || 'Unnamed');
     var folder = folder_('talent').createFolder(date + ' — ' + person + ' (' + ref + ')');
-    var work = claimFiles_(p.workFiles, folder, person + ' — Previous Work');
-    var analytics = claimFiles_(p.analyticsFiles, folder, person + ' — Analytics');
+    var shots = [];
+    var channels = (f.channels || []).map(function (c) {
+      var links = claimFiles_(c.files, folder, person + ' — ' + safeName_(c.platform) + ' insights');
+      shots = shots.concat(links);
+      return c.platform + ': ' + c.handle + ' · ' + c.followers;
+    });
     withLock_(function () {
-      sheet_('talent').appendRow([new Date(), 'New', f.name, f.email, f.phone, f.why, (f.niches || []).join(', '),
-        f.instagram, f.tiktok, f.portfolio, f.heard, folder.getUrl(), work.join('\n'), analytics.join('\n'), ref]);
+      sheet_('talent').appendRow([new Date(), 'New', f.name, f.email, (f.roles || []).join(', '), channels.join('\n'),
+        (f.niches || []).join(', '), f.wants, f.signed, f.consent ? 'Yes' : 'No', folder.getUrl(), shots.join('\n'), ref]);
     });
     return { reference: ref };
   },
 
-  submitBrand: function (p) {
+  submitBooking: function (p) {
     var f = p.fields || {};
     var ref = reference_('B');
     withLock_(function () {
-      sheet_('brands').appendRow([new Date(), 'New', f.name, f.position, f.company, f.email, f.phone, f.website,
-        f.business, f.target, f.goals, (f.services || []).join(', '), f.budget, (f.moodboard || []).join(', '), ref]);
+      sheet_('bookings').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.services || []).join(', '),
+        f.project, f.budget, f.timeline, f.notes, ref]);
+    });
+    return { reference: ref };
+  },
+
+  submitPartner: function (p) {
+    var f = p.fields || {};
+    var ref = reference_('P');
+    withLock_(function () {
+      sheet_('partners').appendRow([new Date(), 'New', f.business, f.type, f.website, f.name, f.email,
+        (f.partnership || []).join(', '), f.idea, ref]);
     });
     return { reference: ref };
   },
 };
+
+// ---------------------------------------------------------------------------
+// Media folders
+// ---------------------------------------------------------------------------
+
+/** Lists images/videos/SVGs in a media folder, sorted by name, and makes them link-viewable. */
+function listMedia_(path) {
+  var folder = folderByPath_(path, false);
+  if (!folder) return [];
+  var out = [];
+  var files = folder.getFiles();
+  while (files.hasNext()) {
+    var f = files.next();
+    var mime = f.getMimeType();
+    var isVideo = mime.indexOf('video/') === 0;
+    var isImage = mime.indexOf('image/') === 0;
+    if (!isVideo && !isImage) continue;
+    // Media on a public website has to be viewable by anyone with the link.
+    if (f.getSharingAccess() !== DriveApp.Access.ANYONE_WITH_LINK) {
+      try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) { /* org policy may forbid */ }
+    }
+    var id = f.getId();
+    out.push({
+      id: id,
+      name: f.getName(),
+      mimeType: mime,
+      src: isVideo
+        ? 'https://drive.google.com/uc?export=download&id=' + id
+        : mime === 'image/svg+xml' ? '' : 'https://lh3.googleusercontent.com/d/' + id + '=w2000',
+    });
+  }
+  out.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); });
+  return out;
+}
+
+/** The first SVG in "Home Page 1" is the logo; its markup is sent so the site can recolour and animate it. */
+function findLogoSvg_(files) {
+  for (var i = 0; i < (files || []).length; i++) {
+    if (files[i].mimeType === 'image/svg+xml') return svgText_(files[i].id);
+  }
+  return '';
+}
+
+function svgText_(id) {
+  try {
+    var blob = DriveApp.getFileById(id).getBlob();
+    if (blob.getContentType() !== 'image/svg+xml') return '';
+    var text = blob.getDataAsString();
+    return text.length < 400000 ? text : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function folderByPath_(path, create) {
+  var current = DriveApp.getFolderById(rootFolderId_());
+  var parts = String(path).split('/');
+  for (var i = 0; i < parts.length; i++) {
+    var it = current.getFoldersByName(parts[i]);
+    if (it.hasNext()) current = it.next();
+    else if (create) current = current.createFolder(parts[i]);
+    else return null;
+  }
+  return current;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -306,7 +413,7 @@ function isInside_(file, folderId) {
   var queue = [];
   var parents = file.getParents();
   while (parents.hasNext()) queue.push(parents.next());
-  for (var depth = 0; depth < 5 && queue.length; depth++) {
+  for (var depth = 0; depth < 6 && queue.length; depth++) {
     var next = [];
     for (var i = 0; i < queue.length; i++) {
       if (queue[i].getId() === folderId) return true;
@@ -383,7 +490,7 @@ function safeName_(s) {
 function extensionFor_(mime, filename) {
   var fromName = String(filename || '').match(/\.[a-z0-9]{2,5}$/i);
   if (fromName) return fromName[0].toLowerCase();
-  var map = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'application/pdf': '.pdf' };
+  var map = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/svg+xml': '.svg', 'application/pdf': '.pdf' };
   return map[mime] || '';
 }
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import type { CtaStyle, SiteImage } from "@/lib/slots";
+import Logo from "@/components/site/Logo";
 
 type Panel = { href: string; eyebrow: string; title: string; img?: SiteImage; cta: string };
 
@@ -93,7 +94,7 @@ function Reveal({ panels }: { panels: Panel[] }) {
   return (
     <section ref={section} className="relative overflow-hidden bg-paper py-20 md:py-28" onPointerMove={onMove} onPointerEnter={enter} onPointerLeave={leave}>
       <div className="wrap">
-        <p className="eyebrow mb-8">Where to next?</p>
+        <p className="eyebrow mb-8">Let&apos;s work together</p>
         {panels.map((p, i) => (
           <Link
             key={p.href}
@@ -114,35 +115,17 @@ function Reveal({ panels }: { panels: Panel[] }) {
                 →
               </span>
             </span>
-            {p.img && (
-              <img src={p.img.src} alt="" className="aspect-[4/5] w-40 object-cover md:hidden" loading="lazy" />
-            )}
           </Link>
         ))}
       </div>
       <div
         ref={float}
-        className="pointer-events-none absolute left-0 top-0 z-0 hidden w-[min(26vw,340px)] md:block"
+        className="pointer-events-none absolute left-0 top-0 z-0 hidden text-ink md:block"
         style={{ opacity: active === null ? 0 : 1, transition: "opacity .35s" }}
         aria-hidden
       >
-        {panels.map((p, i) =>
-          p.img ? (
-            <div
-              key={p.href}
-              className="polaroid !relative !w-full"
-              style={{ display: active === i ? "block" : "none", ["--w" as string]: "min(26vw, 340px)" }}
-            >
-              <span className="pin" />
-              <div className="photo">
-                <img src={p.img.src} alt="" />
-              </div>
-              <div className="caption">
-                <span>{p.eyebrow}</span>
-              </div>
-            </div>
-          ) : null,
-        )}
+        {/* the logo follows the cursor across the rows */}
+        <Logo className="h-[clamp(34px,3.6vw,52px)] text-[clamp(20px,2vw,30px)] opacity-90 drop-shadow-[0_6px_16px_rgba(74,5,7,.25)]" />
       </div>
     </section>
   );
@@ -167,7 +150,7 @@ function Tilt({ panels }: { panels: Panel[] }) {
   return (
     <section className="bg-paper-2/60 py-20 md:py-28">
       <div className="wrap">
-        <p className="eyebrow mb-12 text-center">Where to next?</p>
+        <p className="eyebrow mb-12 text-center">Let&apos;s work together</p>
         <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-2 md:gap-20" style={{ perspective: "1200px" }}>
           {panels.map((p, i) => (
             <Link

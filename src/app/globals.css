@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f3efe7;
-  --paper-2: #ebe5d9;
+  /* Style guide: burgundy text, buttons and footer on an off-white page. */
+  --paper: #f5f1ea;
+  --paper-2: #ece4d9;
   --card: #fbfaf6;
-  --ink: #111110;
-  --ink-2: #3b3934;
-  --muted: #7b756a;
-  --line: #d9d2c4;
-  --pin: #c3362b;
+  --ink: #7f090d;
+  --ink-2: #5e1a1c;
+  --ink-deep: #4a0507;
+  --white: #ffffff;
+  --muted: #9a6b6c;
+  --line: #e2d3cb;
+  --pin: #7f090d;
   --brass: #b08d57;
   --ok: #2f6b4f;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -21,6 +24,7 @@
   --color-paper-2: var(--paper-2);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
+  --color-ink-deep: var(--ink-deep);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-pin: var(--pin);
@@ -79,12 +83,12 @@ img {
 }
 
 @layer components {
-/* Boldonse caps are ~1.2em tall, so anything tighter than 1.2 makes stacked lines touch. */
+/* Boldonse caps are ~1.2em tall and descenders drop low, so wrapped lines need ~1.28 to breathe. */
 .font-display {
   font-family: var(--font-boldonse), serif;
   font-weight: 400;
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: 1.28;
 }
 
 .font-serif {
@@ -109,7 +113,7 @@ img {
 /* ---------- buttons ---------- */
 .btn {
   --bg: var(--ink);
-  --fg: var(--paper);
+  --fg: var(--white);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -161,9 +165,73 @@ img {
   color: var(--paper);
 }
 .btn.light {
-  --bg: var(--paper);
+  --bg: var(--white);
   --fg: var(--ink);
-  border-color: var(--paper);
+  border-color: var(--white);
+}
+
+/* ---------- header "MENU" keycap ---------- */
+.keycap {
+  position: relative;
+  padding: 0 0 5px;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #8e8e8e, #6d6d6d);
+  box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: padding 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+.keycap-face {
+  display: block;
+  padding: 9px 18px 8px;
+  border-radius: 8px;
+  border: 1px solid #a9a9a9;
+  background: linear-gradient(180deg, #d9d9d9 0%, #bfbfbf 55%, #b1b1b1 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -2px 3px rgba(0, 0, 0, 0.12);
+  color: #4d4d4d;
+  font-family: var(--font-display), sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+/* hovering "clicks" the key: it presses down, then springs back */
+.keycap:hover {
+  animation: keypress 0.32s ease;
+}
+.keycap:active {
+  padding-bottom: 1px;
+  transform: translateY(4px);
+  box-shadow: 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+}
+@keyframes keypress {
+  0%, 100% { padding-bottom: 5px; transform: translateY(0); }
+  40% { padding-bottom: 1px; transform: translateY(4px); }
+}
+
+/* ---------- burgundy dithered background (footer, menu, feature panels) ---------- */
+.dither-bg {
+  background-color: var(--ink);
+  background-image: url("/brand/dither-footer.png");
+  /* the gradient isn't tileable, so stretch it; pixelated keeps the dither crisp */
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.social-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  transition: background 0.3s, color 0.3s;
+}
+.social-icon:hover {
+  background: currentColor;
+}
+.social-icon:hover svg {
+  color: var(--ink);
 }
 .btn[disabled] {
   opacity: 0.45;
@@ -349,6 +417,55 @@ img {
   border-radius: 50%;
   background: #fff;
 }
+/* logo cursor: burgundy logo with a white halo so it reads on light and burgundy backgrounds */
+.cursor-logo {
+  mix-blend-mode: normal;
+}
+.cursor-logo {
+  opacity: 0; /* hidden until the pointer first moves, so it never sits in the corner */
+  transition: opacity 0.2s;
+}
+.cursor-logo.live {
+  opacity: 1;
+}
+.cursor-logo-mark {
+  position: absolute;
+  top: -7px;
+  left: -3px;
+  display: block;
+  height: 14px;
+  color: var(--ink);
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 2px 4px rgba(74, 5, 7, 0.35));
+  font-size: 15px;
+  transform-origin: 4px 11px;
+  transition: transform 0.25s var(--ease-out);
+}
+.cursor-logo.hover .cursor-logo-mark {
+  transform: scale(1.18);
+}
+.cursor-logo.pressed .cursor-logo-mark {
+  transform: scale(0.85);
+}
+.cursor-logo-tag {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s, transform 0.25s var(--ease-out);
+}
+.cursor-logo-tag.show {
+  opacity: 1;
+  transform: none;
+}
 .cursor-spot {
   position: fixed;
   top: 0;
@@ -512,5 +629,149 @@ textarea.input {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- hero notepad (flipbook) ---------- */
+.notepad {
+  position: relative;
+  width: min(58vw, 330px);
+  aspect-ratio: 0.82;
+  perspective: 1400px;
+  cursor: pointer;
+  filter: drop-shadow(0 22px 30px rgba(74, 5, 7, 0.22));
+  outline: none;
+}
+.notepad-stack {
+  position: absolute;
+  inset: 4% 0 0 0;
+}
+.notepad-page {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 0%;
+  transform-style: preserve-3d;
+  transition: transform 1s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s 0.6s;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, rgba(127, 9, 13, 0.06) 27px 28px),
+    linear-gradient(180deg, #fbf9f6, #f3eee8);
+  border-radius: 2px 2px 4px 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), inset 0 -18px 30px -24px rgba(74, 5, 7, 0.25);
+  backface-visibility: hidden;
+}
+.notepad-page.flipped {
+  transform: rotateX(178deg);
+  opacity: 0;
+}
+.notepad-page-inner {
+  position: absolute;
+  inset: 17% 11% 10% 13%;
+  color: var(--ink);
+}
+.notepad-title {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(26px, 3.4vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+.notepad-small {
+  margin-top: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.notepad-list {
+  margin-top: 10px;
+  font-family: var(--font-instrument), serif;
+  font-style: italic;
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1.4;
+}
+.notepad-rings {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 9%;
+  z-index: 20;
+  border-top: 3px solid #a7a39d;
+}
+.notepad-ring {
+  position: absolute;
+  top: -9px;
+  width: 8px;
+  height: 26px;
+  margin-left: -4px;
+  border-radius: 5px;
+  border: 2px solid #8d8984;
+  background: linear-gradient(90deg, #d9d6d1, #8a8680 60%, #bdb9b3);
+}
+.notepad-clip {
+  position: absolute;
+  top: 34%;
+  z-index: 21;
+  width: 26px;
+  height: 22px;
+  background: #1d1c1b;
+  border-radius: 3px 3px 6px 6px;
+}
+.notepad-clip::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: -22px;
+  height: 24px;
+  border: 2px solid #9a968f;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+}
+.notepad-clip-left {
+  left: -8px;
+}
+.notepad-clip-right {
+  right: 22%;
+  top: auto;
+  bottom: 6%;
+  width: 18px;
+  height: 46px;
+  background: none;
+  border: 2px solid #a5a19b;
+  border-radius: 9px;
+}
+.notepad-clip-right::before {
+  display: none;
+}
+.notepad-tape {
+  position: absolute;
+  right: -5%;
+  bottom: 12%;
+  z-index: 21;
+  width: 18%;
+  height: 16%;
+  background: rgba(235, 222, 170, 0.75);
+  transform: rotate(-4deg);
+}
+.notepad-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  z-index: 22;
+  font-family: var(--font-instrument), serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.polaroid.no-caption {
+  padding-bottom: calc(var(--w, 180px) * 0.1);
+}
+
+/* menu links rise into view one after another */
+.menu-link {
+  animation: menu-rise 0.9s var(--ease-out) both;
+}
+@keyframes menu-rise {
+  from {
+    transform: translateY(110%);
   }
 }

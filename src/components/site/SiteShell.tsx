@@ -7,8 +7,17 @@ import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import type { SiteSettings } from "@/lib/slots";
 import Cursor from "./Cursor";
 import Intro from "./Intro";
+import { LogoProvider } from "./Logo";
 
-export default function SiteShell({ settings, children }: { settings: SiteSettings; children: React.ReactNode }) {
+export default function SiteShell({
+  settings,
+  logoSvg,
+  children,
+}: {
+  settings: SiteSettings;
+  logoSvg: string;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
 
   useEffect(() => {
@@ -26,16 +35,19 @@ export default function SiteShell({ settings, children }: { settings: SiteSettin
   }, []);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Respect #anchors (e.g. "Apply now" → #apply); otherwise start each page at the top.
+    const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    if (target) setTimeout(() => target.scrollIntoView({ behavior: "smooth" }), 300);
+    else window.scrollTo(0, 0);
     const id = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(id);
   }, [pathname]);
 
   return (
-    <>
+    <LogoProvider svg={logoSvg}>
       <Intro style={settings.introStyle} />
       <Cursor style={settings.cursorStyle} />
       {children}
-    </>
+    </LogoProvider>
   );
 }

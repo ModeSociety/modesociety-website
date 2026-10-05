@@ -6,7 +6,8 @@ It's an animated, playable site with a simple admin panel. All content and form 
 ```
 Visitor ──► Next.js site (Vercel) ──► Google Apps Script web app ──► Google Drive folder
                     ▲                  (runs as the Drive owner)       ├─ Mode Society — Website Data (Sheet)
-Admin ─ Google sign-in ─┘                                              ├─ Website Images/<slot>/…
+Admin ─ Google sign-in ─┘                                              ├─ Home Page 1 / 2 / 3, About Us 1, Instagram, Services/…
+                                                                       ├─ Website Images/<slot>/…   (admin uploads)
                                                                        ├─ Talent Applications/<date — name>/…
                                                                        └─ _Incoming Uploads (auto-cleaned)
 ```
@@ -15,44 +16,58 @@ Admin ─ Google sign-in ─┘                                              ├
 
 ## Feature walkthrough
 
+Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` page. The footer and menu use a dithered burgundy gradient.
+
 ### The public site
 
 | Where | What it does |
 | --- | --- |
-| **Intro** | A black curtain lifts off the "MODE SOCIETY" wordmark (or a polaroid-style "develop" fade). It plays once per visit. |
-| **Home: The Wall** | The hero is a moodboard of pinned polaroids with four interactive modes. The mode is set in the admin panel; visitors can play with it but can't switch modes. **Shuffle** rearranges the wall. <br>• **Pinboard**: cards hang from their pins and swing in the cursor's "breeze". Drag to rearrange; double-click to unpin and drop a card; drag it back up to re-pin it. <br>• **Scatter**: cards float in layered depth, drift with parallax, and push away from the cursor. <br>• **Orbit**: a 3D carousel. Drag to spin; click a card to bring it forward. <br>• **Gravity**: cards tumble in and pile up (matter-js physics). Grab and throw them, or flick the cursor fast to gust them. |
-| **Home: marquee** | "UGC 〰 INFLUENCERS 〰 MODELS…" ticker. It speeds up with scroll velocity and reverses when you scroll back up. |
-| **Home: the agency** | The paragraph "inks in" word by word as you scroll. |
-| **Home: services** | Five cards are dealt out of a stacked hand as you scroll. Hover (or tap) a card to flip it for details and an enquiry link. |
-| **Home: the game** | One playable section, chosen in the admin panel (or *Rotate* for a different one each visit). Every game has a personal best, and finishing offers **"Book your cast"**, which opens the brand form with a *champion* badge and saves the score on the enquiry. <br>• **Casting Call**: memory match against the clock. <br>• **The Shortlist**: swipe right to cast, left to pass, until three are shortlisted. <br>• **Eye on the Talent**: a shell game; follow the starred polaroid through the shuffle, faster every level. <br>• **Editorial Puzzle**: a 3×3 sliding-tile puzzle of a talent photo, with hold-to-peek. <br>• **Darkroom**: rub undeveloped polaroids to bring each photo through. |
-| **Home: niches & brands** | A giant niche marquee, plus a client-logo strip that only shows once logos are uploaded. |
-| **For brands / For talent** | Four looks, switchable in the admin panel: **Split** (panels widen and turn to colour), **Type reveal** (big rows, with a photo that follows the cursor), **Tilt** (3D polaroids with glare) and **Blinds** (ink slats open to reveal the photo). |
-| **Footer** | The giant MODESOCIETY always sizes itself to fit. It can be **Magnetic** (letters rise toward the cursor), **Swing** (letters hang and swing, and click to spin) or **Static**. |
-| **About** | Founder story with a parallax portrait. The industry frustrations get struck through in red as you scroll. A pinned horizontal polaroid gallery follows. |
-| **Work with us** (`/work-with-us`) | The brand enquiry form as three **levels** with a progress bar. It uses the same questions as the original site. |
-| **Apply** (`/apply-to-be-a-creator`) | The talent application as four levels. Photos "develop" like polaroids while they upload, and the success screen pins the applicant's own photo to the board. Both forms end with links onward and return to the homepage after 15 seconds, unless the visitor chooses to stay. |
-| **Everywhere** | Smooth scrolling, a custom cursor that labels things (*drag, flip, spin, throw, copy*), a paper-grain finish, magnetic-fill buttons, and click-to-copy email in the footer. Visitors with *reduced motion* switched on get a calm, static version. |
+| **Header** | The logo on the left. On the right are a grey **MENU** keycap (it presses down when you hover it) and a **Contact us** button. The menu holds About us · For brands · For talent · Services · Partner with us · For Tech companies · Contact us. |
+| **Home: hero** | The logo sits large in the background, with the *"Not your average talent agency."* notepad in the middle and caption-free polaroids pinned around it. In **Gravity** mode (the default), hovering the notepad (or tapping it on a phone) drops every polaroid. Visitors can then grab and throw them, and the notepad starts flipping its pages like a book. The other modes (Pinboard, Scatter, Orbit) are set in the admin panel; visitors can't switch. |
+| **Home: the agency** | A 3D orbit of creator videos (from the Drive folder *Home Page 2*) beside the "external PR team" intro and a **Get to know us** button. |
+| **Home: services** | Four plain cards (Influencer campaigns, UGC content, Event guest lists, Funding) dealt out as you scroll. Hover a card to flip it and read more. Funding links to Grant Help. |
+| **Home: the game** | An optional playable section, chosen in the admin panel: Casting Call, The Shortlist, Eye on the Talent, Editorial Puzzle, Darkroom, Rotate or Hidden. |
+| **Brands** | "Brands", with "our creators have worked with" underneath. Logos from the Drive folder *Home Page 3* float around on their own. |
+| **Let's work together** | For brands / For talent rows. In the default **Type reveal** style the logo follows the cursor; Split, Tilt and Blinds are alternatives in the admin panel. |
+| **Results infographic** | An animated sales line, bar comparisons and spend rings comparing returns with Mode Society against an in-house marketer, plus a table view. *The figures are illustrative until real ones are added in `src/lib/content.ts`.* |
+| **Footer** | Dithered burgundy, with "We'll bring it to life.", an enquiry button (no public email), Instagram/LinkedIn icons, **Mode Society Pty Ltd**, and the logo in white animating letter by letter (Magnetic / Swing / Static). |
+| **About us** (`/about`) | The quote; *Our story* and *What we are* drop-downs; the team photo (Drive folder *About Us 1*); "Creators your customers actually trust." with the services as drop-downs beside the video orbit; then the infographic and the swipe cards. |
+| **For brands** (`/work-with-us`) | "Let's work together." with the PR-team intro and an Instagram grid (Drive folder *Instagram*). Then the four services, the quote, *What you can expect from us* swipe cards, the infographic and the brand logos. The **Book a call** form sits at the bottom. |
+| **For talent** (`/apply-to-be-a-creator`) | "Thinking of signing?", the struck-through frustrations (now quicker), what to expect from signing to getting paid, what we do for you, flexible representation and the brand logos. The **Apply now** form sits at the bottom. |
+| **Services** (`/services`) | Five services with jump links. Each has how it works, what you get, who it's for, photos/video from its *Services/…* Drive folder, and enquiry buttons. No prices. |
+| **Get in touch** (`/get-in-touch`) | Three cards: For talent, For brands and Partner with us. Picking one opens its form. `/contact` redirects here. |
+| **Forms** | **Talent**: what you do; each channel with its follower count and engagement screenshots; niche; what you want from an agency; whether you're signed elsewhere; 18+ consent. **Book a call**: brand, website/Instagram, services, project, budget, timeline. **Partnerships**: business, type, partnership type, idea. All three end with "Thanks! We'll be in touch." |
+| **Everywhere** | Smooth scrolling, and the logo as the cursor, with small labels like *drop*, *flip* and *open*. Visitors with *reduced motion* switched on get a calm, static version. |
 
 ### The admin panel: `/admin`
 
 Sign in with Google. Only approved accounts get in.
 
-- **Images:** every image on the site is listed by page. You can upload, replace, reorder (← →), remove, edit the description (**Aa**, used for accessibility and SEO), or **revert to default**. Uploads are compressed in the browser, then saved into `Website Images/<slot>` in Drive. Changes show on the live site within seconds.
-- **Animations:** choose which hero mode visitors see first, or tick *rotate* to show a random mode on each visit (never the same one twice in a row). You can also pick the homepage game, the For brands / For talent style, the footer wordmark, the page intro (Curtain / Polaroid develop / None) and the cursor (Ring / Spotlight / System).
-- **Access:** add or remove Google accounts. The **owner** (`OWNER_EMAIL`, `rubayathdrjb@gmail.com` by default) is permanent, so you can never lock yourself out.
-- Shortcut buttons open the **Google Sheet**, the **website folder** and the **talent applications folder**.
+- **Images:** every image slot is listed with the Drive folder it reads from. Files dropped into that folder appear automatically (marked *from Drive*), and anything uploaded in the panel takes priority. You can upload, reorder, describe (**Aa**) or clear images. Brand logos have their white backgrounds removed on upload. Videos go straight into the Drive folders, because they're too large to upload through the site.
+- **Animations:** the hero mode (or *rotate*), the homepage game, the Let's work together style, the footer wordmark, the page intro and the cursor (Logo / Ring / Spotlight / System).
+- **Access:** add or remove Google accounts. The site owner and the Drive owner are permanent.
+
+### Drive folders (inside the website folder; `setup` creates them)
+
+| Folder | Used for |
+| --- | --- |
+| **Home Page 1** | The logo (the first `.svg` in the folder) and the hero polaroids (photos). |
+| **Home Page 2** | Videos (MP4) and photos for the orbit on Home and About. |
+| **Home Page 3** | Brand logos for "Brands our creators have worked with". PNGs with transparent backgrounds look best. |
+| **About Us 1** | The team photo. |
+| **Instagram** | Posts for the For brands hero grid. |
+| **Services/01–05 …** | Photos or video for each service on the Services page. |
+
+Files show in name order, so prefix them `01-`, `02-` and so on to control the order. Media in these folders is set to "anyone with the link can view" so the site can display it.
 
 ### Where the data lives (Google Sheet: *Mode Society — Website Data*)
 
 | Tab | Contents |
 | --- | --- |
-| **Talent Applications** | One row per application: contact details, niches, links, a link to the applicant's Drive folder, and links to each file. It has a **Status** dropdown (New / Reviewing / Contacted / Signed / Declined). |
-| **Brand Enquiries** | One row per enquiry, with Status, services, budget and any Casting Call score. |
-| **Images** | Which Drive file is shown in which slot, in order. The admin panel writes this tab. |
-| **Settings** | Animation choices. |
-| **Admins** | Emails allowed into the admin panel, besides the owner. |
-
-Talent uploads are renamed on the way in, e.g. `Talent Applications/2026-09-23 — Jess Smith (T-260923-8F2A)/Jess Smith — Previous Work 01.jpg`.
+| **Talent** | One row per application: each channel's handle and follower count, links to the screenshots, and a **Status** dropdown. |
+| **Book a Call** | Brand bookings: services, project, budget and timeline, plus any game score. |
+| **Partnerships** | B2B partnership enquiries. |
+| **Images**, **Settings**, **Admins** | Written by the admin panel. |
 
 ---
 
@@ -154,12 +169,25 @@ Your Google sign-in Client ID keeps working. It only controls *who* can sign in,
 
 ---
 
+## Troubleshooting
+
+**Forms and uploads fail with "You can't access this item because it is in violation of our Terms of Service".**
+Google has blocked the Apps Script web app itself. This happens most often to brand-new Google accounts that publish a web app open to "Anyone". The site can't work around it.
+1. Sign in to the account that owns the script, open <https://script.google.com> and look for a warning on the project. Google usually emails the account too; follow its **request a review** link.
+2. While the review is pending, or if it's refused, set the backend up again under an established Google account (ideally Mode Society's Google Workspace) by following *Backend setup*. Then update `APPS_SCRIPT_URL` and `APPS_SCRIPT_SECRET` in Vercel.
+
+**Admin sign-in shows "Access blocked: The OAuth client was disabled" (`disabled_client`).**
+Google has disabled the sign-in Client ID, usually as part of the same account review. Open <https://console.cloud.google.com/apis/credentials> as the owning account; the project or client will show the reason. Appeal there, or create a new project and OAuth Client ID under an established account. Then update `NEXT_PUBLIC_GOOGLE_CLIENT_ID` in Vercel and redeploy.
+
+**`origin_mismatch`.** Add the exact site address (e.g. `https://modeweb-eight.vercel.app`) to the OAuth client's *Authorised JavaScript origins*.
+
 ## Project map
 
 ```
 google-apps-script/     Backend: paste into script.google.com
 scripts/mock-backend.mjs  Local stand-in for the backend
-src/lib/slots.ts        Every image slot + animation option. Add a slot here and it appears in the admin panel.
+src/lib/content.ts      All the wording (services, about, talent, form intros, infographic figures)
+src/lib/slots.ts        Every image slot (and its Drive folder) and animation option. Add a slot here and it appears in the admin panel.
 src/lib/backend.ts      Calls Apps Script; caches site content (refreshed instantly on admin save)
 src/lib/auth.ts         Google ID-token verification, allowlist, session cookie
 src/components/home/wall/engines.ts   The four hero modes
@@ -173,5 +201,6 @@ src/app/media/[id]      Serves Drive images through the site (nothing in Drive i
 
 - Uploaded images are resized in the browser (max 2400 px) to keep uploads fast and under the host's 4.5 MB request limit. Transparent PNGs, such as logos, stay transparent.
 - Site content is cached for 10 minutes and refreshed immediately whenever an admin saves.
-- Placeholder images come from the original moodboard and are low resolution. Replace them with full-size photos in **/admin → Images**.
+- Placeholder images come from the original moodboard and are low resolution. Replace them by filling the Drive folders.
+- Still to supply (marked `TODO` in `src/lib/content.ts` and `src/lib/forms.ts`): the LinkedIn URL (the icon stays hidden until it's set), real infographic figures, the final budget and timeline options, the full AI "Where we draw the line" text, and the talent-agreement wording for *Flexible representation*. "For Tech companies" currently opens the partnership form.
 - Forms have a hidden honeypot field and basic rate limiting against spam.

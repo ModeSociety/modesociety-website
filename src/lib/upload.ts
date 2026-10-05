@@ -25,11 +25,39 @@ async function hasAlpha(bitmap: ImageBitmap) {
   return false;
 }
 
+/** Turns near-white pixels connected to the image edge transparent (a logo on a white background). */
+function knockOutWhite(g: CanvasRenderingContext2D, w: number, h: number) {
+  const img = g.getImageData(0, 0, w, h);
+  const d = img.data;
+  const seen = new Uint8Array(w * h);
+  const stack: number[] = [];
+  const whiteish = (i: number) => d[i * 4 + 3] > 0 && d[i * 4] > 232 && d[i * 4 + 1] > 232 && d[i * 4 + 2] > 232;
+  for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+  while (stack.length) {
+    const i = stack.pop()!;
+    if (seen[i] || !whiteish(i)) continue;
+    seen[i] = 1;
+    d[i * 4 + 3] = 0;
+    const x = i % w;
+    if (x > 0) stack.push(i - 1);
+    if (x < w - 1) stack.push(i + 1);
+    if (i >= w) stack.push(i - w);
+    if (i < w * (h - 1)) stack.push(i + w);
+  }
+  g.putImageData(img, 0, 0);
+}
+
 /**
  * Downscales photos so uploads stay small and fast. Transparent PNGs (logos)
  * stay PNG; SVG/GIF/PDF are passed through untouched.
  */
-export async function encodeFile(file: File, maxDim = 2400, quality = 0.86): Promise<EncodedFile> {
+export async function encodeFile(
+  file: File,
+  maxDim = 2400,
+  quality = 0.86,
+  opts: { knockout?: boolean } = {},
+): Promise<EncodedFile> {
   const previewUrl = URL.createObjectURL(file);
   const passThrough = /svg|gif|pdf/.test(file.type);
   if (passThrough || !file.type.startsWith("image/")) {
@@ -37,7 +65,7 @@ export async function encodeFile(file: File, maxDim = 2400, quality = 0.86): Pro
     return { filename: file.name, mimeType: file.type, data: await toBase64(file), previewUrl };
   }
   const bitmap = await createImageBitmap(file);
-  const keepPng = file.type === "image/png" && (await hasAlpha(bitmap));
+  const keepPng = opts.knockout || (file.type === "image/png" && (await hasAlpha(bitmap)));
   let dim = maxDim;
   for (let attempt = 0; attempt < 4; attempt++) {
     const scale = Math.min(1, dim / Math.max(bitmap.width, bitmap.height));
@@ -50,6 +78,7 @@ export async function encodeFile(file: File, maxDim = 2400, quality = 0.86): Pro
       g.fillRect(0, 0, canvas.width, canvas.height);
     }
     g.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    if (opts.knockout) knockOutWhite(g, canvas.width, canvas.height);
     const type = keepPng ? "image/png" : "image/jpeg";
     const blob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), type, quality));
     if (blob.size <= MAX_BYTES) {

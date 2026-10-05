@@ -9,10 +9,12 @@ import {
   INTRO_STYLES,
   pick,
   SLOTS,
+  type SlotDef,
   type SiteContent,
   type SiteImage,
   type SiteSettings,
 } from "./slots";
+import { sanitizeLogoSvg } from "./svg";
 
 /** Server-only client for the Google Apps Script backend (see google-apps-script/Code.gs). */
 
@@ -39,16 +41,44 @@ export async function callBackend<T = unknown>(action: string, payload: Record<s
   try {
     body = JSON.parse(text);
   } catch {
+    if (/violation of our\s+Terms of Service/i.test(text)) {
+      throw new Error("Google has blocked the Apps Script backend for a Terms of Service review. See README → Troubleshooting.");
+    }
     throw new Error(`Backend returned non-JSON (HTTP ${res.status}). Check the Apps Script deployment URL and access setting.`);
   }
   if (!body.ok) throw new Error(body.error || "Backend error");
   return body.data as T;
 }
 
+type FolderFile = { id: string; name: string; mimeType: string; src: string };
+
 type RawSite = {
   settings: Record<string, string>;
   images: { slot: string; order: number; fileId: string; alt: string }[];
+  /** media folder path → files, e.g. "Home Page 2" → videos */
+  folders?: Record<string, FolderFile[]>;
+  logoSvg?: string;
 };
+
+function fromFolder(files: FolderFile[] = [], accept: SlotDef["accept"], alt: string): SiteImage[] {
+  return files
+    .filter((f) => {
+      const video = f.mimeType.startsWith("video/");
+      const svg = f.mimeType === "image/svg+xml";
+      if (accept === "svg") return svg;
+      if (svg) return false;
+      if (accept === "video") return video;
+      if (accept === "image") return !video;
+      return true;
+    })
+    .map((f) => ({
+      src: f.src || mediaUrl(f.id),
+      alt: f.name.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ") || alt,
+      fileId: f.id,
+      type: f.mimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
+      source: "folder" as const,
+    }));
+}
 
 export function mediaUrl(fileId: string) {
   return `/media/${encodeURIComponent(fileId)}`;
@@ -70,13 +100,21 @@ function parseSettings(raw: Record<string, string> = {}): SiteSettings {
 export function buildContent(raw: RawSite | null): SiteContent {
   const images: Record<string, SiteImage[]> = {};
   for (const slot of SLOTS) {
-    const uploaded = (raw?.images ?? [])
+    // Priority: uploaded through the admin panel → files in the slot's Drive folder → built-in defaults.
+    const uploaded: SiteImage[] = (raw?.images ?? [])
       .filter((r) => r.slot === slot.id)
       .sort((a, b) => a.order - b.order)
-      .map((r) => ({ src: mediaUrl(r.fileId), alt: r.alt || slot.label, fileId: r.fileId }));
-    images[slot.id] = uploaded.length ? uploaded : slot.defaults;
+      .map((r) => ({ src: mediaUrl(r.fileId), alt: r.alt || slot.label, fileId: r.fileId, type: "image", source: "upload" }));
+    const folder = slot.folder ? fromFolder(raw?.folders?.[slot.folder], slot.accept, slot.label) : [];
+    const list = uploaded.length ? uploaded : folder.length ? folder : slot.defaults.map((d) => ({ ...d, type: "image" as const, source: "default" as const }));
+    images[slot.id] = slot.max ? list.slice(0, slot.max) : list;
   }
-  return { settings: parseSettings(raw?.settings), images, connected: Boolean(raw) };
+  return {
+    settings: parseSettings(raw?.settings),
+    images,
+    logoSvg: sanitizeLogoSvg(raw?.logoSvg || ""),
+    connected: Boolean(raw),
+  };
 }
 
 const fetchSiteCached = unstable_cache(
@@ -84,7 +122,7 @@ const fetchSiteCached = unstable_cache(
     if (!backendConfigured()) return null;
     return callBackend<RawSite>("getSite");
   },
-  ["site-content-v1"],
+  ["site-content-v2"],
   { tags: [SITE_TAG], revalidate: 600 },
 );
 

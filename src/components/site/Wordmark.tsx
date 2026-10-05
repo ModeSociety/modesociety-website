@@ -22,16 +22,21 @@ function letteriseSvg(svg: SVGSVGElement): SVGGElement[] {
   const items = Array.from(parent.children).filter((k) => k.matches(`g,${SHAPES}`));
   const ns = "http://www.w3.org/2000/svg";
   return items.map((item) => {
+    // ltr = cursor physics, rise = scroll-in (GSAP), spin = click flip. Spin gets its own layer
+    // because GSAP pins an SVG element's transform-origin to its top-left, which made the
+    // flip pivot on the letter's left edge.
     const ltr = document.createElementNS(ns, "g");
     const rise = document.createElementNS(ns, "g");
+    const spin = document.createElementNS(ns, "g");
     ltr.setAttribute("class", "ltr");
-    rise.setAttribute("class", "rise spin");
-    for (const g of [ltr, rise]) {
-      g.style.transformBox = "fill-box";
-      g.style.transformOrigin = "50% 100%";
-    }
+    rise.setAttribute("class", "rise");
+    spin.setAttribute("class", "spin");
+    for (const g of [ltr, rise, spin]) g.style.transformBox = "fill-box";
+    ltr.style.transformOrigin = "50% 100%";
+    spin.style.transformOrigin = "50% 50%";
     item.replaceWith(ltr);
-    rise.appendChild(item);
+    spin.appendChild(item);
+    rise.appendChild(spin);
     ltr.appendChild(rise);
     return ltr;
   });
@@ -199,7 +204,9 @@ export default function Wordmark({ style }: { style: FooterStyle }) {
           {WORD.split("").map((c, i) => (
             <span key={i} className="ltr inline-block" style={{ willChange: "transform" }}>
               <span className="reveal-line">
-                <span className="rise spin inline-block">{c}</span>
+                <span className="rise inline-block">
+                  <span className="spin inline-block origin-center">{c}</span>
+                </span>
               </span>
             </span>
           ))}

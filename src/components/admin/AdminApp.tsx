@@ -3,6 +3,8 @@
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
+import InsightsTab from "./InsightsTab";
+import ScheduleTab from "./ScheduleTab";
 import {
   CTA_STYLES,
   FOOTER_STYLES,
@@ -111,10 +113,10 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "images" | "animations" | "access";
+type Tab = "schedule" | "insights" | "images" | "animations" | "access";
 
 function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
-  const [tab, setTab] = useState<Tab>("images");
+  const [tab, setTab] = useState<Tab>("schedule");
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loadError, setLoadError] = useState("");
   const [toast, setToast] = useState("");
@@ -155,8 +157,8 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
             <button onClick={onLogout} className="btn ghost !px-4 !py-2">Sign out</button>
           </div>
         </div>
-        <nav className="wrap flex gap-6 text-[12px] uppercase tracking-[0.16em]">
-          {(["images", "animations", "access"] as Tab[]).map((t) => (
+        <nav className="wrap flex gap-6 overflow-x-auto text-[12px] uppercase tracking-[0.16em]">
+          {(["schedule", "insights", "images", "animations", "access"] as Tab[]).map((t) => (
             <button key={t} onClick={() => setTab(t)} className={`border-b-2 pb-3 ${tab === t ? "border-ink" : "border-transparent text-muted"}`}>
               {t}
             </button>
@@ -180,6 +182,15 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           </div>
         )}
 
+        {tab === "schedule" && (
+          <ScheduleTab
+            me={me.session!.email}
+            team={[...new Set([me.owner, me.backendOwner, ...(me.admins || [])].filter((e): e is string => Boolean(e)))]}
+            disabled={!me.backendConfigured}
+            notify={notify}
+          />
+        )}
+        {tab === "insights" && <InsightsTab disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab content={content} reload={loadContent} notify={notify} />}
         {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}
         {tab === "animations" && (

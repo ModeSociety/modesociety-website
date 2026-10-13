@@ -142,7 +142,7 @@ export const INTRO_STYLES: { id: IntroStyle; label: string; description: string 
 
 export const CTA_STYLES: { id: CtaStyle; label: string; description: string }[] = [
   { id: "split", label: "Split panels", description: "Two photo panels; the one you hover widens and turns to colour." },
-  { id: "reveal", label: "Type reveal", description: "Big typographic rows; the logo follows the cursor as you hover each one." },
+  { id: "reveal", label: "Type reveal", description: "Big typographic rows that slide across as you hover each one." },
   { id: "tilt", label: "Tilt cards", description: "Two pinned polaroids that tilt in 3D toward the cursor, with a glare." },
   { id: "blinds", label: "Blinds", description: "Ink slats open like venetian blinds to reveal each photo." },
 ];

@@ -31,7 +31,20 @@ var TABS = {
     headers: ['Submitted At', 'Status', 'Business Name', 'Type Of Business', 'Website / Instagram', 'Your Name', 'Email',
       'Type Of Partnership', 'Partnership Idea', 'Reference'],
   },
+  schedule: {
+    name: 'Schedule',
+    headers: ['ID', 'Title', 'Type', 'Date', 'Start', 'End', 'Client / Brand', 'Talent', 'Location / Link', 'Notes',
+      'Status', 'Assigned To', 'Created By', 'Updated At'],
+  },
+  visits: {
+    name: 'Visits',
+    headers: ['Time', 'Date', 'Path', 'Source', 'Referrer', 'Campaign', 'Session', 'Visitor', 'New Visitor', 'Device', 'Country'],
+  },
 };
+
+/** Schedule columns, in sheet order (keep in sync with TABS.schedule.headers). */
+var SCHEDULE_FIELDS = ['id', 'title', 'type', 'date', 'start', 'end', 'client', 'talent', 'location', 'notes', 'status', 'assignee'];
+var VISITS_KEEP_DAYS = 400;
 
 var FOLDERS = {
   images: 'Website Images',
@@ -103,6 +116,9 @@ function setup() {
       var rule = SpreadsheetApp.newDataValidation().requireValueInList(STATUSES, true).build();
       sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
     }
+    // keep dates and times as plain text so Sheets doesn't turn them into date values
+    if (key === 'schedule') sheet.getRange('D:F').setNumberFormat('@');
+    if (key === 'visits') sheet.getRange('B:B').setNumberFormat('@');
   });
   var stray = ss.getSheetByName('Sheet1');
   if (stray && ss.getSheets().length > 1) ss.deleteSheet(stray);
@@ -121,7 +137,7 @@ function setup() {
   Logger.log('Setup complete. Spreadsheet: ' + ss.getUrl());
 }
 
-/** Daily: bins uploads from forms that were started but never submitted. */
+/** Daily: bins uploads from forms that were started but never submitted, and prunes old visit rows. */
 function cleanupIncoming() {
   var cutoff = Date.now() - 2 * 24 * 3600 * 1000;
   var files = folder_('incoming').getFiles();
@@ -129,6 +145,17 @@ function cleanupIncoming() {
     var f = files.next();
     if (f.getDateCreated().getTime() < cutoff) f.setTrashed(true);
   }
+  pruneVisits_();
+}
+
+function pruneVisits_() {
+  var sheet = sheet_('visits');
+  if (!sheet || sheet.getLastRow() < 2) return;
+  var oldest = dayString_(new Date(Date.now() - VISITS_KEEP_DAYS * 24 * 3600 * 1000));
+  var dates = sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).getValues();
+  var drop = 0;
+  while (drop < dates.length && asDay_(dates[drop][0]) < oldest) drop++; // rows are appended in time order
+  if (drop) sheet.deleteRows(2, drop);
 }
 
 // ---------------------------------------------------------------------------
@@ -295,7 +322,184 @@ var ACTIONS = {
     });
     return { reference: ref };
   },
+
+  // ---- schedule ----------------------------------------------------------
+
+  /** Appointments whose date falls within [from, to] (yyyy-MM-dd, inclusive), sorted by date and time. */
+  listAppointments: function (p) {
+    var from = p.from || '0000-00-00';
+    var to = p.to || '9999-99-99';
+    return { items: readSchedule_().filter(function (a) { return a.date >= from && a.date <= to; }) };
+  },
+
+  /** Creates (no id) or updates an appointment. */
+  saveAppointment: function (p) {
+    var item = p.item || {};
+    return withLock_(function () {
+      var sheet = sheet_('schedule');
+      var values = sheet.getDataRange().getValues();
+      var row = -1;
+      if (item.id) for (var i = 1; i < values.length; i++) if (String(values[i][0]) === item.id) row = i + 1;
+      if (!item.id || row < 0) item.id = Utilities.getUuid().slice(0, 8);
+      var cells = SCHEDULE_FIELDS.map(function (k) { return item[k] || ''; });
+      if (row > 0) {
+        cells.push(values[row - 1][12] || p.by || '', new Date());
+        sheet.getRange(row, 1, 1, cells.length).setValues([cells]);
+      } else {
+        cells.push(p.by || '', new Date());
+        sheet.appendRow(cells);
+      }
+      return { item: item };
+    });
+  },
+
+  deleteAppointment: function (p) {
+    return withLock_(function () {
+      var sheet = sheet_('schedule');
+      var values = sheet.getDataRange().getValues();
+      for (var i = values.length - 1; i >= 1; i--) if (String(values[i][0]) === String(p.id)) sheet.deleteRow(i + 1);
+      return { ok: true };
+    });
+  },
+
+  // ---- insights ----------------------------------------------------------
+
+  /** One row per page view (the site has already classified the source and stripped anything personal). */
+  track: function (p) {
+    var now = new Date();
+    sheet_('visits').appendRow([now, dayString_(now), p.path, p.source, p.referrer, p.campaign, p.session, p.visitor,
+      p.newVisitor ? 'Yes' : '', p.device, p.country]);
+    return { ok: true };
+  },
+
+  /** Traffic and business numbers for the last `days` days, plus the period before for comparison. */
+  getStats: function (p) {
+    var days = Math.min(Math.max(Number(p.days) || 30, 1), 365);
+    var today = new Date();
+    var from = dayString_(new Date(today.getTime() - (days - 1) * 864e5));
+    var prevFrom = dayString_(new Date(today.getTime() - (2 * days - 1) * 864e5));
+    var to = dayString_(today);
+
+    var cur = emptyTraffic_();
+    var prev = emptyTraffic_();
+    var daily = {};
+    for (var d = 0; d < days; d++) {
+      daily[dayString_(new Date(today.getTime() - (days - 1 - d) * 864e5))] = { organic: 0, social: 0, direct: 0, referral: 0, campaign: 0, pageviews: 0 };
+    }
+    var vs = sheet_('visits');
+    var rows = vs && vs.getLastRow() > 1 ? vs.getRange(2, 1, vs.getLastRow() - 1, 11).getValues() : [];
+    for (var i = rows.length - 1; i >= 0; i--) {
+      var r = rows[i];
+      var day = asDay_(r[1]);
+      if (day < prevFrom) break; // rows are in time order
+      var inCur = day >= from;
+      var t = inCur ? cur : prev;
+      var session = String(r[6]);
+      t.pageviews++;
+      t.visitors[String(r[7])] = true;
+      if (r[8] === 'Yes') t.newVisitors++;
+      if (!inCur) {
+        if (!t.sessions[session]) t.sessions[session] = String(r[3]);
+        continue;
+      }
+      daily[day] && daily[day].pageviews++;
+      t.pages[r[2]] = (t.pages[r[2]] || 0) + 1;
+      // walking backwards, the last row seen for a session is its landing page view
+      t.sessions[session] = { source: String(r[3]), referrer: String(r[4]), device: String(r[9]), country: String(r[10]), day: day };
+    }
+    Object.keys(cur.sessions).forEach(function (k) {
+      var s = cur.sessions[k];
+      cur.sources[s.source] = (cur.sources[s.source] || 0) + 1;
+      if (daily[s.day] && s.source in daily[s.day]) daily[s.day][s.source]++;
+      if (s.referrer) cur.referrers[s.referrer] = (cur.referrers[s.referrer] || 0) + 1;
+      cur.devices[s.device || 'desktop'] = (cur.devices[s.device || 'desktop'] || 0) + 1;
+      if (s.country) cur.countries[s.country] = (cur.countries[s.country] || 0) + 1;
+    });
+    var prevOrganic = 0;
+    Object.keys(prev.sessions).forEach(function (k) { if (prev.sessions[k] === 'organic') prevOrganic++; });
+
+    var schedule = readSchedule_();
+    return {
+      range: { from: from, to: to, days: days },
+      totals: summary_(cur, cur.sources.organic || 0),
+      previous: summary_(prev, prevOrganic),
+      daily: Object.keys(daily).sort().map(function (k) { var o = daily[k]; o.date = k; return o; }),
+      sources: cur.sources,
+      pages: top_(cur.pages, 8),
+      referrers: top_(cur.referrers, 8),
+      devices: cur.devices,
+      countries: top_(cur.countries, 8),
+      forms: {
+        talent: countSince_('talent', from, to), bookings: countSince_('bookings', from, to), partners: countSince_('partners', from, to),
+        previous: {
+          talent: countSince_('talent', prevFrom, from, true), bookings: countSince_('bookings', prevFrom, from, true),
+          partners: countSince_('partners', prevFrom, from, true),
+        },
+      },
+      schedule: {
+        upcoming: schedule.filter(function (a) { return a.date >= to && a.status !== 'Cancelled'; }).length,
+        thisPeriod: schedule.filter(function (a) { return a.date >= from && a.date <= to && a.status !== 'Cancelled'; }).length,
+      },
+    };
+  },
 };
+
+function readSchedule_() {
+  var sheet = sheet_('schedule');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, SCHEDULE_FIELDS.length + 2).getValues();
+  return values
+    .filter(function (r) { return r[0]; })
+    .map(function (r) {
+      var o = {};
+      SCHEDULE_FIELDS.forEach(function (k, i) { o[k] = r[i] instanceof Date ? (k === 'date' ? asDay_(r[i]) : timeString_(r[i])) : String(r[i]); });
+      o.createdBy = String(r[12] || '');
+      return o;
+    })
+    .sort(function (a, b) { return (a.date + a.start).localeCompare(b.date + b.start); });
+}
+
+function emptyTraffic_() {
+  return { pageviews: 0, newVisitors: 0, visitors: {}, sessions: {}, sources: {}, pages: {}, referrers: {}, devices: {}, countries: {} };
+}
+
+function summary_(t, organic) {
+  var sessions = Object.keys(t.sessions).length;
+  return {
+    pageviews: t.pageviews, sessions: sessions, visitors: Object.keys(t.visitors).length, newVisitors: t.newVisitors,
+    organic: organic, pagesPerSession: sessions ? Math.round((t.pageviews / sessions) * 10) / 10 : 0,
+  };
+}
+
+function top_(map, n) {
+  return Object.keys(map)
+    .map(function (k) { return { key: k, value: map[k] }; })
+    .sort(function (a, b) { return b.value - a.value; })
+    .slice(0, n);
+}
+
+/** Form submissions dated within [from, to] (or [from, to) when `exclusive`). */
+function countSince_(key, from, to, exclusive) {
+  var sheet = sheet_(key);
+  if (!sheet || sheet.getLastRow() < 2) return 0;
+  var stamps = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  return stamps.filter(function (r) {
+    var d = asDay_(r[0]);
+    return d >= from && (exclusive ? d < to : d <= to);
+  }).length;
+}
+
+function dayString_(date) {
+  return Utilities.formatDate(date, tz_(), 'yyyy-MM-dd');
+}
+
+function timeString_(date) {
+  return Utilities.formatDate(date, tz_(), 'HH:mm');
+}
+
+function asDay_(v) {
+  return v instanceof Date ? dayString_(v) : String(v).slice(0, 10);
+}
 
 // ---------------------------------------------------------------------------
 // Media folders

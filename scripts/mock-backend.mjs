@@ -44,6 +44,8 @@ const empty = {
   talent: [],
   bookings: [],
   partners: [],
+  schedule: [],
+  visits: [],
   files: {}, // id -> { mimeType, folder }
 };
 const load = () => (existsSync(DB) ? JSON.parse(readFileSync(DB, "utf8")) : structuredClone(empty));
@@ -125,7 +127,84 @@ const actions = {
     (db.partners ||= []).push({ at: new Date().toISOString(), reference, ...p.fields });
     return { reference };
   },
+
+  listAppointments: (db, p) => ({
+    items: (db.schedule ||= [])
+      .filter((a) => a.date >= (p.from || "0") && a.date <= (p.to || "9"))
+      .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start)),
+  }),
+  saveAppointment: (db, p) => {
+    const list = (db.schedule ||= []);
+    const item = { ...p.item };
+    const i = item.id ? list.findIndex((a) => a.id === item.id) : -1;
+    if (i >= 0) list[i] = { ...list[i], ...item };
+    else list.push({ ...item, id: randomUUID().slice(0, 8), createdBy: p.by });
+    return { item: i >= 0 ? list[i] : list.at(-1) };
+  },
+  deleteAppointment: (db, p) => {
+    db.schedule = (db.schedule || []).filter((a) => a.id !== p.id);
+    return { ok: true };
+  },
+  track: (db, p) => {
+    (db.visits ||= []).push({ ...p, date: day(new Date()) });
+    return { ok: true };
+  },
+  getStats: (db, p) => stats(db, Number(p.days) || 30),
 };
+
+const day = (d) => d.toISOString().slice(0, 10);
+
+/** Same shape as getStats in google-apps-script/Code.gs. */
+function stats(db, days) {
+  const now = Date.now();
+  const from = day(new Date(now - (days - 1) * 864e5));
+  const prevFrom = day(new Date(now - (2 * days - 1) * 864e5));
+  const to = day(new Date(now));
+  const visits = db.visits || [];
+  const summarise = (rows) => {
+    const sessions = new Map();
+    for (const v of rows) if (!sessions.has(v.session)) sessions.set(v.session, v);
+    const n = sessions.size;
+    return {
+      rows, sessions,
+      totals: {
+        pageviews: rows.length, sessions: n, visitors: new Set(rows.map((v) => v.visitor)).size,
+        newVisitors: rows.filter((v) => v.newVisitor).length,
+        organic: [...sessions.values()].filter((v) => v.source === "organic").length,
+        pagesPerSession: n ? Math.round((rows.length / n) * 10) / 10 : 0,
+      },
+    };
+  };
+  const cur = summarise(visits.filter((v) => v.date >= from));
+  const prev = summarise(visits.filter((v) => v.date >= prevFrom && v.date < from));
+  const count = (list, key) => list.reduce((m, x) => ((m[key(x)] = (m[key(x)] || 0) + 1), m), {});
+  const top = (m, n) => Object.entries(m).map(([key, value]) => ({ key, value })).sort((a, b) => b.value - a.value).slice(0, n);
+  const ss = [...cur.sessions.values()];
+  const daily = Array.from({ length: days }, (_, i) => {
+    const d = day(new Date(now - (days - 1 - i) * 864e5));
+    const o = { date: d, organic: 0, social: 0, direct: 0, referral: 0, campaign: 0, pageviews: cur.rows.filter((v) => v.date === d).length };
+    for (const s of ss) if (s.date === d && s.source in o) o[s.source]++;
+    return o;
+  });
+  const forms = (k, a, b, excl) => (db[k] || []).filter((x) => x.at.slice(0, 10) >= a && (excl ? x.at.slice(0, 10) < b : x.at.slice(0, 10) <= b)).length;
+  const sched = (db.schedule || []).filter((a) => a.status !== "Cancelled");
+  return {
+    range: { from, to, days },
+    totals: cur.totals,
+    previous: prev.totals,
+    daily,
+    sources: count(ss, (s) => s.source),
+    pages: top(count(cur.rows, (v) => v.path), 8),
+    referrers: top(count(ss.filter((s) => s.referrer), (s) => s.referrer), 8),
+    devices: count(ss, (s) => s.device || "desktop"),
+    countries: top(count(ss.filter((s) => s.country), (s) => s.country), 8),
+    forms: {
+      talent: forms("talent", from, to), bookings: forms("bookings", from, to), partners: forms("partners", from, to),
+      previous: { talent: forms("talent", prevFrom, from, true), bookings: forms("bookings", prevFrom, from, true), partners: forms("partners", prevFrom, from, true) },
+    },
+    schedule: { upcoming: sched.filter((a) => a.date >= to).length, thisPeriod: sched.filter((a) => a.date >= from && a.date <= to).length },
+  };
+}
 
 createServer((req, res) => {
   let body = "";

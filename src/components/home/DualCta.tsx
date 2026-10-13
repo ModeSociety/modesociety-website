@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
 import type { CtaStyle, SiteImage } from "@/lib/slots";
-import Logo from "@/components/site/Logo";
 
 type Panel = { href: string; eyebrow: string; title: string; img?: SiteImage; cta: string };
 
@@ -57,54 +55,16 @@ function Split({ panels }: { panels: Panel[] }) {
   );
 }
 
-/** Big typographic rows; the logo trails the mouse while you hover a row. */
+/** Big typographic rows that slide across on hover. */
 function Reveal({ panels }: { panels: Panel[] }) {
-  const section = useRef<HTMLElement>(null);
-  const float = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState<number | null>(null);
-  const target = useRef({ x: 0, y: 0 });
-  const pos = useRef({ x: 0, y: 0 });
-  const raf = useRef(0);
-
-  const loop = () => {
-    pos.current.x += (target.current.x - pos.current.x) * 0.32;
-    pos.current.y += (target.current.y - pos.current.y) * 0.32;
-    const vx = target.current.x - pos.current.x;
-    if (float.current) {
-      float.current.style.transform = `translate3d(${pos.current.x}px, ${pos.current.y}px, 0) translate(22px, 18px) rotate(${Math.max(-12, Math.min(12, vx * 0.08))}deg)`;
-    }
-    raf.current = requestAnimationFrame(loop);
-  };
-  const onMove = (e: React.PointerEvent) => {
-    const r = section.current!.getBoundingClientRect();
-    target.current = { x: e.clientX - r.left, y: e.clientY - r.top };
-  };
-  const enter = (e: React.PointerEvent) => {
-    onMove(e);
-    pos.current = { ...target.current };
-    cancelAnimationFrame(raf.current);
-    raf.current = requestAnimationFrame(loop);
-  };
-  const leave = () => {
-    setActive(null);
-    cancelAnimationFrame(raf.current);
-  };
-
   return (
-    <section
-      ref={section}
-      className="relative overflow-hidden bg-paper py-20 md:py-28"
-      onPointerMove={onMove}
-      onPointerEnter={enter}
-      onPointerLeave={leave}
-    >
+    <section className="relative overflow-hidden bg-paper py-20 md:py-28">
       <div className="wrap">
         <p className="eyebrow mb-8">Let&apos;s work together</p>
         {panels.map((p, i) => (
           <Link
             key={p.href}
             href={p.href}
-            onPointerEnter={() => setActive(i)}
             className="group relative z-10 flex flex-col gap-4 border-t border-line py-8 last:border-b md:flex-row md:items-center md:justify-between md:py-12"
           >
             <span className="flex items-baseline gap-6">
@@ -121,15 +81,6 @@ function Reveal({ panels }: { panels: Panel[] }) {
             </span>
           </Link>
         ))}
-      </div>
-      <div
-        ref={float}
-        className="pointer-events-none absolute left-0 top-0 z-30 hidden text-ink md:block"
-        style={{ opacity: active === null ? 0 : 1, transition: "opacity .35s" }}
-        aria-hidden
-      >
-        {/* the logo trails beside the mouse across the rows */}
-        <Logo className="h-[clamp(34px,3.6vw,52px)] text-[clamp(20px,2vw,30px)] opacity-90 drop-shadow-[0_6px_16px_rgba(74,5,7,.25)]" />
       </div>
     </section>
   );

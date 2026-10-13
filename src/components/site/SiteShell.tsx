@@ -7,6 +7,7 @@ import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import type { SiteSettings } from "@/lib/slots";
 import Intro from "./Intro";
 import { LogoProvider } from "./Logo";
+import Tracker from "./Tracker";
 
 export default function SiteShell({
   settings,
@@ -45,6 +46,7 @@ export default function SiteShell({
   return (
     <LogoProvider svg={logoSvg}>
       <Intro style={settings.introStyle} />
+      <Tracker />
       {children}
     </LogoProvider>
   );

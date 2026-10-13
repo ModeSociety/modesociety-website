@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { createRemoteJWKSet, jwtVerify, SignJWT } from "jose";
 import { callBackend } from "./backend";
 
-const COOKIE = "ms_admin";
+export const ADMIN_COOKIE = "ms_admin";
+const COOKIE = ADMIN_COOKIE;
 const SESSION_HOURS = 12;
 const googleKeys = createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
 

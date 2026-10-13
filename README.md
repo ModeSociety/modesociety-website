@@ -43,6 +43,13 @@ Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` pag
 
 Sign in with Google. Only approved accounts get in.
 
+- **Schedule:** the team calendar for calls, meetings, shoots, events and deadlines, stored in the *Schedule* tab of the Google Sheet. It has a month view with appointments colour-coded by type, and a *Coming up* list for the next 30 days (or a chosen day). Add an appointment with **+ New appointment**, or double-click a day. Each one can hold a time (or all day), client/brand, talent, location or meeting link, notes, status (Scheduled / Done / Cancelled) and who it's assigned to. **All / Mine** filters to your own, and **Add to Google Calendar** copies an appointment into anyone's calendar.
+- **Insights:** site traffic for the last 7, 30 or 90 days, each compared with the period before:
+  - **Organic search visits** (visits from Google, Bing and other search engines without ads), visitors, visits, page views and enquiries as a share of visits.
+  - A daily chart of visits by source (organic search, social, direct, referral, campaign/ads), with a hover breakdown and a table view.
+  - Top pages, top referring sites, devices and countries.
+  - **Business:** talent applications, brand call bookings, partnership enquiries and appointments.
+
 - **Images:** every image slot is listed with the Drive folder it reads from. Files dropped into that folder appear automatically (marked *from Drive*), and anything uploaded in the panel takes priority. You can upload, reorder, describe (**Aa**) or clear images. Brand logos have their white backgrounds removed on upload. Videos go straight into the Drive folders, because they're too large to upload through the site.
 - **Animations:** the hero mode (or *rotate*), the Let's work together style, the footer logo and the page intro.
 - **Access:** add or remove Google accounts. The site owner and the Drive owner are permanent.
@@ -67,6 +74,8 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | **Talent** | One row per application: each channel's handle and follower count, links to the screenshots, and a **Status** dropdown. |
 | **Book a Call** | Brand bookings: services, project, budget and timeline. |
 | **Partnerships** | B2B partnership enquiries. |
+| **Schedule** | The team calendar (admin panel → Schedule). It can be edited in the Sheet too: keep the *ID* column. |
+| **Visits** | One row per page view (time, page, source, referring site, campaign, anonymous session/visitor ids, device, country). Rows older than ~13 months are removed automatically. |
 | **Images**, **Settings**, **Admins** | Written by the admin panel. |
 
 ---
@@ -90,6 +99,8 @@ Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_
 2. Open it and copy the **folder ID** from the URL: `https://drive.google.com/drive/folders/`**`1AbCdEf…`**
 
 ### 2. Deploy the backend (Google Apps Script)
+
+> **Updating an existing backend?** Paste the new `Code.gs`, run `setup` again (it adds any missing tabs, such as *Schedule* and *Visits*, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
 
 Do this **signed in as the owner of that Drive**.
 
@@ -169,6 +180,10 @@ Your Google sign-in Client ID keeps working. It only controls *who* can sign in,
 
 ---
 
+## Visit tracking & privacy
+
+The site counts visits itself; there's no Google Analytics, cookie banner or third-party tracker. Each page view sends the page, where the visit came from (the referring site's domain and any `utm_` campaign tags) and two random ids kept in the visitor's own browser: one per browser, to count unique visitors, and one per tab session, to count visits. No names, emails, IP addresses or cookies are stored. The country comes from Vercel's edge network. The tracker ignores bots and browsers with *Do Not Track* switched on, and skips anyone signed in to the admin panel, so the team's own browsing isn't counted. Counting starts from the day this version goes live.
+
 ## Troubleshooting
 
 **Forms and uploads fail with "You can't access this item because it is in violation of our Terms of Service".**
@@ -192,6 +207,8 @@ src/lib/backend.ts      Calls Apps Script; caches site content (refreshed instan
 src/lib/auth.ts         Google ID-token verification, allowlist, session cookie
 src/components/home/wall/engines.ts   The four hero modes
 src/components/services/              The Services page showcase (pinwheel + animated steps)
+src/components/admin/                 Admin panel (Schedule, Insights, Images, Animations, Access)
+src/components/site/Tracker.tsx       Anonymous page-view tracking (→ /api/track → Visits tab)
 src/app/(site)/…        Public pages
 src/app/admin/          Admin panel
 src/app/media/[id]      Serves Drive images through the site (nothing in Drive is made public)

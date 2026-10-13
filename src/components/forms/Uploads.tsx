@@ -92,7 +92,6 @@ export function PolaroidUploads({
             type="button"
             onClick={() => input.current?.click()}
             className="grid h-[150px] w-[118px] place-items-center border border-dashed border-ink/30 text-center text-xs uppercase tracking-[0.14em] text-muted transition hover:border-ink hover:text-ink"
-            data-cursor="add"
           >
             <span>
               <span className="font-serif block text-3xl normal-case italic">+</span>

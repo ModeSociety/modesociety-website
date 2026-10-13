@@ -20,7 +20,6 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
   const copy = useRef<HTMLDivElement>(null);
   // Visitors can't change the mode; it comes from the admin panel.
   const [mode, setMode] = useState<HeroMode>(settings.heroMode);
-  const [seed, setSeed] = useState(7);
   const [mobile, setMobile] = useState(false);
   const cards = mobile ? images.slice(0, 6) : images;
 
@@ -64,7 +63,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
     const cols = Math.ceil(n / rows);
     const top = isMobile ? 70 : 96;
     const bottom = height - (isMobile ? 262 : 178);
-    const ratio = 1.36; // polaroid height / width incl. border
+    const ratio = 1.26; // polaroid height / width incl. border (no caption strip)
     const cardW = Math.max(
       86,
       Math.min(isMobile ? 150 : 240, ((width * 0.92) / cols) * (isMobile ? 0.9 : 0.8), ((bottom - top) / rows / ratio) * 1.05),
@@ -77,14 +76,14 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
       height,
       cardW,
       cardH: cardW * ratio,
-      seed,
+      seed: 7,
       mobile: isMobile,
       top,
       bottom,
     };
     const engine = prefersReducedMotion() ? staticLayout : ENGINES[mode];
     return engine(ctx);
-  }, [mode, seed]);
+  }, [mode]);
 
   useEffect(() => {
     let stop = start();
@@ -140,21 +139,17 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
 
       <div ref={wall} data-wall className="absolute inset-0 z-10" style={{ transformStyle: "preserve-3d" }}>
         {cards.map((img, i) => (
-          <figure key={`${img.src}-${i}`} className="polaroid" style={{ opacity: 0 }}>
+          <figure key={`${img.src}-${i}`} className="polaroid no-caption" style={{ opacity: 0 }}>
             <span className="pin" />
             <div className="photo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={img.src} alt={img.alt} draggable={false} loading={i < 6 ? "eager" : "lazy"} />
             </div>
-            <figcaption className="caption">
-              <span>No. {String(i + 1).padStart(2, "0")}</span>
-              <span className="opacity-60">MS</span>
-            </figcaption>
           </figure>
         ))}
       </div>
 
-      {/* bottom band: copy, CTAs and the mode dock */}
+      {/* bottom band: copy and CTAs */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-paper via-paper/80 to-transparent pt-10">
         <div className="wrap flex flex-col gap-5 pb-6 md:flex-row md:items-end md:justify-between md:pb-8">
           <div className="pointer-events-auto max-w-md">
@@ -173,13 +168,6 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
           </div>
           <div className="hero-fade pointer-events-auto flex flex-col items-start gap-2 md:items-end">
             <span className="font-serif text-sm italic text-ink-2">{HINTS[mode]}</span>
-            <button
-              onClick={() => setSeed((s) => s + 1)}
-              className="group flex items-center gap-2 rounded-full border border-line bg-paper/80 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-ink-2 backdrop-blur-md transition-colors hover:text-ink"
-              aria-label="Shuffle the wall"
-            >
-              <span className="inline-block transition-transform duration-500 group-hover:rotate-180">⟲</span> Shuffle
-            </button>
           </div>
         </div>
       </div>

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import type { SiteSettings } from "@/lib/slots";
-import Cursor from "./Cursor";
 import Intro from "./Intro";
 import { LogoProvider } from "./Logo";
 
@@ -46,7 +45,6 @@ export default function SiteShell({
   return (
     <LogoProvider svg={logoSvg}>
       <Intro style={settings.introStyle} />
-      <Cursor style={settings.cursorStyle} />
       {children}
     </LogoProvider>
   );

@@ -153,7 +153,6 @@ const pinboard: Engine = (ctx) => {
     const s = spots[i];
     resetCard(el, s.pin, cardW);
     el.style.zIndex = String(i + 1);
-    el.dataset.cursor = "drag";
     const rest = ((s.rot * Math.PI) / 180) * 0.6;
     return { el, px: s.x, py: s.y, angle: rest, rest, av: 0, pinned: true, vx: 0, vy: 0, intro: -i * 0.07, drag: null, lastTap: 0 };
   });
@@ -318,7 +317,6 @@ const scatter: Engine = (ctx) => {
     const s = spots[i];
     resetCard(el, s.pin, cardW);
     el.style.zIndex = String(Math.round(s.depth * 100));
-    el.dataset.cursor = "view";
   });
 
   const stopLoop = loop((dt, t) => {
@@ -385,7 +383,6 @@ const orbit: Engine = (ctx) => {
 
   cards.forEach((el) => {
     resetCard(el, "#b08d57", w);
-    el.dataset.cursor = "spin";
     el.style.transformOrigin = "50% 50%";
   });
 
@@ -483,7 +480,6 @@ const gravity: Engine = (ctx) => {
     resetCard(el, "#c3362b", w);
     el.classList.add("unpinned");
     el.style.transformOrigin = "50% 50%";
-    el.dataset.cursor = "throw";
     const b = Bodies.rectangle(w / 2 + r() * (width - w), -h - i * (h * 0.55), w, h, {
       angle: (r() - 0.5) * 1.2,
       restitution: 0.35,

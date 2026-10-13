@@ -9,7 +9,7 @@ export type FormKey = "talent" | "brands" | "partner";
 
 const CARDS: { key: FormKey; eyebrow: string; title: string; body: string; cta: string }[] = [
   { key: "talent", eyebrow: "For talent", title: "Want us to represent you?", body: "Models, influencers, UGC creators and streamers.", cta: "Apply now" },
-  { key: "brands", eyebrow: "For brands", title: "Looking for an external PR team?", body: "Influencer campaigns, UGC, guest lists, funding and AI campaigns.", cta: "Book a call" },
+  { key: "brands", eyebrow: "For brands", title: "Looking for an external PR team?", body: "Influencer campaigns, UGC, guest lists and funding.", cta: "Book a call" },
   { key: "partner", eyebrow: "Partner with us", title: "Want to work together?", body: "Referrals, affiliates, co-marketing and cross-promotion.", cta: "Send" },
 ];
 
@@ -44,7 +44,6 @@ export default function GetInTouch({ initial, partnerTypeHint = "" }: { initial:
               className={`group flex min-h-[230px] flex-col justify-between rounded-[6px] border p-6 text-left transition-all duration-500 ${
                 on ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:-translate-y-1 hover:border-ink"
               }`}
-              data-cursor="open"
             >
               <span className={`eyebrow ${on ? "!text-white/80" : ""}`}>{c.eyebrow}</span>
               <span>

@@ -87,8 +87,7 @@ export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch
       </div>
       <div
         ref={track}
-        className="mt-12 flex cursor-grab snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-6 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        data-cursor="swipe"
+        className="mt-12 flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-6 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {EXPECT.cards.map((c, i) => (
           <article
@@ -135,7 +134,6 @@ export function InstagramGrid({ posts }: { posts: SiteImage[] }) {
             target="_blank"
             rel="noreferrer"
             className="group relative aspect-square overflow-hidden bg-paper-2"
-            data-cursor="view"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.src} alt={p.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />

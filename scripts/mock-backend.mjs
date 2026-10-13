@@ -21,8 +21,7 @@ const DB = join(DIR, "db.json");
 const MEDIA = join(DIR, "folders");
 const MEDIA_FOLDERS = [
   "Home Page 1", "Home Page 2", "Home Page 3", "About Us 1", "Instagram",
-  "Services/01 Influencer Campaigns", "Services/02 UGC Content", "Services/03 Event Guest Lists",
-  "Services/04 Funding", "Services/05 AI Campaigns",
+  "Services",
 ];
 const MIME = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml", ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime" };
 mkdirSync(FILES, { recursive: true });
@@ -39,7 +38,7 @@ function listMedia(path) {
 }
 
 const empty = {
-  settings: { heroMode: "gravity", heroAutoCycle: "false", introStyle: "curtain", cursorStyle: "ring", gameMode: "memory", ctaStyle: "reveal", footerStyle: "magnetic" },
+  settings: { heroMode: "gravity", heroAutoCycle: "false", introStyle: "curtain", ctaStyle: "reveal", footerStyle: "magnetic" },
   images: [],
   admins: [],
   talent: [],

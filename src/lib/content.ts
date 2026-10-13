@@ -4,9 +4,9 @@
  */
 
 export const COMPANY = "Mode Society Pty Ltd";
-export const INSTAGRAM_URL = "https://instagram.com/modesocietyagency";
-/** TODO: Mode Society's LinkedIn page. The LinkedIn icon is hidden until this is set. */
-export const LINKEDIN_URL = "";
+export const INSTAGRAM_URL = "https://www.instagram.com/modesocietyagency";
+export const TIKTOK_URL = "https://www.tiktok.com/@modesocietyagency";
+export const LINKEDIN_URL = "https://www.linkedin.com/company/modesocietyagency";
 export const GRANT_HELP_URL = "https://granthelp.com.au";
 
 export const MENU = [
@@ -14,9 +14,9 @@ export const MENU = [
   { href: "/work-with-us", label: "For brands" },
   { href: "/apply-to-be-a-creator", label: "For talent" },
   { href: "/services", label: "Services" },
-  { href: "/get-in-touch?form=partner", label: "Partner with us" },
+  { href: "/partner-with-us", label: "Partner with us" },
   // TODO: dedicated For Tech companies page; until then it opens the partnership form.
-  { href: "/get-in-touch?form=partner&for=tech", label: "For Tech companies" },
+  { href: "/partner-with-us?for=tech", label: "For Tech companies" },
   { href: "/get-in-touch", label: "Contact us" },
 ];
 
@@ -52,121 +52,67 @@ export const SERVICE_COPY: ServiceCopy[] = [
   },
 ];
 
+export type StepIcon =
+  | "brief" | "users" | "contract" | "camera" | "chart" | "target" | "search" | "package" | "refresh"
+  | "room" | "list" | "check" | "mail" | "badge" | "file" | "megaphone" | "coins";
+
 export type ServiceDetail = {
   id: string;
-  number: string;
   title: string;
-  summary: string;
-  steps: string[];
-  get: string[];
-  who: string;
-  media: string;
-  buttons: { label: string; href: string; external?: boolean }[];
-  extra?: { title: string; points: string[] };
+  steps: { name: string; text: string; icon: StepIcon }[];
+  cta: { label: string; href: string; external?: boolean };
+  more?: { label: string; href: string; external?: boolean };
 };
 
-/** The Services page: five sections with jump links. No prices anywhere. */
+/** The Services page: one service at a time, its "How it works" steps animating in. No prices anywhere. */
 export const SERVICES_PAGE: ServiceDetail[] = [
   {
     id: "influencer-campaigns",
-    number: "01",
     title: "Influencer Campaigns",
-    summary:
-      "Paid and gifted collabs with creators who genuinely fit your brand: shortlisted, contracted, briefed and paid, without you managing any of it.",
-    steps: ["Brief", "Shortlist", "Contract", "Production", "Report"],
-    get: [
-      "A shortlist with audience data: location, age split, engagement",
-      "Signed agreements covering deliverables, exclusivity and usage",
-      "Draft approval before anything is posted",
-      "Affiliate links and tracked seeding where the campaign suits it",
-      "All creator payments handled",
-      "A close-out report with links and performance",
+    steps: [
+      { name: "Brief", text: "You share the goal, budget and timing.", icon: "brief" },
+      { name: "Shortlist", text: "Creators who fit, with location, age split and engagement data.", icon: "users" },
+      { name: "Contract", text: "Signed agreements on deliverables, exclusivity and usage.", icon: "contract" },
+      { name: "Production", text: "You approve every draft before anything goes live.", icon: "camera" },
+      { name: "Report", text: "A close-out report with links and performance.", icon: "chart" },
     ],
-    who: "Brands running a launch, a seasonal push, or an always-on creator programme.",
-    media: "service.influencer",
-    buttons: [{ label: "Tell us about your campaign", href: "/get-in-touch?form=brands" }],
+    cta: { label: "Tell us about your campaign", href: "/get-in-touch?form=brands" },
   },
   {
     id: "ugc-content",
-    number: "02",
     title: "UGC Content",
-    summary:
-      "Creator-made content built for your ads and socials: briefed properly, delivered as ready-to-run assets, with usage rights agreed upfront.",
-    steps: ["Scope", "Casting", "Brief", "Delivery", "Revisions"],
-    get: [
-      "9:16, 4:5 and 1:1 versions as standard",
-      "Raw footage plus edited cuts",
-      "Multiple hook variations built for paid testing",
-      "Usage rights agreed before filming: paid social, organic and whitelisting, scoped in writing",
-      "Captions and on-screen text where the format needs it",
+    steps: [
+      { name: "Scope", text: "Formats, volume and usage rights, agreed upfront.", icon: "target" },
+      { name: "Casting", text: "Creators matched to your product and your angle.", icon: "search" },
+      { name: "Brief", text: "Hooks, angles and formats, briefed properly.", icon: "brief" },
+      { name: "Delivery", text: "Ready-to-run 9:16, 4:5 and 1:1 assets, raw and edited.", icon: "package" },
+      { name: "Revisions", text: "Tweaks handled until it's ready to run.", icon: "refresh" },
     ],
-    who: "Brands who need volume for paid social testing, or a consistent organic feed without a studio budget.",
-    media: "service.ugc",
-    buttons: [{ label: "Scope a UGC package", href: "/get-in-touch?form=brands" }],
+    cta: { label: "Scope a UGC package", href: "/get-in-touch?form=brands" },
   },
   {
     id: "event-guest-lists",
-    number: "03",
     title: "Event Guest Lists",
-    summary:
-      "Creators and models who'll actually turn up and post: chosen for your room, confirmed in advance, and briefed on what to capture.",
-    steps: ["The room", "The list", "Confirmation", "Brief", "Follow-up"],
-    get: [
-      "A curated, confirmed list sized to your capacity",
-      "Agreed content deliverables per attendee on paid bookings",
-      "A contact on the night so you're not managing talent at your own event",
-      "A post-event round-up of what went out",
+    steps: [
+      { name: "The room", text: "Your audience, your look and your numbers.", icon: "room" },
+      { name: "The list", text: "A curated list sized to your capacity.", icon: "list" },
+      { name: "Confirmation", text: "Every attendee confirmed in advance.", icon: "check" },
+      { name: "Brief", text: "Guests briefed on what to capture on the night.", icon: "brief" },
+      { name: "Follow-up", text: "A round-up of everything that went out.", icon: "mail" },
     ],
-    who: "Launches, store openings, runway, activations and press nights.",
-    media: "service.events",
-    buttons: [{ label: "Build a guest list", href: "/get-in-touch?form=brands" }],
+    cta: { label: "Build a guest list", href: "/get-in-touch?form=brands" },
   },
   {
     id: "funding",
-    number: "04",
     title: "Funding",
-    summary:
-      "Through our sister company Grant Help, eligible brands can claim back up to 50% of overseas marketing spend, with government grants from $5,000 to $150,000.",
-    steps: ["Eligibility check", "Application", "Campaign", "Claim"],
-    get: [
-      "An eligibility answer before you commit to anything",
-      "Application handled by Grant Help, not by you",
-      "Campaign work scoped so it qualifies",
-      "Documentation kept in order for the claim",
+    steps: [
+      { name: "Eligibility", text: "We tell you upfront whether you qualify.", icon: "badge" },
+      { name: "Application", text: "Grant Help handles the application, not you.", icon: "file" },
+      { name: "Campaign", text: "Campaign work scoped so it qualifies.", icon: "megaphone" },
+      { name: "Claim", text: "Claim back up to 50% of eligible overseas spend.", icon: "coins" },
     ],
-    who: "Australian brands marketing into overseas markets.",
-    media: "service.funding",
-    buttons: [
-      { label: "Check if you're eligible", href: "/get-in-touch?form=brands" },
-      { label: "Read more about Grant Help →", href: GRANT_HELP_URL, external: true },
-    ],
-  },
-  {
-    id: "ai-campaigns",
-    number: "05",
-    title: "AI Campaigns (New)",
-    summary:
-      "A full-scale campaign built with AI-generated content, for brands who need volume and speed at lower cost, or who want to stretch a creator campaign further.",
-    steps: ["Concept", "Generation", "Direction", "Variations", "Delivery"],
-    get: [
-      "Campaign concepts and scripts",
-      "AI-generated video and stills",
-      "Hook and caption variations for paid testing",
-      "Platform-ready formats in every aspect ratio you need",
-      "Clear AI labelling on delivered assets",
-    ],
-    who: "Brands testing creative at volume, brands working to a smaller budget, and brands wanting more mileage out of a campaign they've already run.",
-    media: "service.ai",
-    buttons: [{ label: "Talk through an AI campaign", href: "/get-in-touch?form=brands" }],
-    // TODO: replace with the full "Where we draw the line" text from the slide notes.
-    extra: {
-      title: "Where we draw the line",
-      points: [
-        "Everything AI-generated is disclosed and labelled as AI.",
-        "We never use a real person's likeness without their written consent.",
-        "If your brief needs real trust, a real face or a real review, we'll tell you to book a creator instead.",
-      ],
-    },
+    cta: { label: "Check if you're eligible", href: "/get-in-touch?form=brands" },
+    more: { label: "About Grant Help ↗", href: GRANT_HELP_URL, external: true },
   },
 ];
 

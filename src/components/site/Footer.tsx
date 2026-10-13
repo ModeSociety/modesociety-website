@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { COMPANY, INSTAGRAM_URL, LINKEDIN_URL, MENU } from "@/lib/content";
+import { COMPANY, MENU } from "@/lib/content";
 import type { FooterStyle } from "@/lib/slots";
-import Dither from "./Dither";
-import { InstagramIcon, LinkedInIcon } from "./Icons";
+import Halftone from "./Halftone";
+import SocialLinks from "./SocialLinks";
 import Wordmark from "./Wordmark";
 
 export default function Footer({ style }: { style: FooterStyle }) {
   return (
-    <footer className="dither-bg relative isolate overflow-hidden text-white">
-      <Dither />
+    <footer className="relative isolate overflow-hidden text-white">
+      <Halftone />
       <div className="wrap grid gap-14 pb-10 pt-24 md:grid-cols-12 md:pt-32">
         <div className="md:col-span-7">
           <p className="eyebrow !text-white/70">Let&apos;s connect</p>
@@ -34,16 +34,7 @@ export default function Footer({ style }: { style: FooterStyle }) {
               Make an enquiry <span className="arrow">→</span>
             </Link>
           </div>
-          <div className="flex items-center gap-3">
-            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Mode Society on Instagram" className="social-icon">
-              <InstagramIcon />
-            </a>
-            {LINKEDIN_URL && (
-              <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" aria-label="Mode Society on LinkedIn" className="social-icon">
-                <LinkedInIcon />
-              </a>
-            )}
-          </div>
+          <SocialLinks />
           <nav className="flex flex-wrap gap-x-6 gap-y-2 text-white/75">
             {MENU.filter((m) => !m.href.includes("for=tech")).map((m) => (
               <Link key={m.href} href={m.href} className="link-underline">

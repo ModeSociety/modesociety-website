@@ -5,9 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import {
   CTA_STYLES,
-  CURSOR_STYLES,
   FOOTER_STYLES,
-  GAME_MODES,
   HERO_MODES,
   INTRO_STYLES,
   SLOTS,
@@ -231,8 +229,11 @@ type Item = { fileId: string; alt: string; src: string };
 
 function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: SiteImage[]; reload: () => Promise<void>; notify: (m: string) => void }) {
   const uploaded: Item[] = images.filter((i) => i.source === "upload" && i.fileId).map((i) => ({ fileId: i.fileId!, alt: i.alt, src: i.src }));
-  const usingDefaults = uploaded.length === 0;
-  const fromFolder = usingDefaults && images.some((i) => i.source === "folder");
+  // additive slots (brand logos): uploads join the built-in / Drive images, which stay listed read-only
+  const additive = Boolean(slot.additive);
+  const base = images.filter((i) => i.source !== "upload");
+  const usingDefaults = !additive && uploaded.length === 0;
+  const fromFolder = (additive || usingDefaults) && images.some((i) => i.source === "folder");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -309,7 +310,11 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
       {slot.folder && (
         <p className="mt-2 text-xs text-ink-2">
           Drive folder: <strong>{slot.folder}</strong>
-          {usingDefaults ? " (files added there appear automatically)" : " (uploads below take priority over it)"}
+          {additive
+            ? " (its files show alongside the logos added here)"
+            : usingDefaults
+              ? " (files added there appear automatically)"
+              : " (uploads below take priority over it)"}
         </p>
       )}
 
@@ -355,12 +360,28 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
             )}
           </figure>
         ))}
-        {shown.length === 0 && <p className="col-span-full text-sm text-muted">Empty — nothing is shown here yet.</p>}
+        {shown.length === 0 && (
+          <p className="col-span-full text-sm text-muted">{additive ? "Nothing added yet." : "Empty — nothing is shown here yet."}</p>
+        )}
       </div>
+
+      {additive && base.length > 0 && (
+        <div className="mt-5">
+          <p className="text-xs text-ink-2">Also shown ({fromFolder ? "from Drive" : "built in"}):</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {base.map((img, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={`${img.src}-${i}`} src={img.src} alt={img.alt} className="h-10 w-20 bg-white object-contain p-1 opacity-70" />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button className="btn !py-3" disabled={!!busy} onClick={() => input.current?.click()}>
-          {slot.kind === "single"
+          {additive
+            ? "Add logos"
+            : slot.kind === "single"
             ? usingDefaults
               ? `Upload ${slot.accept === "svg" ? "SVG" : "image"}`
               : "Replace"
@@ -368,9 +389,15 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
               ? `Upload images (replaces ${fromFolder ? "the Drive folder" : "defaults"})`
               : "Add images"}
         </button>
-        {!usingDefaults && (
+        {!usingDefaults && uploaded.length > 0 && (
           <button className="text-sm text-muted underline underline-offset-4" disabled={!!busy} onClick={() => save([], "Uploads cleared")}>
-            {slot.folder ? "Clear uploads (use the Drive folder)" : slot.defaults.length ? "Revert to default" : "Clear"}
+            {additive
+              ? "Remove all added"
+              : slot.folder
+                ? "Clear uploads (use the Drive folder)"
+                : slot.defaults.length
+                  ? "Revert to default"
+                  : "Clear"}
           </button>
         )}
         {busy && <span className="text-sm text-muted">{busy}</span>}
@@ -500,13 +527,6 @@ function AnimationsTab({
         onChange={(v) => setDraft({ ...draft, introStyle: v })}
       />
       <OptionGroup
-        title="Homepage game"
-        hint="The playable section after the services. Games use The Wall photos (or the Casting Call faces for Memory and Darkroom)."
-        options={GAME_MODES}
-        value={draft.gameMode}
-        onChange={(v) => setDraft({ ...draft, gameMode: v })}
-      />
-      <OptionGroup
         title="For brands / For talent section"
         hint="The two-way call to action near the bottom of the homepage and on the contact page. Uses the Contact card images."
         options={CTA_STYLES}
@@ -515,17 +535,10 @@ function AnimationsTab({
       />
       <OptionGroup
         title="Footer wordmark"
-        hint="How the giant MODESOCIETY at the bottom of every page reacts to the cursor."
+        hint="How the logo at the bottom of every page reacts to the mouse."
         options={FOOTER_STYLES}
         value={draft.footerStyle}
         onChange={(v) => setDraft({ ...draft, footerStyle: v })}
-      />
-      <OptionGroup
-        title="Cursor"
-        hint="Desktop only. Phones and tablets always use touch."
-        options={CURSOR_STYLES}
-        value={draft.cursorStyle}
-        onChange={(v) => setDraft({ ...draft, cursorStyle: v })}
       />
 
       <div className="sticky bottom-0 z-20 -mx-[var(--gutter)] flex items-center gap-4 border-t border-line bg-paper/90 px-[var(--gutter)] py-4 backdrop-blur">

@@ -196,7 +196,7 @@ export default function Wordmark({ style }: { style: FooterStyle }) {
   }, [style, svg]);
 
   return (
-    <div ref={box} className="relative w-full select-none text-white" aria-hidden data-cursor={style === "static" ? undefined : "play"}>
+    <div ref={box} className="relative w-full select-none text-white" aria-hidden>
       {svg ? (
         <div className="mx-auto w-full max-w-[min(100%,760px)] [&>svg]:block [&>svg]:h-auto [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
       ) : (

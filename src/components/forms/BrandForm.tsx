@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BUDGETS, SERVICES, SUCCESS_MESSAGE, TIMELINES } from "@/lib/forms";
 import { FORM_INTROS, INSTAGRAM_URL } from "@/lib/content";
 import { postJson } from "@/lib/upload";
@@ -13,20 +13,10 @@ type Service = (typeof SERVICES)[number];
 export default function BrandForm({ showIntro = true }: { showIntro?: boolean }) {
   const [f, setF] = useState({ brand: "", website: "", name: "", email: "", project: "", budget: "", timeline: "" });
   const [services, setServices] = useState<Service[]>([]);
-  const [played, setPlayed] = useState<{ game: string; score: string } | null>(null);
   const [honey, setHoney] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState<string | null>(null);
-
-  // Arriving from a homepage game carries the visitor's score along (?from=game&game=…&score=…).
-  useEffect(() => {
-    const q = new URLSearchParams(window.location.search);
-    const game = q.get("game")?.slice(0, 40);
-    const score = q.get("score")?.slice(0, 80);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- URL params are only known in the browser
-    if (q.get("from") === "game" && game && score) setPlayed({ game, score });
-  }, []);
 
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setF({ ...f, [k]: e.target.value });
@@ -36,7 +26,7 @@ export default function BrandForm({ showIntro = true }: { showIntro?: boolean })
     setError("");
     try {
       const res = await postJson<{ reference: string }>("/api/forms/brand", {
-        fields: { ...f, services, notes: played ? `${played.game}: ${played.score}` : "" },
+        fields: { ...f, services },
         website_url: honey,
       });
       setDone(res.reference);
@@ -64,15 +54,6 @@ export default function BrandForm({ showIntro = true }: { showIntro?: boolean })
   return (
     <>
       {showIntro && <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{FORM_INTROS.brands}&rdquo;</p>}
-      {played && (
-        <div className="mb-10 flex items-center gap-4 border border-line bg-white p-4">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-ink font-serif text-lg italic text-white">★</span>
-          <p className="text-sm text-ink-2">
-            <strong className="font-medium text-ink">{played.game} champion.</strong> You finished with {played.score}, so we&apos;ll mention it on your
-            brief.
-          </p>
-        </div>
-      )}
       <input className="honeypot" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} aria-hidden />
       <StepForm
         submitting={submitting}

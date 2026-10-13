@@ -1,11 +1,9 @@
 import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import Services from "@/components/home/Services";
-import GameSection from "@/components/home/games/GameSection";
 import Clients from "@/components/home/Clients";
 import DualCta from "@/components/home/DualCta";
 import Infographic from "@/components/home/Infographic";
-import NotepadSection from "@/components/home/NotepadSection";
 import VideoOrbit from "@/components/home/VideoOrbit";
 import { FadeUp } from "@/components/site/Reveal";
 import { AGENCY_INTRO, SERVICE_COPY } from "@/lib/content";
@@ -14,13 +12,10 @@ import { getSiteContent } from "@/lib/backend";
 export default async function Home() {
   const { images, settings } = await getSiteContent();
   const wall = images["home.wall"];
-  const casting = images["home.casting"].length >= 2 ? images["home.casting"] : wall.slice(0, 6);
 
   return (
     <>
       <Hero images={wall} settings={settings} />
-
-      <NotepadSection />
 
       <section className="wrap grid items-center gap-10 py-20 md:grid-cols-12 md:py-28">
         <div className="md:col-span-5">
@@ -36,8 +31,6 @@ export default async function Home() {
       </section>
 
       <Services services={SERVICE_COPY} />
-
-      <GameSection mode={settings.gameMode} faces={casting} pool={wall} />
 
       <Clients logos={images["home.clients"]} />
 

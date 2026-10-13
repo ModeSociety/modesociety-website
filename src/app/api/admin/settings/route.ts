@@ -2,14 +2,12 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
 import { assertSameOrigin } from "@/lib/api";
 import { callBackend, SITE_TAG } from "@/lib/backend";
-import { CTA_STYLES, CURSOR_STYLES, FOOTER_STYLES, GAME_MODES, HERO_MODES, INTRO_STYLES } from "@/lib/slots";
+import { CTA_STYLES, FOOTER_STYLES, HERO_MODES, INTRO_STYLES } from "@/lib/slots";
 
 const ALLOWED: Record<string, string[]> = {
   heroMode: HERO_MODES.map((m) => m.id),
   heroAutoCycle: ["true", "false"],
   introStyle: INTRO_STYLES.map((m) => m.id),
-  cursorStyle: CURSOR_STYLES.map((m) => m.id),
-  gameMode: GAME_MODES.map((m) => m.id),
   ctaStyle: CTA_STYLES.map((m) => m.id),
   footerStyle: FOOTER_STYLES.map((m) => m.id),
 };

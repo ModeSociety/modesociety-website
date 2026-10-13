@@ -43,19 +43,22 @@ export default function Services({ services, showQuote = true }: { services: Ser
         </div>
         <div className="-mx-[var(--gutter)] flex snap-x snap-mandatory gap-4 overflow-x-auto px-[var(--gutter)] pb-4 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
           {services.map((s, i) => (
-            <div key={s.key} className="svc-card flip group aspect-[3/4] w-[72vw] shrink-0 snap-center md:w-auto" data-cursor="flip" tabIndex={0}>
+            <div key={s.key} className="svc-card flip group aspect-[3/4] w-[72vw] shrink-0 snap-center md:w-auto" tabIndex={0}>
               <div className="flip-inner group-hover:[transform:rotateY(180deg)] group-focus-within:[transform:rotateY(180deg)]">
                 <div className="flip-face flex flex-col justify-between rounded-[4px] border border-line bg-white p-6 shadow-[0_20px_40px_-26px_rgba(74,5,7,.45)]">
-                  <span className="font-display text-[clamp(28px,3vw,44px)] text-ink">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="font-display text-[clamp(48px,14vw,72px)] leading-none text-ink md:text-[clamp(28px,3vw,44px)]">{String(i + 1).padStart(2, "0")}</span>
                   <div>
-                    <h3 className="font-display text-[clamp(18px,1.7vw,26px)] text-ink">{s.title}</h3>
-                    <span className="mt-4 block text-[11px] uppercase tracking-[0.18em] text-muted">Hover to read →</span>
+                    <h3 className="font-display text-[clamp(30px,9vw,44px)] text-ink md:text-[clamp(18px,1.7vw,26px)]">{s.title}</h3>
+                    <span className="mt-4 block text-[12px] uppercase tracking-[0.18em] text-muted md:text-[11px]">
+                      <span className="md:hidden">Tap to read →</span>
+                      <span className="hidden md:inline">Hover to read →</span>
+                    </span>
                   </div>
                 </div>
                 <div className="flip-face flip-back flex flex-col justify-between overflow-hidden rounded-[4px] bg-ink p-6 text-white">
-                  <span className="font-display text-[clamp(16px,1.3vw,20px)]">{s.title}</span>
+                  <span className="font-display text-[clamp(22px,6.5vw,28px)] md:text-[clamp(16px,1.3vw,20px)]">{s.title}</span>
                   <div>
-                    <p className="text-[clamp(13px,1vw,15px)] leading-relaxed text-white/90">{s.body}</p>
+                    <p className="text-[clamp(15px,4.2vw,17px)] leading-relaxed text-white/90 md:text-[clamp(13px,1vw,15px)]">{s.body}</p>
                     {s.link && (
                       <a href={s.link.href} target="_blank" rel="noreferrer" className="mt-4 inline-block text-[12px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">
                         {s.link.label}

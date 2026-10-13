@@ -22,30 +22,29 @@ Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` pag
 
 | Where | What it does |
 | --- | --- |
-| **Header** | The logo on the left. On the right are a grey **MENU** keycap (it presses down when you hover it) and a **Contact us** button. The menu holds About us · For brands · For talent · Services · Partner with us · For Tech companies · Contact us. |
-| **Home: hero** | The original interactive wall, defaulting to **Gravity**: the polaroids tumble in from above and pile up, then visitors can grab and throw them (**Shuffle** drops a fresh set). Pinboard, Scatter and Orbit can be chosen in the admin panel instead; in Pinboard, double-click a card to unpin it and carry it back up the board to pin it again. Visitors can't switch modes. |
-| **Home: notepad** | The *"Not your average talent agency."* notepad sits on its own just below the hero, and flips its pages like a book once it's on screen (or when clicked). |
+| **Header** | The logo on the left; text links (About us · For brands · For talent · Services · Partner with us · For Tech companies) and a **Contact us** button on the right. Smaller screens get a menu button that opens a full-screen burgundy menu. |
+| **Home: hero** | The interactive wall, defaulting to **Gravity**: plain polaroids tumble in from above and pile up, then visitors can grab and throw them. Pinboard, Scatter and Orbit can be chosen in the admin panel instead; in Pinboard, double-click a card to unpin it and carry it back up the board to pin it again. Visitors can't switch modes. |
 | **Home: the agency** | A 3D orbit of creator videos (from the Drive folder *Home Page 2*) beside the "external PR team" intro and a **Get to know us** button. |
 | **Home: services** | Four plain cards (Influencer campaigns, UGC content, Event guest lists, Funding) dealt out as you scroll. Hover a card to flip it and read more. Funding links to Grant Help. |
-| **Home: the game** | An optional playable section, chosen in the admin panel: Casting Call, The Shortlist, Eye on the Talent, Editorial Puzzle, Darkroom, Rotate or Hidden. |
-| **Brands** | "Brands", with "our creators have worked with" underneath. Logos from the Drive folder *Home Page 3* float around on their own. |
-| **Let's work together** | For brands / For talent rows. In the default **Type reveal** style the logo follows the cursor; Split, Tilt and Blinds are alternatives in the admin panel. |
+| **Brands** | "Brands", with "our creators have worked with" underneath, then a two-row slideshow of logos sliding in opposite directions. Add as many logos as you like in the admin panel (or the Drive folder *Home Page 3*). |
+| **Let's work together** | For brands / For talent rows. In the default **Type reveal** style the logo trails the mouse; Split, Tilt and Blinds are alternatives in the admin panel. |
 | **Results infographic** | An animated sales line, bar comparisons and spend rings comparing returns with Mode Society against an in-house marketer, plus a table view. *The figures are illustrative until real ones are added in `src/lib/content.ts`.* |
-| **Footer** | Dithered burgundy, with "We'll bring it to life.", an enquiry button (no public email), Instagram/LinkedIn icons, **Mode Society Pty Ltd**, and the logo in white animating letter by letter (Magnetic / Swing / Static). |
+| **Footer** | Burgundy halftone dots, with "We'll bring it to life.", an enquiry button (no public email), Instagram, TikTok and LinkedIn icons, **Mode Society Pty Ltd**, and the logo in white animating letter by letter (Magnetic / Swing / Static). |
 | **About us** (`/about`) | The quote; *Our story* and *What we are* drop-downs; the team photo (Drive folder *About Us 1*); "Creators your customers actually trust." with the services as drop-downs beside the video orbit; then the infographic and the swipe cards. |
 | **For brands** (`/work-with-us`) | "Let's work together." with the PR-team intro and an Instagram grid (Drive folder *Instagram*). Then the four services, the quote, *What you can expect from us* swipe cards, the infographic and the brand logos. The **Book a call** form sits at the bottom. |
 | **For talent** (`/apply-to-be-a-creator`) | "Thinking of signing?", the struck-through frustrations (now quicker), what to expect from signing to getting paid, what we do for you, flexible representation and the brand logos. The **Apply now** form sits at the bottom. |
-| **Services** (`/services`) | Five services with jump links. Each has how it works, what you get, who it's for, photos/video from its *Services/…* Drive folder, and enquiry buttons. No prices. |
-| **Get in touch** (`/get-in-touch`) | Three cards: For talent, For brands and Partner with us. Picking one opens its form. `/contact` redirects here. |
+| **Services** (`/services`) | A rotating pinwheel of photos and videos stays on the left (admin slot *Services — pinwheel* / Drive folder *Services*). On the right, one service at a time plays its "How it works" animation: each step appears and takes the highlight, then the button. The arrow on the right (or a swipe, the arrow keys or the service names underneath) moves between Influencer campaigns, UGC content, Event guest lists and Funding. No prices. |
+| **Contact us** (`/get-in-touch`) | Three cards: For talent, For brands and Partner with us. Picking one opens its form. `/contact` redirects here. |
+| **Partner with us** (`/partner-with-us`) | Just the partnership form under a bold *Partner with us* heading. "For Tech companies" opens the same page. |
 | **Forms** | **Talent**: what you do; each channel with its follower count and engagement screenshots; niche; what you want from an agency; whether you're signed elsewhere; 18+ consent. **Book a call**: brand, website/Instagram, services, project, budget, timeline. **Partnerships**: business, type, partnership type, idea. All three end with "Thanks! We'll be in touch." |
-| **Everywhere** | Smooth scrolling, and the original ring cursor with small labels like *drag*, *flip* and *open* (the pixel hand is an option in the admin panel). In the Let's work together section the logo itself becomes the cursor. Visitors with *reduced motion* switched on get a calm, static version. |
+| **Everywhere** | Smooth scrolling and the normal system cursor. Visitors with *reduced motion* switched on get a calm, static version. |
 
 ### The admin panel: `/admin`
 
 Sign in with Google. Only approved accounts get in.
 
 - **Images:** every image slot is listed with the Drive folder it reads from. Files dropped into that folder appear automatically (marked *from Drive*), and anything uploaded in the panel takes priority. You can upload, reorder, describe (**Aa**) or clear images. Brand logos have their white backgrounds removed on upload. Videos go straight into the Drive folders, because they're too large to upload through the site.
-- **Animations:** the hero mode (or *rotate*), the homepage game, the Let's work together style, the footer wordmark, the page intro and the cursor (Logo / Ring / Spotlight / System).
+- **Animations:** the hero mode (or *rotate*), the Let's work together style, the footer logo and the page intro.
 - **Access:** add or remove Google accounts. The site owner and the Drive owner are permanent.
 
 ### Drive folders (inside the website folder; `setup` creates them)
@@ -57,7 +56,7 @@ Sign in with Google. Only approved accounts get in.
 | **Home Page 3** | Brand logos for "Brands our creators have worked with". PNGs with transparent backgrounds look best. |
 | **About Us 1** | The team photo. |
 | **Instagram** | Posts for the For brands hero grid. |
-| **Services/01–05 …** | Photos or video for each service on the Services page. |
+| **Services** | Photos and videos for the pinwheel on the Services page. |
 
 Files show in name order, so prefix them `01-`, `02-` and so on to control the order. Media in these folders is set to "anyone with the link can view" so the site can display it.
 
@@ -66,7 +65,7 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | Tab | Contents |
 | --- | --- |
 | **Talent** | One row per application: each channel's handle and follower count, links to the screenshots, and a **Status** dropdown. |
-| **Book a Call** | Brand bookings: services, project, budget and timeline, plus any game score. |
+| **Book a Call** | Brand bookings: services, project, budget and timeline. |
 | **Partnerships** | B2B partnership enquiries. |
 | **Images**, **Settings**, **Admins** | Written by the admin panel. |
 
@@ -192,7 +191,7 @@ src/lib/slots.ts        Every image slot (and its Drive folder) and animation op
 src/lib/backend.ts      Calls Apps Script; caches site content (refreshed instantly on admin save)
 src/lib/auth.ts         Google ID-token verification, allowlist, session cookie
 src/components/home/wall/engines.ts   The four hero modes
-src/components/home/games/            The homepage games (GameSection picks one)
+src/components/services/              The Services page showcase (pinwheel + animated steps)
 src/app/(site)/…        Public pages
 src/app/admin/          Admin panel
 src/app/media/[id]      Serves Drive images through the site (nothing in Drive is made public)

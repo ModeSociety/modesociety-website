@@ -7,7 +7,7 @@ export const NICHES = ["Fashion", "Beauty", "Lifestyle", "Fitness", "Gaming"] as
 export const SIGNED = ["No", "Yes"] as const;
 
 // Book a call
-export const SERVICES = ["Influencer campaigns", "UGC content", "Event guest lists", "Funding", "AI campaigns"] as const;
+export const SERVICES = ["Influencer campaigns", "UGC content", "Event guest lists", "Funding"] as const;
 /** TODO (Mode Society): set the final budget ranges. */
 export const BUDGETS = ["Under $5k", "$5k – $15k", "$15k – $50k", "$50k – $100k", "$100k+", "Not sure yet"] as const;
 /** TODO (Mode Society): set the final timeline options. */

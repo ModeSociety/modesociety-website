@@ -44,7 +44,6 @@ export function useDragScroll(ref: React.RefObject<HTMLElement | null>) {
       cancelAnimationFrame(raf);
       drag = { x: e.clientX, left: el.scrollLeft, lastX: e.clientX, lastT: performance.now(), v: 0, moved: 0, id: e.pointerId };
       el.style.scrollSnapType = "none"; // snapping fights a live drag
-      el.style.cursor = "grabbing";
     };
     const move = (e: PointerEvent) => {
       if (!drag || drag.id !== e.pointerId) return;
@@ -61,7 +60,6 @@ export function useDragScroll(ref: React.RefObject<HTMLElement | null>) {
       if (!drag || drag.id !== e.pointerId) return;
       const { v, moved } = drag;
       drag = null;
-      el.style.cursor = "";
       if (moved > 4) {
         // swallow the click that follows a drag so links/buttons inside don't fire
         el.addEventListener("click", (c) => (c.preventDefault(), c.stopPropagation()), { capture: true, once: true });

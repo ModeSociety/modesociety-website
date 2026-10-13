@@ -1,10 +1,8 @@
 import { unstable_cache } from "next/cache";
 import {
   CTA_STYLES,
-  CURSOR_STYLES,
   DEFAULT_SETTINGS,
   FOOTER_STYLES,
-  GAME_MODES,
   HERO_MODES,
   INTRO_STYLES,
   pick,
@@ -92,8 +90,6 @@ function parseSettings(raw: Record<string, string> = {}): SiteSettings {
     heroMode: pick(HERO_MODES, raw.heroMode, d.heroMode),
     heroAutoCycle: raw.heroAutoCycle === "true",
     introStyle: pick(INTRO_STYLES, raw.introStyle, d.introStyle),
-    cursorStyle: pick(CURSOR_STYLES, raw.cursorStyle, d.cursorStyle),
-    gameMode: pick(GAME_MODES, raw.gameMode, d.gameMode),
     ctaStyle: pick(CTA_STYLES, raw.ctaStyle, d.ctaStyle),
     footerStyle: pick(FOOTER_STYLES, raw.footerStyle, d.footerStyle),
   };
@@ -108,7 +104,8 @@ export function buildContent(raw: RawSite | null): SiteContent {
       .sort((a, b) => a.order - b.order)
       .map((r) => ({ src: mediaUrl(r.fileId), alt: r.alt || slot.label, fileId: r.fileId, type: "image", source: "upload" }));
     const folder = slot.folder ? fromFolder(raw?.folders?.[slot.folder], slot.accept, slot.label) : [];
-    const list = uploaded.length ? uploaded : folder.length ? folder : slot.defaults.map((d) => ({ type: "image" as const, ...d, source: "default" as const }));
+    const base = folder.length ? folder : slot.defaults.map((d) => ({ type: "image" as const, ...d, source: "default" as const }));
+    const list = slot.additive ? [...base, ...uploaded] : uploaded.length ? uploaded : base;
     images[slot.id] = slot.max ? list.slice(0, slot.max) : list;
   }
   return {

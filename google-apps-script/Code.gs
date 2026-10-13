@@ -49,11 +49,7 @@ var MEDIA_FOLDERS = [
   'Home Page 3',
   'About Us 1',
   'Instagram',
-  'Services/01 Influencer Campaigns',
-  'Services/02 UGC Content',
-  'Services/03 Event Guest Lists',
-  'Services/04 Funding',
-  'Services/05 AI Campaigns',
+  'Services',
 ];
 
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
@@ -62,8 +58,6 @@ var DEFAULT_SETTINGS = {
   heroMode: 'gravity',
   heroAutoCycle: 'false',
   introStyle: 'curtain',
-  cursorStyle: 'ring',
-  gameMode: 'memory',
   ctaStyle: 'reveal',
   footerStyle: 'magnetic',
 };

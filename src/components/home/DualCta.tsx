@@ -33,7 +33,6 @@ function Split({ panels }: { panels: Panel[] }) {
         <Link
           key={p.href}
           href={p.href}
-          data-cursor="open"
           className="group relative flex flex-1 items-end overflow-hidden bg-ink text-paper transition-[flex-grow] duration-700 ease-[cubic-bezier(.16,1,.3,1)] md:hover:flex-[1.6]"
         >
           {p.img && (
@@ -58,7 +57,7 @@ function Split({ panels }: { panels: Panel[] }) {
   );
 }
 
-/** Big typographic rows; a tilted photo follows the cursor while you hover a row. */
+/** Big typographic rows; the logo trails the mouse while you hover a row. */
 function Reveal({ panels }: { panels: Panel[] }) {
   const section = useRef<HTMLElement>(null);
   const float = useRef<HTMLDivElement>(null);
@@ -72,7 +71,7 @@ function Reveal({ panels }: { panels: Panel[] }) {
     pos.current.y += (target.current.y - pos.current.y) * 0.32;
     const vx = target.current.x - pos.current.x;
     if (float.current) {
-      float.current.style.transform = `translate3d(${pos.current.x}px, ${pos.current.y}px, 0) translate(-50%, -50%) rotate(${Math.max(-12, Math.min(12, vx * 0.08))}deg)`;
+      float.current.style.transform = `translate3d(${pos.current.x}px, ${pos.current.y}px, 0) translate(22px, 18px) rotate(${Math.max(-12, Math.min(12, vx * 0.08))}deg)`;
     }
     raf.current = requestAnimationFrame(loop);
   };
@@ -94,8 +93,7 @@ function Reveal({ panels }: { panels: Panel[] }) {
   return (
     <section
       ref={section}
-      data-cursor-hide
-      className="relative overflow-hidden bg-paper py-20 md:py-28 md:[&_*]:!cursor-none md:!cursor-none"
+      className="relative overflow-hidden bg-paper py-20 md:py-28"
       onPointerMove={onMove}
       onPointerEnter={enter}
       onPointerLeave={leave}
@@ -106,7 +104,6 @@ function Reveal({ panels }: { panels: Panel[] }) {
           <Link
             key={p.href}
             href={p.href}
-            data-cursor="open"
             onPointerEnter={() => setActive(i)}
             className="group relative z-10 flex flex-col gap-4 border-t border-line py-8 last:border-b md:flex-row md:items-center md:justify-between md:py-12"
           >
@@ -131,7 +128,7 @@ function Reveal({ panels }: { panels: Panel[] }) {
         style={{ opacity: active === null ? 0 : 1, transition: "opacity .35s" }}
         aria-hidden
       >
-        {/* the logo follows the cursor across the rows */}
+        {/* the logo trails beside the mouse across the rows */}
         <Logo className="h-[clamp(34px,3.6vw,52px)] text-[clamp(20px,2vw,30px)] opacity-90 drop-shadow-[0_6px_16px_rgba(74,5,7,.25)]" />
       </div>
     </section>
@@ -163,7 +160,6 @@ function Tilt({ panels }: { panels: Panel[] }) {
             <Link
               key={p.href}
               href={p.href}
-              data-cursor="open"
               onPointerMove={onMove}
               onPointerLeave={reset}
               className="group block"
@@ -207,7 +203,7 @@ function Blinds({ panels }: { panels: Panel[] }) {
   return (
     <section className="grid h-[85svh] min-h-[520px] md:grid-cols-2">
       {panels.map((p) => (
-        <Link key={p.href} href={p.href} data-cursor="open" className="group relative flex items-end overflow-hidden bg-ink text-paper">
+        <Link key={p.href} href={p.href} className="group relative flex items-end overflow-hidden bg-ink text-paper">
           {p.img && (
             <img
               src={p.img.src}

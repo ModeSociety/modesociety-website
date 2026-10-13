@@ -19,6 +19,8 @@ export type SlotDef = {
   folder?: string;
   /** turn near-white backgrounds transparent on upload (logos) */
   knockout?: boolean;
+  /** uploads are added after the Drive folder / built-in images instead of replacing them */
+  additive?: boolean;
   defaults: { src: string; alt: string; type?: "image" | "video" }[];
 };
 
@@ -65,12 +67,13 @@ export const SLOTS: SlotDef[] = [
     id: "home.clients",
     label: "Brands our creators have worked with",
     page: "Home, For brands, For talent",
-    hint: "Brand logos that float around. White backgrounds are removed automatically on upload. Drive folder: \"Home Page 3\".",
+    hint: "Brand logos for the two-row slideshow. Logos added here join the existing ones (built-in, or the Drive folder \"Home Page 3\"); add as many as you like. White backgrounds are removed automatically.",
     kind: "collection",
-    max: 30,
+    max: 80,
     accept: "image",
     folder: "Home Page 3",
     knockout: true,
+    additive: true,
     defaults: BRAND_FILES.map((f, i) => ({
       src: typeof f === "number" ? asset("brands", f, "png") : asset("brands", 5, "svg"),
       alt: BRAND_NAMES[i],
@@ -97,39 +100,23 @@ export const SLOTS: SlotDef[] = [
     folder: "Instagram",
     defaults: range(9).map((n) => ({ src: asset("instagram", n), alt: "Mode Society on Instagram" })),
   },
-  ...(
-    [
-      ["service.influencer", "01 Influencer Campaigns", ["influencer-1", "influencer-2"]],
-      ["service.ugc", "02 UGC Content", ["ugc-1", "ugc-2"]],
-      ["service.events", "03 Event Guest Lists", ["events-1"]],
-      ["service.funding", "04 Funding", ["funding-1"]],
-      ["service.ai", "05 AI Campaigns", ["ai-1"]],
-    ] as const
-  ).map(
-    ([id, name, files]): SlotDef => ({
-      id,
-      label: `Services — ${name.slice(3)}`,
-      page: "Services",
-      hint: `Photos or video for this service. Drive folder: "Services/${name}".`,
-      kind: "collection",
-      max: 6,
-      accept: "media",
-      folder: `Services/${name}`,
-      defaults: files.map((f) => ({ src: `/assets/services/${f}.jpg`, alt: name.slice(3) })),
-    }),
-  ),
   {
-    id: "home.casting",
-    label: "Game faces (optional)",
-    page: "Home",
-    hint: "Photos for the homepage game.",
+    id: "services.orbit",
+    label: "Services — pinwheel",
+    page: "Services",
+    hint: "Photos and short portrait videos for the rotating pinwheel beside the services. Drive folder: \"Services\" (videos go there, as they're too large to upload here).",
     kind: "collection",
-    max: 6,
-    accept: "image",
-    defaults: range(6).map((n) => ({ src: asset("game", n), alt: "Mode Society talent" })),
+    max: 12,
+    accept: "media",
+    folder: "Services",
+    defaults: [
+      ...["influencer-1", "ugc-1", "events-1", "funding-1", "influencer-2", "ugc-2", "ai-1"].map((f) => ({ src: `/assets/services/${f}.jpg`, alt: "Mode Society campaign work" })),
+      { src: asset("videos", 1, "mp4"), alt: "Mode Society creator content", type: "video" as const },
+      { src: asset("videos", 3, "mp4"), alt: "Mode Society creator content", type: "video" as const },
+    ],
   },
   { id: "contact.brands", label: "For brands panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: asset("instagram", 4), alt: "For brands" }] },
-  { id: "contact.talent", label: "For talent panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: asset("game", 2), alt: "For talent" }] },
+  { id: "contact.talent", label: "For talent panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: asset("hero", 3), alt: "For talent" }] },
   { id: "meta.share", label: "Social share image", page: "Link previews", hint: "Shown when the site is shared on socials/iMessage. Landscape 1200×630.", kind: "single", accept: "image", defaults: [] },
 ];
 
@@ -137,8 +124,6 @@ export const SLOT_IDS = new Set(SLOTS.map((s) => s.id));
 
 export type HeroMode = "pinboard" | "scatter" | "orbit" | "gravity";
 export type IntroStyle = "curtain" | "develop" | "none";
-export type CursorStyle = "logo" | "ring" | "spotlight" | "off";
-export type GameMode = "memory" | "shortlist" | "shell" | "puzzle" | "darkroom" | "rotate" | "off";
 export type CtaStyle = "split" | "reveal" | "tilt" | "blinds";
 export type FooterStyle = "magnetic" | "swing" | "static";
 
@@ -153,23 +138,6 @@ export const INTRO_STYLES: { id: IntroStyle; label: string; description: string 
   { id: "curtain", label: "Curtain", description: "A burgundy curtain lifts to reveal the logo." },
   { id: "develop", label: "Polaroid develop", description: "Page fades in from a warm over-exposed white, like a developing photo." },
   { id: "none", label: "None", description: "No intro animation." },
-];
-
-export const CURSOR_STYLES: { id: CursorStyle; label: string; description: string }[] = [
-  { id: "ring", label: "Ring", description: "A soft ring that grows and labels things you can drag or flip." },
-  { id: "logo", label: "Pixel hand", description: "The Mode Society pixel-hand cursor, with little labels on things you can interact with." },
-  { id: "spotlight", label: "Spotlight", description: "A warm spotlight that follows the cursor." },
-  { id: "off", label: "System cursor", description: "Normal cursor." },
-];
-
-export const GAME_MODES: { id: GameMode; label: string; description: string }[] = [
-  { id: "memory", label: "Casting Call", description: "Memory match: flip cards and pair up the faces against the clock." },
-  { id: "shortlist", label: "The Shortlist", description: "Swipe right to cast, left to pass. Build a shortlist of three." },
-  { id: "shell", label: "Eye on the Talent", description: "Follow the starred polaroid as the cards shuffle. It gets faster every level." },
-  { id: "puzzle", label: "Editorial Puzzle", description: "A sliding-tile puzzle of a talent photo. Peek if you get stuck." },
-  { id: "darkroom", label: "Darkroom", description: "Rub the undeveloped polaroids to develop each photo." },
-  { id: "rotate", label: "Rotate", description: "A different game on each visit." },
-  { id: "off", label: "Hidden", description: "No game section on the homepage." },
 ];
 
 export const CTA_STYLES: { id: CtaStyle; label: string; description: string }[] = [
@@ -189,8 +157,6 @@ export type SiteSettings = {
   heroMode: HeroMode;
   heroAutoCycle: boolean;
   introStyle: IntroStyle;
-  cursorStyle: CursorStyle;
-  gameMode: GameMode;
   ctaStyle: CtaStyle;
   footerStyle: FooterStyle;
 };
@@ -199,8 +165,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   heroMode: "gravity",
   heroAutoCycle: false,
   introStyle: "curtain",
-  cursorStyle: "ring",
-  gameMode: "memory",
   ctaStyle: "reveal",
   footerStyle: "magnetic",
 };

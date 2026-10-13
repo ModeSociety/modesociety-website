@@ -15,3 +15,11 @@ export function LinkedInIcon({ className = "h-5 w-5" }: { className?: string }) 
     </svg>
   );
 }
+
+export function TikTokIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.2a6.4 6.4 0 1 0 5.4 6.3V8.7a8.1 8.1 0 0 0 4.4 1.3V6.6a4.5 4.5 0 0 1-4.4-4.6Z" />
+    </svg>
+  );
+}

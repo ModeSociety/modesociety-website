@@ -30,7 +30,8 @@ export default function VideoOrbit({ items, className = "" }: { items: SiteImage
 
     const layout = () => {
       const w = el.clientWidth;
-      const cardW = Math.min(w * 0.42, 220);
+      // keep the whole ring roughly within the stage so it never spills over neighbouring content
+      const cardW = Math.min(w * 0.42, 220, (w / ((n * 1.15) / Math.PI + 1)) * 1.35);
       const radius = Math.max(cardW * 0.9, (n * cardW) / (2 * Math.PI) * 1.15);
       cards.forEach((c, i) => {
         c.style.width = `${cardW}px`;
@@ -100,9 +101,8 @@ export default function VideoOrbit({ items, className = "" }: { items: SiteImage
   return (
     <div
       ref={stage}
-      className={`relative h-[420px] select-none touch-pan-y md:h-[520px] ${className}`}
+      className={`relative h-[420px] select-none touch-pan-y overflow-x-clip md:h-[520px] ${className}`}
       style={{ perspective: "1200px" }}
-      data-cursor="spin"
     >
       <div ref={ring} className="absolute left-1/2 top-1/2 h-0 w-0" style={{ transformStyle: "preserve-3d", transform: "rotateX(-6deg)" }}>
         {list.map((m, i) => (

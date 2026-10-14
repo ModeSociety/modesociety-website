@@ -16,7 +16,7 @@ Admin ─ Google sign-in ─┘                                              ├
 
 ## Feature walkthrough
 
-Brand: burgundy `#7F090D` text, buttons and footer on an off-white `#F5F1EA` page. The footer and menu use a dithered burgundy gradient.
+Brand: a white `#FFFFFF` site with burgundy `#7F090D` type and buttons. Some sections are solid burgundy: "What we bring to the table", "What you can expect from us" and the footer, which rises out of a band of halftone dots.
 
 ### The public site
 

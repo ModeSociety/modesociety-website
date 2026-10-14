@@ -219,7 +219,7 @@ export default function Infographic() {
   const [ref, on] = useInView<HTMLElement>();
   const { salesLift, roi } = INFOGRAPHIC;
   return (
-    <section ref={ref} className="bg-paper-2/60 py-20 md:py-28">
+    <section ref={ref} className="py-20 md:py-28">
       <div className="wrap">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
@@ -236,16 +236,16 @@ export default function Infographic() {
         </div>
 
         <div className="mt-10 grid gap-5 lg:grid-cols-12">
-          <div className="rounded-[6px] bg-white p-6 lg:col-span-7">
+          <div className="rounded-[6px] border border-line bg-white p-6 lg:col-span-7">
             <h3 className="font-medium text-ink">Sales index over a six-month campaign</h3>
             <p className="mb-4 text-sm text-muted">Indexed to 100 at launch · hover to compare</p>
             <SalesLine on={on} />
           </div>
-          <div className="rounded-[6px] bg-white p-6 lg:col-span-5">
+          <div className="rounded-[6px] border border-line bg-white p-6 lg:col-span-5">
             <h3 className="mb-5 font-medium text-ink">Mode Society vs in-house</h3>
             <MetricBars on={on} />
           </div>
-          <div className="grid grid-cols-2 gap-6 rounded-[6px] bg-white p-6 lg:col-span-12 lg:grid-cols-[1fr_auto_auto] lg:items-center">
+          <div className="grid grid-cols-2 gap-6 rounded-[6px] border border-line bg-white p-6 lg:col-span-12 lg:grid-cols-[1fr_auto_auto] lg:items-center">
             <div className="col-span-2 lg:col-span-1">
               <h3 className="font-medium text-ink">Where the money goes</h3>
               <p className="mt-2 max-w-md text-sm text-ink-2">

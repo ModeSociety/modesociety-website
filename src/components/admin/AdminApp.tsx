@@ -308,7 +308,7 @@ function SlotEditor({ slot, images, reload, notify }: { slot: SlotDef; images: S
   const shown: (Item & { type?: string })[] = usingDefaults ? images.map((d) => ({ ...d, fileId: "" })) : uploaded;
 
   return (
-    <div className="border border-line bg-[#f8f5ef] p-5">
+    <div className="border border-line bg-paper-2/50 p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="font-medium">{slot.label}</h3>
@@ -510,7 +510,7 @@ function AnimationsTab({
               className={`border p-5 text-left transition ${draft.heroMode === m.id ? "border-ink bg-ink text-paper" : "border-line hover:border-ink"}`}
             >
               <div className="mb-5 grid h-24 place-items-center overflow-hidden">
-                <div className={`h-16 w-12 bg-[#fbfaf6] p-1 pb-3 shadow-md ${PREVIEW[m.id]}`}>
+                <div className={`h-16 w-12 bg-white p-1 pb-3 shadow-md ${PREVIEW[m.id]}`}>
                   <div className="h-full w-full bg-[#c9bfae]" />
                 </div>
               </div>

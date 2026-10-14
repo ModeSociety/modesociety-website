@@ -2,9 +2,10 @@
 
 :root {
   /* Style guide: burgundy text, buttons and footer on an off-white page. */
-  --paper: #f5f1ea;
-  --paper-2: #ece4d9;
-  --card: #fbfaf6;
+  /* white site; burgundy sections are opted into explicitly */
+  --paper: #ffffff;
+  --paper-2: #f4f1ef;
+  --card: #ffffff;
   --ink: #7f090d;
   --ink-2: #5e1a1c;
   --ink-deep: #4a0507;
@@ -52,18 +53,6 @@ body {
   font-size: 16px;
   line-height: 1.5;
   overflow-x: hidden;
-}
-
-/* subtle paper grain over everything */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 90;
-  opacity: 0.35;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .18 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
 ::selection {

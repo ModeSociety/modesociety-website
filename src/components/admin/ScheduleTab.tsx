@@ -164,8 +164,8 @@ export default function ScheduleTab({
                 onDoubleClick={() => setEditing(blank(d, me))}
                 onKeyDown={(e) => e.key === "Enter" && setDay(selected ? null : d)}
                 className={`group min-h-[64px] cursor-pointer border-b border-r border-line p-1.5 text-left transition-colors md:min-h-[104px] ${
-                  outside ? "bg-paper/60" : ""
-                } ${selected ? "bg-ink/[0.06] ring-1 ring-inset ring-ink" : "hover:bg-paper"}`}
+                  outside ? "bg-paper-2/60" : ""
+                } ${selected ? "bg-ink/[0.06] ring-1 ring-inset ring-ink" : "hover:bg-paper-2/60"}`}
               >
                 <div className="flex items-center justify-between">
                   <span
@@ -198,7 +198,7 @@ export default function ScheduleTab({
                         e.stopPropagation();
                         setEditing(a);
                       }}
-                      className={`flex items-center gap-1.5 truncate rounded-[3px] bg-paper px-1.5 py-0.5 text-left text-[11px] text-ink hover:bg-paper-2 ${
+                      className={`flex items-center gap-1.5 truncate rounded-[3px] bg-paper-2 px-1.5 py-0.5 text-left text-[11px] text-ink hover:bg-line/60 ${
                         a.status === "Cancelled" ? "line-through opacity-50" : a.status === "Done" ? "opacity-60" : ""
                       }`}
                       title={`${a.start ? `${a.start} ` : ""}${a.title}`}
@@ -247,7 +247,7 @@ export default function ScheduleTab({
                       {a.end && `–${a.end}`}
                     </span>
                   )}
-                  {a.status !== "Scheduled" && <span className="ml-auto rounded-full bg-paper px-2 py-0.5">{a.status}</span>}
+                  {a.status !== "Scheduled" && <span className="ml-auto rounded-full bg-paper-2 px-2 py-0.5">{a.status}</span>}
                 </div>
                 <div className={`mt-1 font-medium text-ink ${a.status === "Cancelled" ? "line-through" : ""}`}>{a.title}</div>
                 {(a.client || a.assignee) && (

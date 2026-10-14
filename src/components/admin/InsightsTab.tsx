@@ -66,7 +66,7 @@ function BarList({ rows, total, label = (k: string) => k, color = INK }: { rows:
           <span className="tabular-nums text-ink-2">
             {fmt(r.value)} <span className="text-muted">· {pct(r.value, total)}%</span>
           </span>
-          <span className="col-span-2 h-1.5 rounded-full bg-paper">
+          <span className="col-span-2 h-1.5 rounded-full bg-paper-2">
             <span className="block h-full rounded-full" style={{ width: `${(r.value / max) * 100}%`, background: color }} />
           </span>
         </li>
@@ -311,7 +311,7 @@ export default function InsightsTab({ disabled }: { disabled: boolean }) {
                     <span className="tabular-nums text-ink-2">
                       {fmt(r.value)} <span className="text-muted">· {pct(r.value, t.sessions)}%</span>
                     </span>
-                    <span className="col-span-2 h-1.5 rounded-full bg-paper">
+                    <span className="col-span-2 h-1.5 rounded-full bg-paper-2">
                       <span
                         className="block h-full rounded-full"
                         style={{ width: `${pct(r.value, Math.max(...sourceRows.map((x) => x.value), 1))}%`, background: SOURCE_COLORS[r.key as Source] }}

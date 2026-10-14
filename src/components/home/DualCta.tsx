@@ -103,7 +103,7 @@ function Tilt({ panels }: { panels: Panel[] }) {
     e.currentTarget.style.setProperty("--ry", "0deg");
   };
   return (
-    <section className="bg-paper-2/60 py-20 md:py-28">
+    <section className="py-20 md:py-28">
       <div className="wrap">
         <p className="eyebrow mb-12 text-center">Let&apos;s work together</p>
         <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-2 md:gap-20" style={{ perspective: "1200px" }}>

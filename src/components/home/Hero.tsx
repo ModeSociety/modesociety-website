@@ -6,13 +6,6 @@ import { HERO_MODES, type HeroMode, type SiteImage, type SiteSettings } from "@/
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { ENGINES, staticLayout, type EngineCtx } from "./wall/engines";
 
-const HINTS: Record<HeroMode, string> = {
-  pinboard: "Drag to rearrange · double-click to unpin",
-  scatter: "Move through the crowd",
-  orbit: "Drag to spin · click to bring forward",
-  gravity: "Grab, throw, stack",
-};
-
 const LAST_KEY = "ms-hero-last";
 
 export default function Hero({ images, settings }: { images: SiteImage[]; settings: SiteSettings }) {
@@ -165,9 +158,6 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
                 For talent <span className="arrow">→</span>
               </Link>
             </div>
-          </div>
-          <div className="hero-fade pointer-events-auto flex flex-col items-start gap-2 md:items-end">
-            <span className="font-serif text-sm italic text-ink-2">{HINTS[mode]}</span>
           </div>
         </div>
       </div>

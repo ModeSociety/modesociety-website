@@ -7,52 +7,66 @@ import Wordmark from "./Wordmark";
 
 export default function Footer({ style }: { style: FooterStyle }) {
   return (
-    <footer className="relative isolate overflow-hidden text-white">
-      <Halftone />
-      <div className="wrap grid gap-14 pb-10 pt-24 md:grid-cols-12 md:pt-32">
-        <div className="md:col-span-7">
-          <p className="eyebrow !text-white/70">Let&apos;s connect</p>
-          <h2 className="font-display mt-6 text-[clamp(34px,5.4vw,84px)]">
-            Tell us your vision.
-            <br />
-            <span className="font-serif italic tracking-normal">We&apos;ll bring it to life.</span>
-          </h2>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/work-with-us" className="btn light">
-              For brands <span className="arrow">→</span>
-            </Link>
-            <Link href="/apply-to-be-a-creator" className="btn ghost !border-white/60 !text-white hover:!text-ink [&::before]:!bg-white">
-              For talent <span className="arrow">→</span>
-            </Link>
-          </div>
-        </div>
-        <div className="grid content-end gap-8 text-sm md:col-span-4 md:col-start-9">
-          <div>
-            <span className="eyebrow !text-white/70">Enquiries</span>
-            <p className="mt-2 text-lg leading-snug text-white/90">Tell us a little about you and we&apos;ll get back to you.</p>
-            <Link href="/get-in-touch" className="btn light mt-4">
-              Make an enquiry <span className="arrow">→</span>
-            </Link>
-          </div>
-          <SocialLinks />
-          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-white/75">
-            {MENU.filter((m) => !m.href.includes("for=tech")).map((m) => (
-              <Link key={m.href} href={m.href} className="link-underline">
-                {m.label}
+    <footer className="relative overflow-hidden text-white">
+      {/* dots growing out of the page into the solid burgundy footer */}
+      <div className="h-[clamp(150px,20vw,300px)]">
+        <Halftone />
+      </div>
+      <div className="bg-ink">
+        <div className="wrap grid gap-14 pb-10 pt-16 md:grid-cols-12 md:pt-24">
+          <div className="md:col-span-7">
+            <p className="eyebrow !text-white/70">Let&apos;s connect</p>
+            <h2 className="font-display mt-6 text-[clamp(34px,5.4vw,84px)]">
+              Tell us your vision.
+              <br />
+              <span className="font-serif italic tracking-normal">
+                We&apos;ll bring it to life.
+              </span>
+            </h2>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link href="/work-with-us" className="btn light">
+                For brands <span className="arrow">→</span>
               </Link>
-            ))}
-          </nav>
+              <Link
+                href="/apply-to-be-a-creator"
+                className="btn ghost !border-white/60 !text-white hover:!text-ink [&::before]:!bg-white"
+              >
+                For talent <span className="arrow">→</span>
+              </Link>
+            </div>
+          </div>
+          <div className="grid content-end gap-8 text-sm md:col-span-4 md:col-start-9">
+            <div>
+              <span className="eyebrow !text-white/70">Enquiries</span>
+              <p className="mt-2 text-lg leading-snug text-white/90">
+                Tell us a little about you and we&apos;ll get back to you.
+              </p>
+              <Link href="/get-in-touch" className="btn light mt-4">
+                Make an enquiry <span className="arrow">→</span>
+              </Link>
+            </div>
+            <SocialLinks />
+            <nav className="flex flex-wrap gap-x-6 gap-y-2 text-white/75">
+              {MENU.filter((m) => !m.href.includes("for=tech")).map((m) => (
+                <Link key={m.href} href={m.href} className="link-underline">
+                  {m.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
-      </div>
-      <div className="wrap pb-6">
-        <Wordmark style={style} />
-      </div>
-      <div className="wrap">
-        <div className="flex flex-wrap justify-between gap-2 border-t border-white/20 py-6 text-xs text-white/70">
-          <span>
-            © {new Date().getFullYear()} {COMPANY}
-          </span>
-          <span>Influencer campaigns · UGC · Event guest lists · Funding</span>
+        <div className="wrap pb-6">
+          <Wordmark style={style} />
+        </div>
+        <div className="wrap">
+          <div className="flex flex-wrap justify-between gap-2 border-t border-white/20 py-6 text-xs text-white/70">
+            <span>
+              © {new Date().getFullYear()} {COMPANY}
+            </span>
+            <span>
+              Influencer campaigns · UGC · Event guest lists · Funding
+            </span>
+          </div>
         </div>
       </div>
     </footer>

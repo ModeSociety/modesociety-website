@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { COMPANY, MENU } from "@/lib/content";
 import type { FooterStyle } from "@/lib/slots";
+import { SectionHead } from "./Editorial";
 import Halftone from "./Halftone";
 import SocialLinks from "./SocialLinks";
 import Wordmark from "./Wordmark";
@@ -13,15 +14,15 @@ export default function Footer({ style }: { style: FooterStyle }) {
         <Halftone />
       </div>
       <div className="bg-ink">
-        <div className="wrap grid gap-14 pb-10 pt-16 md:grid-cols-12 md:pt-24">
+        <div className="wrap pt-14 md:pt-20">
+          <SectionHead tone="dark" index="✶" label="Let's connect" meta="Melbourne → worldwide" />
+        </div>
+        <div className="wrap grid gap-14 pb-10 pt-10 md:grid-cols-12 md:pt-14">
           <div className="md:col-span-7">
-            <p className="eyebrow !text-white/70">Let&apos;s connect</p>
-            <h2 className="font-display mt-6 text-[clamp(34px,5.4vw,84px)]">
+            <h2 className="font-display text-[clamp(64px,9.6vw,160px)]">
               Tell us your vision.
               <br />
-              <span className="font-serif italic tracking-normal">
-                We&apos;ll bring it to life.
-              </span>
+              <span className="font-serif text-[0.62em] italic">We&apos;ll bring it to life.</span>
             </h2>
             <div className="mt-10 flex flex-wrap gap-3">
               <Link href="/work-with-us" className="btn light">
@@ -46,7 +47,7 @@ export default function Footer({ style }: { style: FooterStyle }) {
               </Link>
             </div>
             <SocialLinks />
-            <nav className="flex flex-wrap gap-x-6 gap-y-2 text-white/75">
+            <nav className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-[12px] uppercase tracking-[0.04em] text-white/75">
               {MENU.filter((m) => !m.href.includes("for=tech")).map((m) => (
                 <Link key={m.href} href={m.href} className="link-underline">
                   {m.label}
@@ -59,7 +60,7 @@ export default function Footer({ style }: { style: FooterStyle }) {
           <Wordmark style={style} />
         </div>
         <div className="wrap">
-          <div className="flex flex-wrap justify-between gap-2 border-t border-white/20 py-6 text-xs text-white/70">
+          <div className="flex flex-wrap justify-between gap-2 border-t border-white/20 py-6 font-mono text-[11px] uppercase tracking-[0.04em] text-white/70">
             <span>
               © {new Date().getFullYear()} {COMPANY}
             </span>

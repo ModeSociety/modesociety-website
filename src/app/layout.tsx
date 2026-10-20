@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Boldonse, Instrument_Serif, Inter_Tight } from "next/font/google";
+import { Anton, IBM_Plex_Mono, Instrument_Serif, Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-const boldonse = Boldonse({ weight: "400", subsets: ["latin"], variable: "--font-boldonse", display: "swap" });
+/* Editorial type: condensed Anton headlines, Instrument Serif italic accents, Plex Mono metadata. */
+const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton", display: "swap" });
+const plexMono = IBM_Plex_Mono({ weight: ["400", "500"], subsets: ["latin"], variable: "--font-plex-mono", display: "swap" });
 const instrument = Instrument_Serif({
   weight: "400",
   style: ["normal", "italic"],
@@ -24,7 +26,7 @@ export const viewport: Viewport = { themeColor: "#ffffff" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-AU" className={`${boldonse.variable} ${instrument.variable} ${interTight.variable}`}>
+    <html lang="en-AU" className={`${anton.variable} ${instrument.variable} ${interTight.variable} ${plexMono.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import Dither from "@/components/site/Dither";
+import { SectionHead } from "@/components/site/Editorial";
 import { EXPECT, INSTAGRAM_URL, QUOTE } from "@/lib/content";
 import type { SiteImage } from "@/lib/slots";
 import { InstagramIcon } from "@/components/site/Icons";
@@ -19,7 +20,7 @@ export function Accordion({
   tone?: "light" | "dark";
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const line = tone === "dark" ? "border-white/25" : "border-line";
+  const line = tone === "dark" ? "border-white/25" : "border-espresso/15";
   return (
     <div className={`border-t ${line}`}>
       {items.map((it, i) => {
@@ -31,9 +32,12 @@ export function Accordion({
               aria-expanded={isOpen}
               onClick={() => setOpen(isOpen ? -1 : i)}
             >
-              <span className="font-display text-[clamp(18px,2vw,28px)]">{it.title}</span>
+              <span className="flex items-baseline gap-4">
+                <span className="font-mono text-[11px] font-medium text-muted">{String(i + 1).padStart(2, "0")}</span>
+                <span className="font-display text-[clamp(28px,3.2vw,48px)]">{it.title}</span>
+              </span>
               <span
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border transition-transform duration-500 ${
+                className={`grid h-9 w-9 shrink-0 place-items-center border transition-transform duration-500 ${
                   tone === "dark" ? "border-white/50" : "border-ink"
                 } ${isOpen ? "rotate-45" : ""}`}
                 aria-hidden
@@ -75,13 +79,16 @@ export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch
   return (
     <section className="dither-bg relative isolate overflow-hidden py-24 text-white md:py-32">
       <Dither />
+      <div className="wrap">
+        <SectionHead tone="dark" index="✶" label="How we work" meta={`${EXPECT.cards.length} things you can count on`} className="mb-8" />
+      </div>
       <div className="wrap grid gap-10 md:grid-cols-12">
-        <div className="md:col-span-5">
-          <h2 className="font-display text-[clamp(32px,4.6vw,68px)]">
-            What you can expect <span className="font-serif italic tracking-normal">from us.</span>
+        <div className="md:col-span-7">
+          <h2 className="font-display text-[clamp(56px,7.6vw,124px)]">
+            What you can expect <span className="font-serif italic">from us.</span>
           </h2>
         </div>
-        <div className="md:col-span-6 md:col-start-7">
+        <div className="md:col-span-4 md:col-start-9 md:self-end">
           <p className="text-lg text-white/85">{EXPECT.intro}</p>
         </div>
       </div>
@@ -93,12 +100,15 @@ export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch
           <article
             key={c.title}
             data-card
-            className="flex aspect-[4/5] w-[72vw] shrink-0 snap-start flex-col justify-between rounded-[6px] bg-white p-6 text-ink shadow-[0_30px_60px_-30px_rgba(0,0,0,.5)] sm:w-[300px]"
+            className="flex aspect-[4/5] w-[72vw] shrink-0 snap-start flex-col justify-between bg-white p-6 text-ink shadow-[0_30px_60px_-30px_rgba(0,0,0,.5)] sm:w-[300px]"
           >
-            <span className="font-display text-[44px] leading-none">{String(i + 1).padStart(2, "0")}</span>
             <div>
-              <h3 className="font-display text-[22px]">{c.title}</h3>
-              <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{c.body}</p>
+              <h3 className="font-display text-[clamp(38px,10vw,46px)] leading-[0.92]">{c.title}</h3>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink-2">{c.body}</p>
+            </div>
+            <div className="flex items-end justify-between border-t border-espresso/15 pt-3">
+              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">Mode Society</span>
+              <span className="font-display text-[22px] leading-none">{String(i + 1).padStart(2, "0")}</span>
             </div>
           </article>
         ))}
@@ -109,10 +119,10 @@ export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch
           {cta.label} <span className="arrow">→</span>
         </Link>
         <div className="flex gap-2">
-          <button onClick={() => scrollBy(-1)} className="social-icon" aria-label="Previous card">
+          <button onClick={() => scrollBy(-1)} className="social-icon !rounded-none" aria-label="Previous card">
             ←
           </button>
-          <button onClick={() => scrollBy(1)} className="social-icon" aria-label="Next card">
+          <button onClick={() => scrollBy(1)} className="social-icon !rounded-none" aria-label="Next card">
             →
           </button>
         </div>
@@ -143,7 +153,7 @@ export function InstagramGrid({ posts }: { posts: SiteImage[] }) {
           </a>
         ))}
       </div>
-      <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm text-ink-2 link-underline">
+      <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.04em] text-ink-2 link-underline">
         <InstagramIcon className="h-4 w-4" /> @modesocietyagency
       </a>
     </div>
@@ -153,12 +163,14 @@ export function InstagramGrid({ posts }: { posts: SiteImage[] }) {
 /** Small numbered steps in a row (e.g. a talent's journey from signing to getting paid). */
 export function Steps({ steps }: { steps: { title: string; body: string }[] }) {
   return (
-    <ol className="grid gap-px overflow-hidden rounded-[6px] bg-line sm:grid-cols-2 lg:grid-cols-4">
+    <ol className="grid gap-px overflow-hidden border border-espresso/15 bg-espresso/15 sm:grid-cols-2 lg:grid-cols-4">
       {steps.map((s, i) => (
-        <li key={s.title} className="bg-white p-6">
-          <span className="font-display text-[28px] text-ink">{String(i + 1).padStart(2, "0")}</span>
-          <h3 className="font-display mt-6 text-[20px] text-ink">{s.title}</h3>
-          <p className="mt-2 text-[15px] leading-relaxed text-ink-2">{s.body}</p>
+        <li key={s.title} className="flex flex-col justify-between gap-8 bg-white p-6">
+          <div>
+            <h3 className="font-display text-[clamp(34px,3vw,44px)] text-ink">{s.title}</h3>
+            <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{s.body}</p>
+          </div>
+          <span className="font-mono text-[11px] font-medium text-muted">Step {String(i + 1).padStart(2, "0")}</span>
         </li>
       ))}
     </ol>

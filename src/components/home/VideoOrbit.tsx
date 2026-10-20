@@ -106,7 +106,7 @@ export default function VideoOrbit({ items, className = "" }: { items: SiteImage
     >
       <div ref={ring} className="absolute left-1/2 top-1/2 h-0 w-0" style={{ transformStyle: "preserve-3d", transform: "rotateX(-6deg)" }}>
         {list.map((m, i) => (
-          <div key={`${m.src}-${i}`} className="absolute top-0 -translate-y-1/2 overflow-hidden rounded-[6px] bg-paper-2 shadow-[0_24px_40px_-24px_rgba(74,5,7,.55)]">
+          <div key={`${m.src}-${i}`} className="absolute top-0 -translate-y-1/2 grain overflow-hidden bg-paper-2 shadow-[0_24px_40px_-24px_rgba(74,5,7,.55)]">
             <div className="aspect-[9/16] w-full">
               {m.type === "video" ? (
                 <video src={m.src} muted loop playsInline preload="metadata" className="h-full w-full object-cover" aria-label={m.alt} />

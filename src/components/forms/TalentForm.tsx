@@ -142,7 +142,7 @@ export default function TalentForm({ showIntro = true }: { showIntro?: boolean }
                   <Chips options={PLATFORMS} value={platforms} onChange={setPlatforms} />
                 </Field>
                 {platforms.map((p) => (
-                  <fieldset key={p} className="grid gap-5 rounded-[6px] border border-line p-5">
+                  <fieldset key={p} className="grid gap-5 border border-espresso/15 p-5">
                     <legend className="px-2 text-[11px] uppercase tracking-[0.18em] text-ink">{p}</legend>
                     <div className="grid gap-6 md:grid-cols-[1fr_160px]">
                       <Field label="Handle *">

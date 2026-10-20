@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { setIntroPlaying } from "@/lib/intro";
 import type { IntroStyle } from "@/lib/slots";
 
 const KEY = "ms-intro-seen";
@@ -19,6 +20,7 @@ export default function Intro({ style }: { style: IntroStyle }) {
     } catch {
       /* storage blocked — just play it */
     }
+    setIntroPlaying(true);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage is browser-only
     setShow(true);
   }, [style]);
@@ -32,14 +34,31 @@ export default function Intro({ style }: { style: IntroStyle }) {
       .from(el.querySelector(".intro-sub"), { opacity: 0, y: 10, duration: 0.6 }, "-=0.4")
       .to(letters, { yPercent: -110, duration: 0.6, ease: "expo.in", stagger: 0.02 }, "+=0.5")
       .to(el.querySelector(".intro-sub"), { opacity: 0, duration: 0.3 }, "<")
-      .to(el, { clipPath: "inset(0 0 100% 0)", duration: 1, ease: "expo.inOut" }, "-=0.2");
+      // the hero starts its drop as the curtain begins to lift
+      .call(() => setIntroPlaying(false), [], "-=0.2")
+      .to(el, { clipPath: "inset(0 0 100% 0)", duration: 1, ease: "expo.inOut" }, "<");
     return () => {
       tl.revert();
+      setIntroPlaying(false);
     };
   }, [show, style]);
 
   if (!show) return null;
-  if (style === "develop") return <div className="intro-develop" aria-hidden onAnimationEnd={() => setShow(false)} />;
+  if (style === "develop")
+    return (
+      <div
+        className="intro-develop"
+        aria-hidden
+        ref={() => {
+          const t = setTimeout(() => setIntroPlaying(false), 700);
+          return () => clearTimeout(t);
+        }}
+        onAnimationEnd={() => {
+          setIntroPlaying(false);
+          setShow(false);
+        }}
+      />
+    );
 
   return (
     <div ref={curtain} className="intro-curtain" style={{ clipPath: "inset(0 0 0% 0)" }} aria-hidden>

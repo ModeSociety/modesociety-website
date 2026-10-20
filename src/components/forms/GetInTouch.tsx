@@ -41,15 +41,15 @@ export default function GetInTouch({ initial, partnerTypeHint = "" }: { initial:
               role="tab"
               aria-selected={on}
               onClick={() => pick(c.key)}
-              className={`group flex min-h-[230px] flex-col justify-between rounded-[6px] border p-6 text-left transition-all duration-500 ${
-                on ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:-translate-y-1 hover:border-ink"
+              className={`group flex min-h-[260px] flex-col justify-between border p-6 text-left transition-all duration-500 ${
+                on ? "border-ink bg-ink text-white" : "border-espresso/15 bg-white text-ink hover:-translate-y-1 hover:border-ink"
               }`}
             >
               <span className={`eyebrow ${on ? "!text-white/80" : ""}`}>{c.eyebrow}</span>
               <span>
-                <span className="font-display block text-[clamp(20px,1.9vw,28px)]">{c.title}</span>
+                <span className="font-display block text-[clamp(34px,3vw,48px)]">{c.title}</span>
                 <span className={`mt-2 block text-[15px] ${on ? "text-white/85" : "text-ink-2"}`}>{c.body}</span>
-                <span className="mt-5 inline-flex items-center gap-2 text-[12px] uppercase tracking-[0.16em]">
+                <span className="mt-5 inline-flex items-center gap-2 font-mono text-[12px] font-medium uppercase tracking-[0.04em]">
                   {c.cta} <span className="transition-transform duration-500 group-hover:translate-x-1">→</span>
                 </span>
               </span>

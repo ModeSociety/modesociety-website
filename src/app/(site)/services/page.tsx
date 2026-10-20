@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ServicesShowcase from "@/components/services/ServicesShowcase";
+import { SectionHead } from "@/components/site/Editorial";
 import { RiseLines } from "@/components/site/Reveal";
 import { SERVICES_PAGE } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
@@ -10,14 +11,14 @@ export default async function ServicesPage() {
   const { images } = await getSiteContent();
   return (
     <>
-      <section className="wrap pb-12 pt-32 md:pb-16 md:pt-44">
-        <p className="eyebrow">Services</p>
+      <section className="wrap pb-12 pt-28 md:pb-16 md:pt-36">
+        <SectionHead index="Services" label="How it works" meta="No price list: every package is built around you" />
         <RiseLines
           as="h1"
           immediate
           delay={0.15}
-          className="font-display mt-5 text-[clamp(40px,6.4vw,100px)]"
-          lines={["Four ways", <span key="t" className="font-serif italic tracking-normal">we work with brands.</span>]}
+          className="font-display mt-6 text-[clamp(84px,13vw,220px)] leading-[0.84] text-ink"
+          lines={["Four ways", <span key="t" className="font-serif text-[0.62em] italic">we work with brands.</span>]}
         />
       </section>
       <ServicesShowcase services={SERVICES_PAGE} media={images["services.orbit"]} />

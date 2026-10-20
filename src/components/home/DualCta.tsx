@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SectionHead } from "@/components/site/Editorial";
 import type { CtaStyle, SiteImage } from "@/lib/slots";
 
 type Panel = { href: string; eyebrow: string; title: string; img?: SiteImage; cta: string };
@@ -13,10 +14,20 @@ function panels(brands?: SiteImage, talent?: SiteImage): Panel[] {
 }
 
 /** The "For brands / For talent" section. Its look is chosen in the admin panel. */
-export default function DualCta({ brands, talent, style = "split" }: { brands?: SiteImage; talent?: SiteImage; style?: CtaStyle }) {
+export default function DualCta({
+  brands,
+  talent,
+  style = "split",
+  index,
+}: {
+  brands?: SiteImage;
+  talent?: SiteImage;
+  style?: CtaStyle;
+  index?: string;
+}) {
   const list = panels(brands, talent);
-  if (style === "reveal") return <Reveal panels={list} />;
-  if (style === "tilt") return <Tilt panels={list} />;
+  if (style === "reveal") return <Reveal panels={list} index={index} />;
+  if (style === "tilt") return <Tilt panels={list} index={index} />;
   if (style === "blinds") return <Blinds panels={list} />;
   return <Split panels={list} />;
 }
@@ -56,27 +67,27 @@ function Split({ panels }: { panels: Panel[] }) {
 }
 
 /** Big typographic rows that slide across on hover. */
-function Reveal({ panels }: { panels: Panel[] }) {
+function Reveal({ panels, index }: { panels: Panel[]; index?: string }) {
   return (
     <section className="relative overflow-hidden bg-paper py-20 md:py-28">
       <div className="wrap">
-        <p className="eyebrow mb-8">Let&apos;s work together</p>
+        <SectionHead index={index} label="Let's work together" meta="Brands · talent" className="mb-4" />
         {panels.map((p, i) => (
           <Link
             key={p.href}
             href={p.href}
-            className="group relative z-10 flex flex-col gap-4 border-t border-line py-8 last:border-b md:flex-row md:items-center md:justify-between md:py-12"
+            className="group relative z-10 flex flex-col gap-4 border-b border-espresso/15 py-8 md:flex-row md:items-center md:justify-between md:py-10"
           >
-            <span className="flex items-baseline gap-6">
-              <span className="font-serif text-lg italic text-muted">0{i + 1}</span>
-              <span className="font-display text-[clamp(30px,5.2vw,84px)] transition-transform duration-500 group-hover:translate-x-4">
+            <span className="flex items-baseline gap-5 md:gap-8">
+              <span className="font-mono text-[11px] font-medium text-muted">/0{i + 1}</span>
+              <span className="font-display text-[clamp(40px,6.2vw,104px)] text-ink transition-[transform,color] duration-500 group-hover:translate-x-4 group-hover:text-red">
                 {p.title}
               </span>
             </span>
-            <span className="flex items-center gap-4 text-[12px] uppercase tracking-[0.18em] text-ink-2">
+            <span className="flex shrink-0 items-center gap-4 whitespace-nowrap font-mono text-[12px] font-medium uppercase tracking-[0.04em] text-ink-2">
               {p.eyebrow} · {p.cta}
-              <span className="grid h-12 w-12 place-items-center rounded-full border border-ink transition-all duration-500 group-hover:bg-ink group-hover:text-paper">
-                →
+              <span className="grid h-12 w-12 place-items-center border border-ink transition-all duration-500 group-hover:bg-ink group-hover:text-paper">
+                ↗
               </span>
             </span>
           </Link>
@@ -87,7 +98,7 @@ function Reveal({ panels }: { panels: Panel[] }) {
 }
 
 /** Two pinned polaroids that tilt toward the cursor with a moving glare. */
-function Tilt({ panels }: { panels: Panel[] }) {
+function Tilt({ panels, index }: { panels: Panel[]; index?: string }) {
   const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
     const el = e.currentTarget;
     const r = el.getBoundingClientRect();
@@ -105,7 +116,7 @@ function Tilt({ panels }: { panels: Panel[] }) {
   return (
     <section className="py-20 md:py-28">
       <div className="wrap">
-        <p className="eyebrow mb-12 text-center">Let&apos;s work together</p>
+        <SectionHead index={index} label="Let's work together" meta="Brands · talent" className="mb-12" />
         <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-2 md:gap-20" style={{ perspective: "1200px" }}>
           {panels.map((p, i) => (
             <Link
@@ -137,7 +148,7 @@ function Tilt({ panels }: { panels: Panel[] }) {
                     <p className="eyebrow">{p.eyebrow}</p>
                     <h3 className="font-display mt-1 text-[clamp(16px,1.6vw,22px)]">{p.title}</h3>
                   </div>
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink transition-colors group-hover:bg-ink group-hover:text-paper">→</span>
+                  <span className="grid h-11 w-11 shrink-0 place-items-center border border-ink transition-colors group-hover:bg-ink group-hover:text-paper">→</span>
                 </div>
               </div>
             </Link>

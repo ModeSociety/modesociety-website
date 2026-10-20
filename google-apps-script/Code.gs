@@ -63,6 +63,8 @@ var MEDIA_FOLDERS = [
   'About Us 1',
   'Instagram',
   'Services',
+  'Our Work',
+  'Featured In',
 ];
 
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];

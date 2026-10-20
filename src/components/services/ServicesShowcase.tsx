@@ -37,7 +37,7 @@ function Stepper({ service, play }: { service: ServiceDetail; play: boolean }) {
     <div>
       <p className={`eyebrow transition-opacity duration-500 ${phase >= 0 ? "opacity-100" : "opacity-0"}`}>How it works</p>
       <h2
-        className={`font-display mt-3 text-[clamp(32px,4vw,58px)] transition-all duration-700 ${
+        className={`font-display mt-3 text-[clamp(52px,6vw,96px)] text-ink transition-all duration-700 ${
           phase >= 0 ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
         }`}
       >
@@ -52,7 +52,7 @@ function Stepper({ service, play }: { service: ServiceDetail; play: boolean }) {
             <li key={step.name} className="grid grid-cols-[minmax(150px,auto)_1fr] gap-x-5 md:grid-cols-[180px_1fr]">
               <div className="flex flex-col items-center">
                 <span
-                  className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-[14px] transition-all duration-500 ${
+                  className={`flex w-full items-center justify-center gap-2 border px-4 py-2.5 font-mono text-[12px] font-medium uppercase tracking-[0.04em] transition-all duration-500 ${
                     active ? "border-ink bg-ink text-white" : "border-ink/70 bg-transparent text-ink"
                   } ${shown ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
                 >
@@ -99,7 +99,7 @@ function Arrow({ dir, onClick, big = false }: { dir: -1 | 1; onClick: () => void
     <button
       onClick={onClick}
       aria-label={dir > 0 ? "Next service" : "Previous service"}
-      className={`grid shrink-0 place-items-center rounded-full border border-ink text-ink transition-colors duration-300 hover:bg-ink hover:text-white ${
+      className={`grid shrink-0 place-items-center border border-ink text-ink transition-colors duration-300 hover:bg-ink hover:text-white ${
         big ? "h-16 w-16 text-2xl" : "h-12 w-12 text-lg"
       }`}
     >
@@ -170,7 +170,7 @@ export default function ServicesShowcase({ services, media }: { services: Servic
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-between gap-4 border-t border-line pt-5">
+        <div className="mt-8 flex items-center justify-between gap-4 border-t border-espresso/15 pt-5">
           <div className="flex flex-wrap gap-x-5 gap-y-2" role="tablist" aria-label="Choose a service">
             {services.map((s, i) => (
               <button
@@ -181,7 +181,7 @@ export default function ServicesShowcase({ services, media }: { services: Servic
                   setDir(i > index ? 1 : -1);
                   setIndex(i);
                 }}
-                className={`text-[12px] uppercase tracking-[0.14em] transition-colors ${i === index ? "text-ink underline underline-offset-[6px]" : "text-muted hover:text-ink"}`}
+                className={`font-mono text-[12px] font-medium uppercase tracking-[0.04em] transition-colors ${i === index ? "text-ink underline underline-offset-[6px]" : "text-muted hover:text-ink"}`}
               >
                 {s.title}
               </button>

@@ -25,13 +25,22 @@ export function StrikeList({ items }: { items: string[] }) {
     { scope: ref },
   );
   return (
-    <ul ref={ref} className="divide-y divide-line border-y border-line">
+    <ul ref={ref} className="divide-y divide-espresso/15 border-y border-espresso/15">
       {items.map((t, i) => (
-        <li key={t} className="flex items-baseline gap-6 py-6 md:py-8">
-          <span className="font-serif w-10 text-lg italic text-muted">0{i + 1}</span>
+        <li key={t} className="flex items-baseline gap-6 py-5 md:py-7">
+          <span className="w-10 font-mono text-[11px] font-medium text-muted">/0{i + 1}</span>
           <span className="relative">
-            <span className="txt font-display text-[clamp(24px,4vw,58px)]">{t}</span>
-            <span className="strike absolute left-0 right-0 top-[52%] h-[3px] origin-left bg-pin" style={{ transform: "scaleX(1)" }} />
+            <span className="txt font-display text-[clamp(40px,7vw,112px)]">{t}</span>
+            {/* a red marker line scratched through it */}
+            <svg
+              viewBox="0 0 200 24"
+              preserveAspectRatio="none"
+              aria-hidden
+              className="strike absolute -left-[3%] top-[38%] h-[0.32em] w-[106%] origin-left overflow-visible text-red"
+              style={{ transform: "scaleX(1)" }}
+            >
+              <path d="M2 15 C 50 8, 120 16, 198 9" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            </svg>
           </span>
         </li>
       ))}

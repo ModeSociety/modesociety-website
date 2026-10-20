@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Style guide: burgundy text, buttons and footer on an off-white page. */
-  /* white site; burgundy sections are opted into explicitly */
+  /* Editorial style: a white page, burgundy type and sections, a red marker accent. */
   --paper: #ffffff;
   --paper-2: #f4f1ef;
   --card: #ffffff;
@@ -14,6 +13,8 @@
   --line: #e2d3cb;
   --pin: #7f090d;
   --brass: #b08d57;
+  --red: #aa1f1f; /* marker scribbles and small highlights */
+  --espresso: #150c0c;
   --ok: #2f6b4f;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -29,9 +30,12 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-pin: var(--pin);
-  --font-display: var(--font-boldonse);
+  --color-red: var(--red);
+  --color-espresso: var(--espresso);
+  --font-display: var(--font-anton);
   --font-serif: var(--font-instrument);
   --font-sans: var(--font-inter-tight);
+  --font-mono: var(--font-plex-mono);
 }
 
 @layer base {
@@ -72,23 +76,36 @@ img {
 }
 
 @layer components {
-/* Boldonse caps are ~1.2em tall and descenders drop low, so wrapped lines need ~1.28 to breathe. */
+/* Headlines: tall condensed caps, set tight like a magazine cover. */
 .font-display {
-  font-family: var(--font-boldonse), serif;
+  font-family: var(--font-anton), "Arial Narrow", sans-serif;
   font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 0.92;
+}
+/* the italic serif accent inside a headline keeps its own case and a softer leading */
+.font-display .font-serif {
+  text-transform: none;
   letter-spacing: -0.01em;
-  line-height: 1.28;
+  line-height: 1;
 }
 
 .font-serif {
   font-family: var(--font-instrument), serif;
 }
 
+/* Small editorial metadata: "(01) The agency", "Est. 2022 · Melbourne". */
 .eyebrow {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 11px;
-  letter-spacing: 0.22em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
+}
+.font-mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 .wrap {
@@ -108,12 +125,14 @@ img {
   align-items: center;
   justify-content: center;
   gap: 0.6em;
-  padding: 1em 1.6em;
-  border-radius: 999px;
+  padding: 1.05em 1.5em;
+  border-radius: 0;
   background: var(--bg);
   color: var(--fg);
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   overflow: hidden;
   isolation: isolate;
@@ -121,7 +140,6 @@ img {
   cursor: pointer;
   transition: color 0.5s var(--ease-out);
   white-space: nowrap;
-  font-family: inherit;
 }
 .btn::before {
   content: "";
@@ -211,13 +229,11 @@ img {
   width: var(--w, 180px);
   /* padding from the card's own width — % would resolve against the containing block */
   padding: calc(var(--w, 180px) * 0.06) calc(var(--w, 180px) * 0.06) calc(var(--w, 180px) * 0.19);
-  background:
-    radial-gradient(120% 90% at 20% 0%, rgba(255, 255, 255, 0.9), transparent 60%),
-    linear-gradient(175deg, #fdfcf8, #f1ede4 70%, #e9e3d6);
+  background: #fff;
   box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.08),
-    0 10px 24px -8px rgba(40, 30, 10, 0.35),
-    0 30px 60px -30px rgba(40, 30, 10, 0.35);
+    0 0 0 1px rgba(21, 12, 12, 0.06),
+    0 10px 24px -8px rgba(21, 12, 12, 0.3),
+    0 30px 60px -30px rgba(21, 12, 12, 0.35);
   transform-origin: 50% 3%;
   will-change: transform;
   user-select: none;
@@ -248,7 +264,10 @@ img {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.18), transparent 40%, rgba(0, 0, 0, 0.08));
+  background: var(--grain), linear-gradient(160deg, rgba(255, 255, 255, 0.14), transparent 40%, rgba(0, 0, 0, 0.08));
+  background-size: 160px, auto;
+  mix-blend-mode: multiply;
+  opacity: 0.9;
   pointer-events: none;
 }
 .polaroid .caption {
@@ -303,6 +322,52 @@ img {
 
 
 /* ---------- intro ---------- */
+/* ---------- editorial graphics ---------- */
+:root {
+  /* film grain, tiled over photos */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grain);
+  background-size: 160px;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* red marker strokes that draw themselves on when they scroll into view */
+.mark-svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.mark-svg path + path {
+  transition-delay: 0.35s;
+}
+.mark-svg.drawn path {
+  stroke-dashoffset: 0;
+}
+
+/* a giant word melted out of focus behind a crisp one (press / featured headers) */
+.blur-type {
+  filter: blur(clamp(10px, 1.6vw, 24px));
+  opacity: 0.9;
+}
+
+/* hairline index rule used above sections */
+.rule {
+  border-top: 1px solid currentColor;
+  opacity: 0.25;
+}
+
 .intro-curtain {
   position: fixed;
   inset: 0;
@@ -340,8 +405,10 @@ img {
 }
 .field > label,
 .field > .label {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 11px;
-  letter-spacing: 0.18em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-2);
 }
@@ -375,7 +442,7 @@ textarea.input {
   gap: 8px;
   padding: 10px 16px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.35s var(--ease-out);
@@ -403,17 +470,17 @@ textarea.input {
 }
 
 /*
- * Slide-up text mask. Boldonse's ink overflows its line box (caps rise ~0.07em above it,
- * descenders fall ~0.3em below at tight leading), so the mask is padded on both sides
- * and pulled back with negative margins to keep the layout unchanged.
+ * Slide-up text mask. At tight leading the caps (and the serif accent's descenders)
+ * overflow the line box, so the mask is padded on both sides and pulled back with
+ * negative margins to keep the layout unchanged.
  */
 .reveal-line {
   display: block;
   overflow: hidden;
-  padding-top: 0.14em;
-  padding-bottom: 0.34em;
-  margin-top: -0.14em;
-  margin-bottom: -0.34em;
+  padding-top: 0.08em;
+  padding-bottom: 0.3em; /* room for serif descenders and marker underlines */
+  margin-top: -0.08em;
+  margin-bottom: -0.3em;
 }
 .reveal-line > span {
   display: inline-block;

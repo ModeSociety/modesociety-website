@@ -95,7 +95,8 @@ function loop(fn: (dt: number, t: number) => void) {
   let raf = 0;
   let last = performance.now();
   const tick = (now: number) => {
-    const dt = Math.min((now - last) / 1000, 1 / 30);
+    // allow long frames (Low Power Mode, older phones) so the motion keeps real-time speed
+    const dt = Math.min((now - last) / 1000, 1 / 15);
     last = now;
     fn(dt, now / 1000);
     raf = requestAnimationFrame(tick);

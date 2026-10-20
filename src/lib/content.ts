@@ -14,6 +14,8 @@ export const MENU = [
   { href: "/work-with-us", label: "For brands" },
   { href: "/apply-to-be-a-creator", label: "For talent" },
   { href: "/services", label: "Services" },
+  { href: "/our-work", label: "Our work" },
+  { href: "/featured-in", label: "Featured in" },
   { href: "/partner-with-us", label: "Partner with us" },
   // TODO: dedicated For Tech companies page; until then it opens the partnership form.
   { href: "/partner-with-us?for=tech", label: "For Tech companies" },
@@ -21,6 +23,9 @@ export const MENU = [
 ];
 
 export const QUOTE = "We put brands in front of the right creators and media. That's what turns attention into sales.";
+
+/** The opening line of AGENCY_INTRO, set large on the home page. */
+export const AGENCY_LEAD = "Think of us as your external PR team.";
 
 export const AGENCY_INTRO =
   "Think of us as your external PR team. We don't make content in house. We find the right creators, anywhere in the world, and run the collab from brief to payment. Every package is built around you, whether that's a full campaign, influencer seeding, a guest list or one very targeted push. We've worked on launches from fashion to food and beverage, here and overseas.";
@@ -205,6 +210,14 @@ export const INFOGRAPHIC = {
     ],
   },
 };
+
+/**
+ * Press for the "Featured in" page, newest first. TODO: add Mode Society's real features.
+ * Publication logos go in the admin slot "Featured in — press logos" (Drive folder "Featured In").
+ * Until there's at least one logo or article, the page shows the brands our creators have worked with.
+ */
+export type PressItem = { outlet: string; title: string; date?: string; href?: string };
+export const PRESS: PressItem[] = [];
 
 export const GET_IN_TOUCH = {
   heading: "Get in touch",

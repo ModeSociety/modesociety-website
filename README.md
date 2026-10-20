@@ -6,7 +6,7 @@ It's an animated, playable site with a simple admin panel. All content and form 
 ```
 Visitor ──► Next.js site (Vercel) ──► Google Apps Script web app ──► Google Drive folder
                     ▲                  (runs as the Drive owner)       ├─ Mode Society — Website Data (Sheet)
-Admin ─ Google sign-in ─┘                                              ├─ Home Page 1 / 2 / 3, About Us 1, Instagram, Services/…
+Admin ─ Google sign-in ─┘                                              ├─ Home Page 1 / 2 / 3, About Us 1, Instagram, Services, Our Work, Featured In/…
                                                                        ├─ Website Images/<slot>/…   (admin uploads)
                                                                        ├─ Talent Applications/<date — name>/…
                                                                        └─ _Incoming Uploads (auto-cleaned)
@@ -16,24 +16,28 @@ Admin ─ Google sign-in ─┘                                              ├
 
 ## Feature walkthrough
 
-Brand: a white `#FFFFFF` site with burgundy `#7F090D` type and buttons. Some sections are solid burgundy: "What we bring to the table", "What you can expect from us" and the footer, which rises out of a band of halftone dots.
+Style: editorial, like a fashion magazine. A white `#FFFFFF` page with burgundy `#7F090D` type; some sections are solid burgundy ("What we bring to the table", "What you can expect from us", the footer, which rises out of a band of halftone dots). Headlines are tall condensed capitals (**Anton**) with an italic serif accent (**Instrument Serif**), small labels and buttons are monospace (**IBM Plex Mono**), and body text is **Inter Tight**. Sections open with a numbered rule, e.g. *(01) The agency ——— Boutique · female-led · Melbourne*. A red `#AA1F1F` marker circles, underlines or strikes through a few key words, and photos carry a light film grain. The look comes from the client's Pinterest moodboard (*Mode Society → Website*).
 
 ### The public site
 
 | Where | What it does |
 | --- | --- |
-| **Header** | The logo on the left; text links (About us · For brands · For talent · Services · Partner with us · For Tech companies) and a **Contact us** button on the right. Smaller screens get a menu button that opens a full-screen burgundy menu. |
-| **Home: hero** | The interactive wall, defaulting to **Gravity**: plain polaroids tumble in from above and pile up, then visitors can grab and throw them. Pinboard, Scatter and Orbit can be chosen in the admin panel instead; in Pinboard, double-click a card to unpin it and carry it back up the board to pin it again. Visitors can't switch modes. |
+| **Header** | The logo on the left; text links (About us · For brands · For talent · Services · Our work · Featured in · Partner with us · For Tech companies) and a **Contact us** button on the right. Smaller screens get a menu button that opens a full-screen burgundy index of every page. |
+| **Home: hero** | A magazine-cover masthead: *MODE SOCIETY* set edge to edge (stacked on phones) with small cover lines along the top. In front of it is the interactive wall, defaulting to **Gravity**: polaroids tumble in from above and pile up, then visitors can grab and throw them. The drop waits until the intro curtain has lifted and the first photos have loaded, so it's always seen (on phones it used to finish behind the curtain). Pinboard, Scatter and Orbit can be chosen in the admin panel instead; in Pinboard, double-click a card to unpin it and carry it back up the board to pin it again. Visitors can't switch modes. |
 | **Home: the agency** | A 3D orbit of creator videos (from the Drive folder *Home Page 2*) beside the "external PR team" intro and a **Get to know us** button. |
-| **Home: services** | Four plain cards (Influencer campaigns, UGC content, Event guest lists, Funding) dealt out as you scroll. Hover a card to flip it and read more. Funding links to Grant Help. |
+| **Home: services** | Four white cards on burgundy (Influencer campaigns, UGC content, Event guest lists, Funding), each with its name at the top and a small number at the foot, dealt out as you scroll. Hover (or tap) a card to flip it and read more. Funding links to Grant Help. |
+| **Home: selected work** | Four pieces from the *Our work* gallery under "Selected work.", linking to the Our work page. |
 | **Brands** | "Brands", with "our creators have worked with" underneath, then a two-row slideshow of logos sliding in opposite directions. Add as many logos as you like in the admin panel (or the Drive folder *Home Page 3*). |
-| **Let's work together** | For brands / For talent rows. In the default **Type reveal** style the logo trails the mouse; Split, Tilt and Blinds are alternatives in the admin panel. |
+| **Featured in (home)** | Publication logos under "As seen in.". Hidden until there's at least one press logo or article. |
+| **Let's work together** | For brands / For talent as big type rows (the default **Type reveal** style); Split, Tilt and Blinds are alternatives in the admin panel. |
 | **Results infographic** | An animated sales line, bar comparisons and spend rings comparing returns with Mode Society against an in-house marketer, plus a table view. *The figures are illustrative until real ones are added in `src/lib/content.ts`.* |
 | **Footer** | Solid burgundy, with a band of halftone dots above it that grows out of the page into the footer. It has "We'll bring it to life.", an enquiry button (no public email), Instagram, TikTok and LinkedIn icons, **Mode Society Pty Ltd**, and the logo in white animating letter by letter (Magnetic / Swing / Static). |
 | **About us** (`/about`) | The quote; *Our story* and *What we are* drop-downs; the team photo (Drive folder *About Us 1*); "Creators your customers actually trust." with the services as drop-downs beside the video orbit; then the infographic and the swipe cards. |
 | **For brands** (`/work-with-us`) | "Let's work together." with the PR-team intro and an Instagram grid (Drive folder *Instagram*). Then the four services, the quote, *What you can expect from us* swipe cards, the infographic and the brand logos. The **Book a call** form sits at the bottom. |
 | **For talent** (`/apply-to-be-a-creator`) | "Thinking of signing?", the struck-through frustrations (now quicker), what to expect from signing to getting paid, what we do for you, flexible representation and the brand logos. The **Apply now** form sits at the bottom. |
 | **Services** (`/services`) | A rotating pinwheel of photos and videos stays on the left (admin slot *Services — pinwheel* / Drive folder *Services*). On the right, one service at a time plays its "How it works" animation: each step appears and takes the highlight, then the button. The arrow on the right (or a swipe, the arrow keys or the service names underneath) moves between Influencer campaigns, UGC content, Event guest lists and Funding. No prices. |
+| **Our work** (`/our-work`) | "Work/ archive": a contents-style index of the brands our creators have worked with (from the brand logos) beside a gallery of campaign photos and videos, each captioned *001 — …* from its file name. Admin slot *Our work — gallery* / Drive folder *Our Work*. Ends with "Want to be next?". |
+| **Featured in** (`/featured-in`) | "Featured in." over a blurred red *Press*, then the publication logos (admin slot *Featured in — press logos* / Drive folder *Featured In*) and the articles listed in `PRESS` in `src/lib/content.ts` (outlet, headline, date, link). **Nothing is listed yet:** until it is, the page says the press page is on its way and shows the brands our creators have worked with. |
 | **Contact us** (`/get-in-touch`) | Three cards: For talent, For brands and Partner with us. Picking one opens its form. `/contact` redirects here. |
 | **Partner with us** (`/partner-with-us`) | Just the partnership form under a bold *Partner with us* heading. "For Tech companies" opens the same page. |
 | **Forms** | **Talent**: what you do; each channel with its follower count and engagement screenshots; niche; what you want from an agency; whether you're signed elsewhere; 18+ consent. **Book a call**: brand, website/Instagram, services, project, budget, timeline. **Partnerships**: business, type, partnership type, idea. All three end with "Thanks! We'll be in touch." |
@@ -64,6 +68,8 @@ Sign in with Google. Only approved accounts get in.
 | **About Us 1** | The team photo. |
 | **Instagram** | Posts for the For brands hero grid. |
 | **Services** | Photos and videos for the pinwheel on the Services page. |
+| **Our Work** | Campaign photos and videos for the Our work page. The file name becomes the caption, e.g. `03-Teddi Lab — UGC.jpg` shows as *003 — Teddi Lab — UGC* (the `03-` only sets the order). |
+| **Featured In** | Logos of publications Mode Society has been featured in. |
 
 Files show in name order, so prefix them `01-`, `02-` and so on to control the order. Media in these folders is set to "anyone with the link can view" so the site can display it.
 
@@ -100,7 +106,7 @@ Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_
 
 ### 2. Deploy the backend (Google Apps Script)
 
-> **Updating an existing backend?** Paste the new `Code.gs`, run `setup` again (it adds any missing tabs, such as *Schedule* and *Visits*, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
+> **Updating an existing backend?** Paste the new `Code.gs`, run `setup` again (it adds any missing tabs and folders, such as *Schedule*, *Visits*, *Our Work* and *Featured In*, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
 
 Do this **signed in as the owner of that Drive**.
 
@@ -207,6 +213,8 @@ src/lib/backend.ts      Calls Apps Script; caches site content (refreshed instan
 src/lib/auth.ts         Google ID-token verification, allowlist, session cookie
 src/components/home/wall/engines.ts   The four hero modes
 src/components/services/              The Services page showcase (pinwheel + animated steps)
+src/components/work/, press/          Our work gallery/teaser and Featured in (press logos + articles)
+src/components/site/Editorial.tsx     Editorial pieces: section rules, red marker strokes, fit-to-width type
 src/components/admin/                 Admin panel (Schedule, Insights, Images, Animations, Access)
 src/components/site/Tracker.tsx       Anonymous page-view tracking (→ /api/track → Visits tab)
 src/app/(site)/…        Public pages

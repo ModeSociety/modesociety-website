@@ -73,7 +73,8 @@ function fromFolder(files: FolderFile[] = [], accept: SlotDef["accept"], alt: st
     })
     .map((f) => ({
       src: f.src || mediaUrl(f.id),
-      alt: f.name.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ") || alt,
+      // "03-Teddi Lab — UGC.jpg" → "Teddi Lab — UGC": the order prefix is only for sorting
+      alt: f.name.replace(/\.[a-z0-9]+$/i, "").replace(/^\d{1,3}(?:\s*[-_.)]\s*|\s+)/, "").replace(/[-_]+/g, " ").trim() || alt,
       fileId: f.id,
       type: f.mimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
       source: "folder" as const,

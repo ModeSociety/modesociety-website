@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import GetInTouch, { type FormKey } from "@/components/forms/GetInTouch";
+import { Mark, SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import SocialLinks from "@/components/site/SocialLinks";
 import { GET_IN_TOUCH } from "@/lib/content";
@@ -14,17 +15,29 @@ export default async function GetInTouchPage({ searchParams }: { searchParams: P
   const tech = q.for === "tech";
   return (
     <>
-      <section className="wrap pb-10 pt-32 md:pt-44">
-        <RiseLines as="h1" immediate delay={0.15} className="font-display text-[clamp(44px,8vw,128px)]" lines={[GET_IN_TOUCH.heading]} />
+      <section className="wrap pb-10 pt-28 md:pt-36">
+        <SectionHead index="Contact" label="Brands · talent · partners" meta="Melbourne → worldwide" />
+        <RiseLines
+          as="h1"
+          immediate
+          delay={0.15}
+          className="font-display mt-6 text-[clamp(84px,15vw,250px)] leading-[0.84] text-ink"
+          lines={[
+            "Get in",
+            <Mark key="t" kind="circle" delay={1.2}>
+              <span className="font-serif italic">touch.</span>
+            </Mark>,
+          ]}
+        />
         <FadeUp delay={0.3}>
-          <p className="font-serif mt-4 max-w-3xl text-[clamp(22px,2.6vw,38px)] italic leading-snug">{GET_IN_TOUCH.line}</p>
+          <p className="font-serif mt-8 max-w-3xl text-[clamp(22px,2.6vw,38px)] italic leading-snug">{GET_IN_TOUCH.line}</p>
         </FadeUp>
       </section>
 
       <GetInTouch initial={form} partnerTypeHint={tech ? "Tech company" : ""} />
 
       <section className="wrap pb-24 pt-10 md:pb-32">
-        <div className="flex flex-col items-start gap-5 border-t border-line pt-10 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col items-start gap-5 border-t border-espresso/15 pt-10 md:flex-row md:items-center md:justify-between">
           <p className="font-serif text-[clamp(22px,2.4vw,34px)] italic">{GET_IN_TOUCH.socials}</p>
           <SocialLinks className="text-ink" />
         </div>

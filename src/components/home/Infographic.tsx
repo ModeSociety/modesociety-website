@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SectionHead } from "@/components/site/Editorial";
 import { INFOGRAPHIC } from "@/lib/content";
 
 /* Two series, validated against the white panel: Mode Society vs an in-house marketer. */
@@ -116,7 +117,7 @@ function SalesLine({ on }: { on: boolean }) {
       </svg>
       {hover !== null && (
         <div
-          className="pointer-events-none absolute top-2 rounded-md border border-line bg-white px-3 py-2 text-xs shadow-md"
+          className="pointer-events-none absolute top-2 border border-espresso/15 bg-white px-3 py-2 text-xs shadow-md"
           style={{ left: `${(x(hover) / W) * 100}%`, transform: `translateX(${hover > months.length / 2 ? "-110%" : "10%"})` }}
         >
           <div className="mb-1 font-semibold text-ink">{months[hover]}</div>
@@ -215,17 +216,17 @@ function SpendRing({ series, on }: { series: (typeof SERIES)[number]; on: boolea
 }
 
 /** "How sourcing the right people boosts sales and ROI vs. an in-house marketer." */
-export default function Infographic() {
+export default function Infographic({ index }: { index?: string }) {
   const [ref, on] = useInView<HTMLElement>();
   const { salesLift, roi } = INFOGRAPHIC;
   return (
     <section ref={ref} className="py-20 md:py-28">
       <div className="wrap">
+        <SectionHead index={index} label="The numbers" meta="Mode Society vs an in-house marketer" className="mb-8" />
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="eyebrow">The numbers</p>
-            <h2 className="font-display mt-3 text-[clamp(30px,4.4vw,64px)]">
-              The right creators, <span className="font-serif italic tracking-normal">better returns.</span>
+            <h2 className="font-display text-[clamp(52px,7.4vw,120px)] text-ink">
+              The right creators, <span className="font-serif italic">better returns.</span>
             </h2>
             <p className="mt-3 max-w-xl text-ink-2">
               Sourcing the right people for each campaign beats carrying an in-house marketer: more reach, faster launches and more
@@ -236,16 +237,16 @@ export default function Infographic() {
         </div>
 
         <div className="mt-10 grid gap-5 lg:grid-cols-12">
-          <div className="rounded-[6px] border border-line bg-white p-6 lg:col-span-7">
+          <div className="border border-espresso/15 bg-white p-6 lg:col-span-7">
             <h3 className="font-medium text-ink">Sales index over a six-month campaign</h3>
             <p className="mb-4 text-sm text-muted">Indexed to 100 at launch · hover to compare</p>
             <SalesLine on={on} />
           </div>
-          <div className="rounded-[6px] border border-line bg-white p-6 lg:col-span-5">
+          <div className="border border-espresso/15 bg-white p-6 lg:col-span-5">
             <h3 className="mb-5 font-medium text-ink">Mode Society vs in-house</h3>
             <MetricBars on={on} />
           </div>
-          <div className="grid grid-cols-2 gap-6 rounded-[6px] border border-line bg-white p-6 lg:col-span-12 lg:grid-cols-[1fr_auto_auto] lg:items-center">
+          <div className="grid grid-cols-2 gap-6 border border-espresso/15 bg-white p-6 lg:col-span-12 lg:grid-cols-[1fr_auto_auto] lg:items-center">
             <div className="col-span-2 lg:col-span-1">
               <h3 className="font-medium text-ink">Where the money goes</h3>
               <p className="mt-2 max-w-md text-sm text-ink-2">

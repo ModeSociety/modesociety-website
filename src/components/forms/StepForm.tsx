@@ -60,7 +60,7 @@ export default function StepForm({
       noValidate
     >
       <div className="mb-10">
-        <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-muted">
+        <div className="flex items-center justify-between font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">
           <span>
             Level {i + 1} <span className="opacity-50">/ {steps.length}</span>
           </span>
@@ -73,7 +73,7 @@ export default function StepForm({
 
       <div ref={panel} key={i}>
         <p className="step-anim eyebrow">{step.kicker}</p>
-        <h2 className="step-anim font-display mt-3 text-[clamp(24px,3vw,40px)]">{step.title}</h2>
+        <h2 className="step-anim font-display mt-3 text-[clamp(40px,4.4vw,68px)] text-ink">{step.title}</h2>
         <div className="step-anim mt-8 grid gap-8">{step.content}</div>
       </div>
 
@@ -92,7 +92,7 @@ export default function StepForm({
         <button
           type="button"
           onClick={() => setI(Math.max(0, i - 1))}
-          className={`text-[11px] uppercase tracking-[0.18em] text-muted underline-offset-4 hover:underline ${i === 0 ? "invisible" : ""}`}
+          className={`font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted underline-offset-4 hover:underline ${i === 0 ? "invisible" : ""}`}
         >
           ← Back
         </button>

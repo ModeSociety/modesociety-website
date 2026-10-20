@@ -1,3 +1,4 @@
+import { SectionHead } from "@/components/site/Editorial";
 import Marquee from "@/components/site/Marquee";
 import type { SiteImage } from "@/lib/slots";
 
@@ -30,7 +31,7 @@ function Row({ logos, reverse }: { logos: SiteImage[]; reverse?: boolean }) {
 }
 
 /** "Brands our creators have worked with": a two-row slideshow, the rows sliding in opposite directions. */
-export default function Clients({ logos }: { logos: SiteImage[] }) {
+export default function Clients({ logos, index }: { logos: SiteImage[]; index?: string }) {
   if (!logos.length) return null;
   const top = logos.filter((_, i) => i % 2 === 0);
   const bottom = logos.length > 1 ? logos.filter((_, i) => i % 2 === 1) : logos;
@@ -38,11 +39,15 @@ export default function Clients({ logos }: { logos: SiteImage[] }) {
   return (
     <section className="overflow-hidden py-20 md:py-28" aria-label="Brands our creators have worked with">
       <div className="wrap">
-        <h2 className="font-display text-[clamp(52px,10vw,150px)] leading-none">Brands</h2>
-        <p className="font-serif mt-2 text-[clamp(20px,2.4vw,34px)] italic">our creators have worked with</p>
+        <SectionHead index={index} label="Clients" meta={`${logos.length} brands & counting`} />
+        <div className="mt-8 flex flex-wrap items-end gap-x-6 gap-y-2">
+          <h2 className="font-display text-[clamp(80px,15vw,250px)] leading-[0.82] text-ink">Brands</h2>
+          <p className="font-serif pb-[0.4em] text-[clamp(22px,2.6vw,40px)] italic leading-none text-ink">our creators have worked with</p>
+        </div>
       </div>
-      <div className="mt-10 md:mt-14">
+      <div className="mt-10 border-y border-espresso/10 md:mt-14">
         <Row logos={fill(top)} />
+        <div className="border-t border-espresso/10" />
         <Row logos={fill(bottom)} reverse />
       </div>
     </section>

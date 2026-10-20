@@ -79,12 +79,14 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
     const isMobile = width < 768;
     const rows = isMobile ? Math.ceil(n / 3) : n > 12 ? 3 : 2;
     const cols = Math.ceil(n / rows);
-    const top = isMobile ? 70 : 96;
-    const bottom = height - (isMobile ? 262 : 178);
+    // phones: masthead, then copy, then the photos land in the space left at the bottom
+    const copyEl = root.parentElement?.querySelector<HTMLElement>("[data-hero-copy]");
+    const top = isMobile ? (copyEl ? copyEl.offsetTop + copyEl.offsetHeight + 12 : 70) : 96;
+    const bottom = isMobile ? height - 12 : height - 178;
     const ratio = 1.26; // polaroid height / width incl. border (no caption strip)
     const cardW = Math.max(
       86,
-      Math.min(isMobile ? 150 : 240, ((width * 0.92) / cols) * (isMobile ? 0.9 : 0.8), ((bottom - top) / rows / ratio) * 1.05),
+      Math.min(isMobile ? 128 : 240, ((width * 0.92) / cols) * (isMobile ? 0.9 : 0.8), ((bottom - top) / rows / ratio) * 1.05),
     );
     els.forEach((el) => el.style.setProperty("--w", `${cardW}px`));
     const ctx: EngineCtx = {
@@ -167,7 +169,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
 
       {/* giant masthead behind the wall: one line on desktop, stacked on phones */}
       <div className="pointer-events-none absolute inset-0 flex flex-col">
-        <div className="wrap flex flex-1 items-center justify-center pb-[18svh] md:pb-[6svh]">
+        <div className="wrap pt-[110px] md:pt-[148px]">
           <h1 className="font-display w-full select-none text-ink">
             <span className="sr-only">Mode Society</span>
             {(mobile ? ["MODE", "SOCIETY"] : ["MODE SOCIETY"]).map((line) => (
@@ -183,6 +185,46 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
             ))}
           </h1>
         </div>
+
+        {/* copy and CTAs: straight under the masthead on phones, a band along the bottom on desktop */}
+        <div
+          data-hero-copy
+          className="pointer-events-none relative z-20 mt-5 md:absolute md:inset-x-0 md:bottom-0 md:mt-0 md:bg-gradient-to-t md:from-paper md:via-paper/85 md:to-transparent md:pt-12"
+        >
+          <div className="wrap flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:pb-8">
+            <div className="pointer-events-auto max-w-lg">
+              <p className="hero-fade font-serif text-[23px] leading-[1.12] text-ink md:text-[30px]">
+                <em>Models, influencers, UGC creators &amp; streamers,</em> cast for{" "}
+                <Mark kind="circle" delay={1.2} className="mx-[0.14em]">
+                  fit
+                </Mark>
+                , not follower count.
+              </p>
+              <div className="hero-fade mt-5 flex flex-wrap gap-2">
+                <Link href="/work-with-us" className="btn">
+                  For brands <span className="arrow">→</span>
+                </Link>
+                <Link href="/apply-to-be-a-creator" className="btn ghost bg-paper/70 backdrop-blur">
+                  For talent <span className="arrow">→</span>
+                </Link>
+              </div>
+            </div>
+            <ol className="hero-fade hidden font-mono text-[11px] font-medium uppercase leading-[1.9] tracking-[0.04em] text-muted md:block md:text-right">
+              <li>
+                Influencer campaigns <span className="text-ink">/01</span>
+              </li>
+              <li>
+                UGC content <span className="text-ink">/02</span>
+              </li>
+              <li>
+                Event guest lists <span className="text-ink">/03</span>
+              </li>
+              <li>
+                Funding <span className="text-ink">/04</span>
+              </li>
+            </ol>
+          </div>
+        </div>
       </div>
 
       <div ref={wall} data-wall className="absolute inset-0 z-10" style={{ transformStyle: "preserve-3d" }}>
@@ -197,42 +239,6 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
         ))}
       </div>
 
-      {/* bottom band: copy and CTAs */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-paper via-paper/85 to-transparent pt-12">
-        <div className="wrap flex flex-col gap-5 pb-6 md:flex-row md:items-end md:justify-between md:pb-8">
-          <div className="pointer-events-auto max-w-lg">
-            <p className="hero-fade font-serif text-[23px] leading-[1.12] text-ink md:text-[30px]">
-              <em>Models, influencers, UGC creators &amp; streamers,</em> cast for{" "}
-              <Mark kind="circle" delay={1.2} className="mx-[0.14em]">
-                fit
-              </Mark>
-              , not follower count.
-            </p>
-            <div className="hero-fade mt-5 flex flex-wrap gap-2">
-              <Link href="/work-with-us" className="btn">
-                For brands <span className="arrow">→</span>
-              </Link>
-              <Link href="/apply-to-be-a-creator" className="btn ghost bg-paper/70 backdrop-blur">
-                For talent <span className="arrow">→</span>
-              </Link>
-            </div>
-          </div>
-          <ol className="hero-fade hidden font-mono text-[11px] font-medium uppercase leading-[1.9] tracking-[0.04em] text-muted md:block md:text-right">
-            <li>
-              Influencer campaigns <span className="text-ink">/01</span>
-            </li>
-            <li>
-              UGC content <span className="text-ink">/02</span>
-            </li>
-            <li>
-              Event guest lists <span className="text-ink">/03</span>
-            </li>
-            <li>
-              Funding <span className="text-ink">/04</span>
-            </li>
-          </ol>
-        </div>
-      </div>
     </section>
   );
 }

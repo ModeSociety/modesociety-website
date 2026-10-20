@@ -463,8 +463,9 @@ const orbit: Engine = (ctx) => {
 // ---------------------------------------------------------------------------
 const gravity: Engine = (ctx) => {
   const { root, cards, width, cardW, cardH } = ctx;
-  // the floor sits just above the copy band so the pile never hides the CTAs
-  const height = ctx.bottom + cardH * 0.15;
+  // desktop: the floor sits just above the copy band so the pile never hides the CTAs;
+  // phones: the copy is up under the masthead, so the pile lands on the bottom edge
+  const height = ctx.mobile ? ctx.bottom : ctx.bottom + cardH * 0.15;
   const w = cardW * 0.9;
   const h = cardH * 0.9;
   const { Engine: MEngine, Bodies, Composite, Body, Constraint } = Matter;

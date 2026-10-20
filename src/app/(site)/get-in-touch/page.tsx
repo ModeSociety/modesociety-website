@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import GetInTouch, { type FormKey } from "@/components/forms/GetInTouch";
-import { Mark, SectionHead } from "@/components/site/Editorial";
+import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import SocialLinks from "@/components/site/SocialLinks";
 import { GET_IN_TOUCH } from "@/lib/content";
@@ -21,13 +21,8 @@ export default async function GetInTouchPage({ searchParams }: { searchParams: P
           as="h1"
           immediate
           delay={0.15}
-          className="font-display mt-6 text-[clamp(84px,15vw,250px)] leading-[0.84] text-ink"
-          lines={[
-            "Get in",
-            <Mark key="t" kind="circle" delay={1.2}>
-              <span className="font-serif italic">touch.</span>
-            </Mark>,
-          ]}
+          className="font-display mt-6 text-[clamp(62px,15vw,250px)] leading-[0.84] text-ink"
+          lines={[<span key="l">Get in <span className="font-serif italic">touch.</span></span>]}
         />
         <FadeUp delay={0.3}>
           <p className="font-serif mt-8 max-w-3xl text-[clamp(22px,2.6vw,38px)] italic leading-snug">{GET_IN_TOUCH.line}</p>

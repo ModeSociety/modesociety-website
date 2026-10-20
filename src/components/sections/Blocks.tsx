@@ -32,17 +32,14 @@ export function Accordion({
               aria-expanded={isOpen}
               onClick={() => setOpen(isOpen ? -1 : i)}
             >
-              <span className="flex items-baseline gap-4">
-                <span className="font-mono text-[11px] font-medium text-muted">{String(i + 1).padStart(2, "0")}</span>
-                <span className="font-display text-[clamp(28px,3.2vw,48px)]">{it.title}</span>
-              </span>
+              <span className="font-display text-[clamp(28px,3.2vw,48px)]">{it.title}</span>
               <span
-                className={`grid h-9 w-9 shrink-0 place-items-center border transition-transform duration-500 ${
+                className={`grid h-9 w-9 shrink-0 place-items-center border font-mono text-[18px] leading-none transition-colors duration-300 ${
                   tone === "dark" ? "border-white/50" : "border-ink"
-                } ${isOpen ? "rotate-45" : ""}`}
+                } ${isOpen ? (tone === "dark" ? "bg-white text-ink" : "bg-ink text-white") : ""}`}
                 aria-hidden
               >
-                +
+                {isOpen ? "−" : "+"}
               </span>
             </button>
             <div className="grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.16,1,.3,1)]" style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}>

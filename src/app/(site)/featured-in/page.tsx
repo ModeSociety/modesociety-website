@@ -30,8 +30,8 @@ export default async function FeaturedIn() {
             as="h1"
             immediate
             delay={0.1}
-            className="font-display relative text-[clamp(84px,15vw,260px)] leading-[0.84] text-ink"
-            lines={["Featured", <span key="in" className="font-serif italic">in.</span>]}
+            className="font-display relative text-[clamp(62px,15vw,260px)] leading-[0.84] text-ink"
+            lines={[<span key="l">Featured <span className="font-serif italic">in.</span></span>]}
           />
         </div>
       </section>

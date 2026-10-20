@@ -470,17 +470,15 @@ textarea.input {
 }
 
 /*
- * Slide-up text mask. At tight leading the caps (and the serif accent's descenders)
- * overflow the line box, so the mask is padded on both sides and pulled back with
- * negative margins to keep the layout unchanged.
+ * Slide-up text mask. At tight leading the caps (and the serif accent's descenders and
+ * italic overhangs) spill outside the line box, so the mask is padded on every side and
+ * pulled back with negative margins to keep the layout unchanged.
  */
 .reveal-line {
   display: block;
   overflow: hidden;
-  padding-top: 0.08em;
-  padding-bottom: 0.3em; /* room for serif descenders and marker underlines */
-  margin-top: -0.08em;
-  margin-bottom: -0.3em;
+  padding: 0.08em 0.16em 0.3em; /* bottom: descenders and marker underlines */
+  margin: -0.08em -0.16em -0.3em;
 }
 .reveal-line > span {
   display: inline-block;

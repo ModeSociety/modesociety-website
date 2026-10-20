@@ -7,7 +7,7 @@ import Infographic from "@/components/home/Infographic";
 import VideoOrbit from "@/components/home/VideoOrbit";
 import { FeaturedStrip } from "@/components/press/Press";
 import WorkTeaser from "@/components/work/WorkTeaser";
-import { Mark, SectionHead } from "@/components/site/Editorial";
+import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp } from "@/components/site/Reveal";
 import { AGENCY_INTRO, AGENCY_LEAD, PRESS, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
@@ -30,9 +30,7 @@ export default async function Home() {
           <FadeUp className="md:col-span-7">
             <h2 className="font-display text-[clamp(52px,7.6vw,124px)] text-ink">
               Think of us as your{" "}
-              <Mark kind="underline" delay={0.3}>
-                <span className="font-serif italic">external</span>
-              </Mark>{" "}
+              <span className="font-serif italic">external</span>{" "}
               PR team.
             </h2>
             <p className="mt-8 max-w-xl text-[clamp(17px,1.4vw,20px)] leading-[1.6] text-ink-2">

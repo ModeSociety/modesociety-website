@@ -10,16 +10,12 @@ export function StrikeList({ items }: { items: string[] }) {
     () => {
       if (prefersReducedMotion()) return;
       ref.current!.querySelectorAll("li").forEach((li) => {
-        gsap.fromTo(li.querySelector(".strike"), { scaleX: 0 }, {
-          scaleX: 1,
-          ease: "none",
-          scrollTrigger: { trigger: li, start: "top 92%", end: "top 74%", scrub: 0.3 },
-        });
-        gsap.fromTo(li.querySelector(".txt"), { opacity: 1 }, {
-          opacity: 0.3,
-          ease: "none",
-          scrollTrigger: { trigger: li, start: "top 84%", end: "top 74%", scrub: 0.3 },
-        });
+        // plays once as the row comes into view, so it's never caught half-drawn
+        const txt = li.querySelector(".txt");
+        gsap
+          .timeline({ scrollTrigger: { trigger: li, start: "top 82%", once: true } })
+          .fromTo(txt, { backgroundSize: "0% 0.08em" }, { backgroundSize: "100% 0.08em", duration: 0.7, ease: "power2.inOut" })
+          .fromTo(txt, { color: "rgba(127,9,13,1)" }, { color: "rgba(127,9,13,0.3)", duration: 0.5, ease: "none" }, "-=0.3");
       });
     },
     { scope: ref },
@@ -29,18 +25,14 @@ export function StrikeList({ items }: { items: string[] }) {
       {items.map((t, i) => (
         <li key={t} className="flex items-baseline gap-6 py-5 md:py-7">
           <span className="w-10 font-mono text-[11px] font-medium text-muted">/0{i + 1}</span>
-          <span className="relative">
-            <span className="txt font-display text-[clamp(40px,7vw,112px)]">{t}</span>
-            {/* a red marker line scratched through it */}
-            <svg
-              viewBox="0 0 200 24"
-              preserveAspectRatio="none"
-              aria-hidden
-              className="strike absolute -left-[3%] top-[38%] h-[0.32em] w-[106%] origin-left overflow-visible text-red"
-              style={{ transform: "scaleX(1)" }}
+          {/* struck through with a red rule per line; box-decoration-break repeats it on every wrapped line */}
+          <span className="font-display text-[clamp(40px,7vw,112px)] leading-[1.02]">
+            <span
+              className="txt bg-no-repeat text-ink/30 [-webkit-box-decoration-break:clone] [box-decoration-break:clone]"
+              style={{ backgroundImage: "linear-gradient(var(--red), var(--red))", backgroundPosition: "0 52%", backgroundSize: "100% 0.08em" }}
             >
-              <path d="M2 15 C 50 8, 120 16, 198 9" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-            </svg>
+              {t}
+            </span>
           </span>
         </li>
       ))}

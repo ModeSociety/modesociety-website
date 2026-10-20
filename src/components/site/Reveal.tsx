@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
-/** Words fade from faint to ink as the paragraph scrolls through the viewport. */
+/** Words ink in one after another when the paragraph scrolls into view (once). */
 export function ScrubText({ text, className = "" }: { text: string; className?: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
   useGSAP(
@@ -11,12 +11,13 @@ export function ScrubText({ text, className = "" }: { text: string; className?: 
       if (prefersReducedMotion()) return;
       gsap.fromTo(
         ref.current!.querySelectorAll(".w"),
-        { opacity: 0.12 },
+        { opacity: 0.15 },
         {
           opacity: 1,
-          stagger: 0.05,
-          ease: "none",
-          scrollTrigger: { trigger: ref.current, start: "top 80%", end: "bottom 45%", scrub: true },
+          duration: 0.6,
+          stagger: 0.025,
+          ease: "power1.out",
+          scrollTrigger: { trigger: ref.current, start: "top 80%", once: true },
         },
       );
     },

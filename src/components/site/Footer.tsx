@@ -19,7 +19,7 @@ export default function Footer({ style }: { style: FooterStyle }) {
         </div>
         <div className="wrap grid gap-14 pb-10 pt-10 md:grid-cols-12 md:pt-14">
           <div className="md:col-span-7">
-            <h2 className="font-display text-[clamp(64px,9.6vw,160px)]">
+            <h2 className="font-display text-[clamp(60px,7.4vw,136px)]">
               Tell us your vision.
               <br />
               <span className="font-serif text-[0.62em] italic">We&apos;ll bring it to life.</span>

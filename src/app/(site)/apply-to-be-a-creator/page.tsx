@@ -4,7 +4,7 @@ import { StrikeList } from "@/components/about/AboutFx";
 import TalentForm from "@/components/forms/TalentForm";
 import Clients from "@/components/home/Clients";
 import { Steps } from "@/components/sections/Blocks";
-import { Mark, SectionHead } from "@/components/site/Editorial";
+import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines, ScrubText } from "@/components/site/Reveal";
 import { TALENT } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
@@ -21,12 +21,10 @@ export default async function ForTalent() {
           as="h1"
           immediate
           delay={0.15}
-          className="font-display mt-6 text-[clamp(84px,14vw,240px)] leading-[0.84] text-ink"
+          className="font-display mt-6 text-[clamp(62px,14vw,240px)] leading-[0.84] text-ink"
           lines={[
             "Thinking of",
-            <Mark key="t" kind="circle" delay={1.3}>
-              <span className="font-serif italic">signing?</span>
-            </Mark>,
+            <span key="t" className="font-serif italic">signing?</span>,
           ]}
         />
         <FadeUp delay={0.35} className="mt-8 grid gap-8 md:grid-cols-12">

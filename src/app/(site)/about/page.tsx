@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Infographic from "@/components/home/Infographic";
 import VideoOrbit from "@/components/home/VideoOrbit";
 import { Accordion, ExpectCards, Quote } from "@/components/sections/Blocks";
-import { Mark, SectionHead } from "@/components/site/Editorial";
+import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import { ABOUT, AGENCY_INTRO, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
@@ -21,8 +21,8 @@ export default async function About() {
           as="h1"
           immediate
           delay={0.1}
-          className="font-display mt-6 text-[clamp(84px,15vw,250px)] leading-[0.84] text-ink"
-          lines={["About", <span key="us" className="font-serif italic">us.</span>]}
+          className="font-display mt-6 text-[clamp(62px,15vw,250px)] leading-[0.84] text-ink"
+          lines={[<span key="l">About <span className="font-serif italic">us.</span></span>]}
         />
       </section>
 
@@ -86,9 +86,7 @@ export default async function About() {
         <div className="md:col-span-6">
           <h2 className="font-display text-[clamp(52px,6.6vw,108px)] text-ink">
             Creators your customers{" "}
-            <Mark kind="underline" delay={0.3}>
-              <span className="font-serif italic">actually trust.</span>
-            </Mark>
+            <span className="font-serif italic">actually trust.</span>
           </h2>
           <div className="mt-10">
             <Accordion items={SERVICE_COPY.map((s) => ({ title: s.title, body: <ServiceBody text={s.body} link={s.link} /> }))} />

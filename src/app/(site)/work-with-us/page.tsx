@@ -5,7 +5,7 @@ import Clients from "@/components/home/Clients";
 import Infographic from "@/components/home/Infographic";
 import Services from "@/components/home/Services";
 import { ExpectCards, InstagramGrid, Quote } from "@/components/sections/Blocks";
-import { Mark, SectionHead } from "@/components/site/Editorial";
+import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import { AGENCY_INTRO, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
@@ -25,12 +25,10 @@ export default async function ForBrands() {
             as="h1"
             immediate
             delay={0.15}
-            className="font-display text-[clamp(84px,12.5vw,210px)] leading-[0.84] text-ink"
+            className="font-display text-[clamp(62px,12.5vw,210px)] leading-[0.84] text-ink"
             lines={[
               "Let's work",
-              <Mark key="t" kind="underline" delay={1.2}>
-                <span className="font-serif italic">together.</span>
-              </Mark>,
+              <span key="t" className="font-serif italic">together.</span>,
             ]}
           />
           <FadeUp delay={0.35} className="mt-8 max-w-xl">

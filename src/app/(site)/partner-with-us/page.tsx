@@ -14,8 +14,8 @@ export default async function PartnerWithUs({ searchParams }: { searchParams: Pr
         as="h1"
         immediate
         delay={0.15}
-        className="font-display mt-6 text-[clamp(84px,14vw,240px)] leading-[0.84] text-ink"
-        lines={["Partner", <span key="w" className="font-serif italic">with us.</span>]}
+        className="font-display mt-6 text-[clamp(62px,14vw,240px)] leading-[0.84] text-ink"
+        lines={[<span key="l">Partner <span className="font-serif italic">with us.</span></span>]}
       />
       <div className="mt-12 max-w-4xl md:mt-16">
         <PartnerForm typeHint={q.for === "tech" ? "Tech company" : ""} />

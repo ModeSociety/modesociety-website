@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 
+/** "circle" suits a short word in running text; use "underline" on big headlines. */
 type MarkKind = "circle" | "underline" | "cross" | "strike" | "arrow";
 
 /** Hand-drawn marker strokes (viewBox units); several strokes draw one after another. */
@@ -32,7 +33,7 @@ const STROKES: Record<MarkKind, { box: string; paths: string[] }> = {
 /** Where each stroke sits relative to the words it marks. */
 const PLACE: Record<MarkKind, string> = {
   // an <svg> is a replaced element, so it needs explicit sizes rather than left+right insets
-  circle: "-left-[0.2em] -top-[0.12em] h-[calc(100%+0.24em)] w-[calc(100%+0.4em)]",
+  circle: "left-[-0.3em] top-[-0.2em] h-[calc(100%+0.4em)] w-[calc(100%+0.6em)]",
   underline: "left-0 -bottom-[0.24em] h-[0.34em] w-full",
   cross: "left-0 top-0 h-full w-full",
   strike: "-left-[4%] top-[40%] h-[0.3em] w-[108%]",
@@ -122,15 +123,16 @@ export function SectionHead({
   const dark = tone === "dark";
   return (
     <div
-      className={`flex items-baseline justify-between gap-6 border-t pt-3 font-mono text-[11px] font-medium uppercase tracking-[0.04em] ${
+      className={`flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t pt-3 font-mono text-[11px] font-medium uppercase tracking-[0.04em] ${
         dark ? "border-white/30 text-white/75" : "border-espresso/15 text-muted"
       } ${className}`}
     >
-      <span className="flex shrink-0 gap-3 whitespace-nowrap md:gap-4">
-        {index && <span className={dark ? "text-white" : "text-ink"}>({index})</span>}
+      {/* on narrow screens the note drops onto its own line rather than squeezing the label */}
+      <span className="flex min-w-0 gap-3 md:gap-4">
+        {index && <span className={`shrink-0 whitespace-nowrap ${dark ? "text-white" : "text-ink"}`}>({index})</span>}
         <span>{label}</span>
       </span>
-      {meta && <span className="min-w-0 text-right">{meta}</span>}
+      {meta && <span className="min-w-0">{meta}</span>}
     </div>
   );
 }

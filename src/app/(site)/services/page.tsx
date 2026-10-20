@@ -17,8 +17,8 @@ export default async function ServicesPage() {
           as="h1"
           immediate
           delay={0.15}
-          className="font-display mt-6 text-[clamp(84px,13vw,220px)] leading-[0.84] text-ink"
-          lines={["Four ways", <span key="t" className="font-serif text-[0.62em] italic">we work with brands.</span>]}
+          className="font-display mt-6 text-[clamp(62px,13vw,220px)] leading-[0.84] text-ink"
+          lines={["Four ways", <span key="t" className="font-serif block text-[0.62em] italic leading-[1.02]">we work with brands.</span>]}
         />
       </section>
       <ServicesShowcase services={SERVICES_PAGE} media={images["services.orbit"]} />

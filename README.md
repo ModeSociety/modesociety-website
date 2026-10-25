@@ -99,10 +99,9 @@ You'll need **four values**. The steps below say where to get each one.
 
 Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_SITE_URL`. See `.env.example`.
 
-### 1. Make the website folder in Google Drive
+### 1. The website folder in Google Drive (optional)
 
-1. In the Google Drive you want to use, create a folder, e.g. **Mode Society Website**.
-2. Open it and copy the **folder ID** from the URL: `https://drive.google.com/drive/folders/`**`1AbCdEf…`**
+`setup` (step 2) creates a **Mode Society Website** folder in the account's My Drive by itself. Only if you want to use an existing folder instead: open it and copy the **folder ID** from the URL (`https://drive.google.com/drive/folders/`**`1AbCdEf…`**) for `ROOT_FOLDER_ID` below.
 
 ### 2. Deploy the backend (Google Apps Script)
 
@@ -114,10 +113,10 @@ Do this **signed in as the owner of that Drive**.
 2. Replace the contents of `Code.gs` with [`google-apps-script/Code.gs`](google-apps-script/Code.gs).
 3. Open **Project Settings** (⚙) → tick **Show "appsscript.json" manifest file**. Then replace that file's contents with [`google-apps-script/appsscript.json`](google-apps-script/appsscript.json).
 4. Still in **Project Settings → Script properties**, add:
-   - `ROOT_FOLDER_ID`: the folder ID from step 1
    - `SHARED_SECRET`: a long random string. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. This same value becomes `APPS_SCRIPT_SECRET`.
-   - `OWNER_EMAIL`: `rubayathdrjb@gmail.com`
-5. Back in the editor, select the **`setup`** function and click **Run**. Approve the permissions prompt. On a personal Gmail you'll see "Google hasn't verified this app": click **Advanced → Go to Mode Society Backend**. This is your own script, so that's expected. `setup` creates the Sheet, the sub-folders and a nightly clean-up job. Running it again is safe.
+   - `OWNER_EMAIL`: the address of the account that owns the Drive (a permanent admin, alongside Vercel's `OWNER_EMAIL`)
+   - `ROOT_FOLDER_ID` (optional): an existing folder's ID from step 1. Leave it out and `setup` makes the folder.
+5. Back in the editor, select the **`setup`** function and click **Run**. Approve the permissions prompt. On a personal Gmail you'll see "Google hasn't verified this app": click **Advanced → Go to Mode Society Backend**. This is your own script, so that's expected. `setup` creates the folder (if needed), the Sheet, the sub-folders and a nightly clean-up job, and logs their links. Running it again is safe.
 6. **Deploy → New deployment →** type **Web app**. Set *Execute as* to **Me** and *Who has access* to **Anyone**. Click **Deploy** and copy the **Web app URL**. That's `APPS_SCRIPT_URL`.
 
 > "Anyone" is safe here. Every request must carry `SHARED_SECRET`, which only the website knows, so the web app refuses anything else.
@@ -173,18 +172,15 @@ With no backend configured at all, the site still runs on its built-in placehold
 
 ---
 
-## Moving from your Drive to Mode Society's Drive
+## Moving the backend to Mode Society's Google account
 
-Nothing in the code changes. You redo steps 1–2 in their account and swap two env vars.
+Nothing in the code changes. Do all of this **signed in as the Mode Society Google account**.
 
-1. In **their** Google account, create the website folder (step 1).
-2. In **their** account, create the Apps Script project, set its script properties, run `setup`, and deploy (step 2). Use a **new** `SHARED_SECRET`.
-3. In Vercel, update `APPS_SCRIPT_URL` and `APPS_SCRIPT_SECRET`, then **Redeploy**.
-4. Sign in to `/admin`, re-add any admins under **Access**, and re-upload the site images. Drive file IDs change when files are copied between accounts, so re-uploading through the panel is the clean way to move them. Old applications can stay in your Drive or be copied across as files.
-
-Your Google sign-in Client ID keeps working. It only controls *who* can sign in, and that list lives in their new Sheet.
-
----
+1. **Backend:** follow *2. Deploy the backend* with a **new** `SHARED_SECRET`, and set the script property `OWNER_EMAIL` to the Mode Society account's own address. After deploying, open the Web app URL in a browser: it should show `{"ok":true,"service":"mode-society-backend"}`.
+2. **Sign-in:** the old Client ID was disabled, so follow *3. Create the Google sign-in Client ID* in this account. Add `https://modeweb-eight.vercel.app` (and the real domain, if it's live) to *Authorised JavaScript origins*.
+3. **Vercel** (Project → Settings → Environment Variables, Production): set `APPS_SCRIPT_URL`, `APPS_SCRIPT_SECRET` and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` to the new values (`SESSION_SECRET` and `OWNER_EMAIL` can stay), then **Deployments → ⋯ → Redeploy**. `NEXT_PUBLIC_…` values are built into the site, so the redeploy is required.
+4. **Check:** sign in at `/admin` with either owner address (Vercel's `OWNER_EMAIL` and the script's `OWNER_EMAIL` are both permanent admins), re-add the team under **Access**, then send one test enquiry and confirm it lands in the Sheet.
+5. **Content:** the new Drive folders start empty, so the site shows its built-in images until media is added. Drop files into the folders (see *Drive folders*) or upload in the admin panel. Nothing carries over from the old account's Drive.
 
 ## Visit tracking & privacy
 

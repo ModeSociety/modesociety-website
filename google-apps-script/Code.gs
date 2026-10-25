@@ -78,15 +78,15 @@ var DEFAULT_SETTINGS = {
 };
 
 // ---------------------------------------------------------------------------
-// One-off setup. Run this from the editor after setting ROOT_FOLDER_ID.
-// Safe to run again — it only creates what is missing.
+// One-off setup. Run this from the editor after setting SHARED_SECRET (and OWNER_EMAIL).
+// Safe to run again — it only creates what is missing. Without ROOT_FOLDER_ID it makes a
+// "Mode Society Website" folder in My Drive and remembers it.
 // ---------------------------------------------------------------------------
 function setup() {
   var props = PropertiesService.getScriptProperties();
-  var rootId = rootFolderId_();
-  if (!rootId) throw new Error('Set the ROOT_FOLDER_ID script property first.');
+  if (!rootFolderId_()) props.setProperty('ROOT_FOLDER_ID', DriveApp.createFolder('Mode Society Website').getId());
   if (!props.getProperty('SHARED_SECRET')) throw new Error('Set the SHARED_SECRET script property first.');
-  var root = DriveApp.getFolderById(rootId);
+  var root = DriveApp.getFolderById(rootFolderId_());
 
   Object.keys(FOLDERS).forEach(function (key) {
     var propName = 'FOLDER_' + key.toUpperCase();
@@ -136,7 +136,7 @@ function setup() {
   });
   if (!hasCleanup) ScriptApp.newTrigger('cleanupIncoming').timeBased().everyDays(1).atHour(3).create();
 
-  Logger.log('Setup complete. Spreadsheet: ' + ss.getUrl());
+  Logger.log('Setup complete. Folder: ' + root.getUrl() + ' · Spreadsheet: ' + ss.getUrl());
 }
 
 /** Daily: bins uploads from forms that were started but never submitted, and prunes old visit rows. */
@@ -272,9 +272,12 @@ var ACTIONS = {
   },
 
   /** Returns a file's bytes. Only files inside the website folder are served. */
+  /** Website media only (admin uploads and the media folders) — never applications or the Sheet. */
   getFile: function (p) {
     var file = DriveApp.getFileById(p.fileId);
-    if (!isInside_(file, rootFolderId_())) throw new Error('not found');
+    var allowed = [folder_('images')].concat(MEDIA_FOLDERS.map(function (path) { return folderByPath_(path, false); }));
+    var ok = allowed.some(function (f) { return f && isInside_(file, f.getId()); });
+    if (!ok) throw new Error('not found');
     var blob = file.getBlob();
     return { mimeType: blob.getContentType(), data: Utilities.base64Encode(blob.getBytes()) };
   },

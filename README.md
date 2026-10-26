@@ -177,7 +177,7 @@ With no backend configured at all, the site still runs on its built-in placehold
 Nothing in the code changes. Do all of this **signed in as the Mode Society Google account**.
 
 1. **Backend:** follow *2. Deploy the backend* with a **new** `SHARED_SECRET`, and set the script property `OWNER_EMAIL` to the Mode Society account's own address. After deploying, open the Web app URL in a browser: it should show `{"ok":true,"service":"mode-society-backend"}`.
-2. **Sign-in:** the old Client ID was disabled, so follow *3. Create the Google sign-in Client ID* in this account. Add `https://modeweb-eight.vercel.app` (and the real domain, if it's live) to *Authorised JavaScript origins*.
+2. **Sign-in:** the old Client ID was disabled, so follow *3. Create the Google sign-in Client ID* in this account. Add the site's Vercel address (e.g. `https://modesociety-website.vercel.app`) and the real domain, if it's live, to *Authorised JavaScript origins*.
 3. **Vercel** (Project → Settings → Environment Variables, Production): set `APPS_SCRIPT_URL`, `APPS_SCRIPT_SECRET` and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` to the new values (`SESSION_SECRET` and `OWNER_EMAIL` can stay), then **Deployments → ⋯ → Redeploy**. `NEXT_PUBLIC_…` values are built into the site, so the redeploy is required.
 4. **Check:** sign in at `/admin` with either owner address (Vercel's `OWNER_EMAIL` and the script's `OWNER_EMAIL` are both permanent admins), re-add the team under **Access**, then send one test enquiry and confirm it lands in the Sheet.
 5. **Content:** the new Drive folders start empty, so the site shows its built-in images until media is added. Drop files into the folders (see *Drive folders*) or upload in the admin panel. Nothing carries over from the old account's Drive.
@@ -196,7 +196,7 @@ Google has blocked the Apps Script web app itself. This happens most often to br
 **Admin sign-in shows "Access blocked: The OAuth client was disabled" (`disabled_client`).**
 Google has disabled the sign-in Client ID, usually as part of the same account review. Open <https://console.cloud.google.com/apis/credentials> as the owning account; the project or client will show the reason. Appeal there, or create a new project and OAuth Client ID under an established account. Then update `NEXT_PUBLIC_GOOGLE_CLIENT_ID` in Vercel and redeploy.
 
-**`origin_mismatch`.** Add the exact site address (e.g. `https://modeweb-eight.vercel.app`) to the OAuth client's *Authorised JavaScript origins*.
+**`origin_mismatch`.** Add the exact site address (e.g. `https://modesociety-website.vercel.app`) to the OAuth client's *Authorised JavaScript origins*.
 
 ## Project map
 

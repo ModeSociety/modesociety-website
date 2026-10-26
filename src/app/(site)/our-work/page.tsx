@@ -68,14 +68,26 @@ export default async function OurWork() {
             <span className="pb-2 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">{work.length} pieces</span>
           </div>
           <div className="mt-6 columns-2 gap-2 md:columns-3 md:gap-3">
-            {work.map((m, i) => (
-              <FadeUp key={`${m.src}-${i}`} className="group mb-2 break-inside-avoid md:mb-3">
-                <WorkMedia item={m} eager={i < 3} className={m.type === "video" ? "aspect-[9/16]" : SHAPES[i % SHAPES.length]} />
-                <p className="mt-2 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">
-                  <span className="text-ink">{workNo(i)}</span> — {m.alt}
-                </p>
-              </FadeUp>
-            ))}
+            {work.map((m, i) => {
+              const piece = (
+                <>
+                  <WorkMedia item={m} eager={i < 3} className={m.type === "video" ? "aspect-[9/16]" : SHAPES[i % SHAPES.length]} />
+                  <p className="mt-2 font-mono text-[12px] font-medium uppercase tracking-[0.04em] text-muted">
+                    <span className="text-ink">{workNo(i)}</span> — {m.alt}
+                  </p>
+                </>
+              );
+              // the first row is on screen straight away, so it shows without the fade-in
+              return i < 3 ? (
+                <div key={`${m.src}-${i}`} className="group mb-2 break-inside-avoid md:mb-3">
+                  {piece}
+                </div>
+              ) : (
+                <FadeUp key={`${m.src}-${i}`} className="group mb-2 break-inside-avoid md:mb-3">
+                  {piece}
+                </FadeUp>
+              );
+            })}
           </div>
         </div>
       </section>

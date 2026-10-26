@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { SectionHead } from "@/components/site/Editorial";
+import { responsive } from "@/lib/img";
 import type { CtaStyle, SiteImage } from "@/lib/slots";
 
 type Panel = { href: string; eyebrow: string; title: string; img?: SiteImage; cta: string };
@@ -46,7 +47,7 @@ function Split({ panels }: { panels: Panel[] }) {
         >
           {p.img && (
             <img
-              src={p.img.src}
+              {...responsive(p.img.src, "(max-width: 767px) 100vw, 50vw")}
               alt={p.img.alt}
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover opacity-60 grayscale transition-all duration-1000 group-hover:scale-105 group-hover:opacity-80 group-hover:grayscale-0"
@@ -137,7 +138,7 @@ function Tilt({ panels, index }: { panels: Panel[]; index?: string }) {
               >
                 <span className="pin" style={{ ["--pin-color" as string]: i ? "#b08d57" : "#c3362b" }} />
                 <div className="photo !aspect-[4/4.2]">
-                  {p.img && <img src={p.img.src} alt={p.img.alt} loading="lazy" />}
+                  {p.img && <img {...responsive(p.img.src, "420px", 1080)} alt={p.img.alt} loading="lazy" />}
                   <span
                     className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                     style={{ background: "radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.45), transparent 55%)" }}
@@ -168,7 +169,7 @@ function Blinds({ panels }: { panels: Panel[] }) {
         <Link key={p.href} href={p.href} className="group relative flex items-end overflow-hidden bg-ink text-paper">
           {p.img && (
             <img
-              src={p.img.src}
+              {...responsive(p.img.src, "(max-width: 767px) 100vw, 50vw")}
               alt={p.img.alt}
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105"

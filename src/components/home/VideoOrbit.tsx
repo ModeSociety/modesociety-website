@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 import type { SiteImage } from "@/lib/slots";
+import { responsive } from "@/lib/img";
 
 /**
  * A 3D ring of creator videos (or photos) that slowly orbits. Drag to spin it;
@@ -26,7 +27,7 @@ export default function VideoOrbit({ items, className = "" }: { items: SiteImage
     let drag: null | { x: number; id: number } = null;
     let raf = 0;
     let last = performance.now();
-    let visible = true;
+    let visible = false; // set by the observer below; videos only load and play once the ring is near the screen
 
     const layout = () => {
       const w = el.clientWidth;
@@ -43,7 +44,7 @@ export default function VideoOrbit({ items, className = "" }: { items: SiteImage
     layout();
     const ro = new ResizeObserver(layout);
     ro.observe(el);
-    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
+    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting), { rootMargin: "300px 0px" });
     io.observe(el);
 
     const tick = (now: number) => {
@@ -109,10 +110,10 @@ export default function VideoOrbit({ items, className = "" }: { items: SiteImage
           <div key={`${m.src}-${i}`} className="absolute top-0 -translate-y-1/2 grain overflow-hidden bg-paper-2 shadow-[0_24px_40px_-24px_rgba(74,5,7,.55)]">
             <div className="aspect-[9/16] w-full">
               {m.type === "video" ? (
-                <video src={m.src} muted loop playsInline preload="metadata" className="h-full w-full object-cover" aria-label={m.alt} />
+                <video src={m.src} muted loop playsInline preload="none" className="h-full w-full object-cover" aria-label={m.alt} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={m.src} alt={m.alt} draggable={false} className="h-full w-full object-cover" loading="lazy" />
+                <img {...responsive(m.src, "220px", 640)} alt={m.alt} draggable={false} className="h-full w-full object-cover" loading={i < 3 ? "eager" : "lazy"} />
               )}
             </div>
           </div>

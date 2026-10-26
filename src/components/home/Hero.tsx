@@ -5,6 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { HERO_MODES, type HeroMode, type SiteImage, type SiteSettings } from "@/lib/slots";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { introDone } from "@/lib/intro";
+import { responsive } from "@/lib/img";
 import { FitText, Mark } from "@/components/site/Editorial";
 import { ENGINES, staticLayout, type EngineCtx } from "./wall/engines";
 
@@ -140,7 +141,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
     // hidden until the curtain lifts, then the letters rise as the photos drop
     const tl = gsap.timeline({ paused: true });
     tl.from(el.querySelectorAll(".hero-letter"), { yPercent: 110, duration: 1.3, ease: "expo.out", stagger: 0.04 })
-      .from(el.querySelectorAll(".hero-fade"), { opacity: 0, y: 16, duration: 1, ease: "expo.out", stagger: 0.08 }, "-=0.9");
+      .from(el.querySelectorAll(".hero-fade"), { y: 16, duration: 1, ease: "expo.out", stagger: 0.08 }, "-=0.9");
     let live = true;
     introDone().then(() => {
       if (live) tl.play();
@@ -233,7 +234,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
             <span className="pin" />
             <div className="photo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.src} alt={img.alt} draggable={false} loading={i < 6 ? "eager" : "lazy"} />
+              <img {...responsive(img.src, "(max-width: 767px) 128px, 240px", 640)} alt={img.alt} draggable={false} loading={i < 6 ? "eager" : "lazy"} />
             </div>
           </figure>
         ))}

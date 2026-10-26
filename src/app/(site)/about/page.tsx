@@ -8,6 +8,7 @@ import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import { ABOUT, AGENCY_INTRO, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
+import { responsive } from "@/lib/img";
 
 export const metadata: Metadata = pageMetadata("about");
 
@@ -69,7 +70,7 @@ export default async function About() {
             {team ? (
               <div className="grain">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={team.src} alt={team.alt || "The Mode Society team"} className="w-full object-cover" />
+                <img {...responsive(team.src, "(max-width: 767px) 100vw, 33vw", 1200)} alt={team.alt || "The Mode Society team"} className="w-full object-cover" />
               </div>
             ) : (
               <div className="grid aspect-[4/3] w-full place-items-center border border-dashed border-line text-center text-sm text-muted">

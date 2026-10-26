@@ -8,6 +8,7 @@ import { EXPECT, INSTAGRAM_URL, QUOTE } from "@/lib/content";
 import type { SiteImage } from "@/lib/slots";
 import { InstagramIcon } from "@/components/site/Icons";
 import { useDragScroll } from "@/lib/useDragScroll";
+import { responsive } from "@/lib/img";
 
 /** A dropdown: the title is always visible, the body slides open. */
 export function Accordion({
@@ -145,7 +146,7 @@ export function InstagramGrid({ posts }: { posts: SiteImage[] }) {
             className="group relative aspect-square overflow-hidden bg-paper-2"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.src} alt={p.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img {...responsive(p.src, "(max-width: 767px) 33vw, 160px", 640)} alt={p.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
             <span className="absolute inset-0 grid place-items-center bg-ink/0 text-white opacity-0 transition group-hover:bg-ink/40 group-hover:opacity-100">
               <InstagramIcon className="h-6 w-6" />
             </span>

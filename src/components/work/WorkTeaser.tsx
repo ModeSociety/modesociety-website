@@ -26,8 +26,8 @@ export default function WorkTeaser({ items, index = "03" }: { items: SiteImage[]
       <div className="mt-10 grid grid-cols-2 gap-2 md:mt-14 md:grid-cols-4 md:gap-3">
         {picks.map((m, i) => (
           <Link key={`${m.src}-${i}`} href="/our-work" className="group block">
-            <WorkMedia item={m} className="aspect-[4/5]" />
-            <p className="mt-2 flex justify-between gap-3 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">
+            <WorkMedia item={m} className="aspect-[4/5]" sizes="(max-width: 767px) 50vw, 25vw" />
+            <p className="mt-2 flex justify-between gap-3 font-mono text-[12px] font-medium uppercase tracking-[0.04em] text-muted">
               <span>
                 <span className="text-ink">{workNo(i)}</span> — {m.alt}
               </span>

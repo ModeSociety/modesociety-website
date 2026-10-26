@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { cloneElement, isValidElement, useEffect, useId, useRef, useState } from "react";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 
 export type Step = { title: string; kicker: string; valid: boolean; hint?: string; content: React.ReactNode };
@@ -62,7 +62,7 @@ export default function StepForm({
       <div className="mb-10">
         <div className="flex items-center justify-between font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">
           <span>
-            Level {i + 1} <span className="opacity-50">/ {steps.length}</span>
+            Level {i + 1} <span className="text-muted">/ {steps.length}</span>
           </span>
           <span>{steps.map((s, idx) => (idx < i ? "●" : idx === i ? "◐" : "○")).join(" ")}</span>
         </div>
@@ -105,12 +105,20 @@ export default function StepForm({
 }
 
 export function Field({ label, children, optional }: { label: string; children: React.ReactNode; optional?: boolean }) {
+  const autoId = useId();
+  // a single text box / select gets the label tied to it; groups (chips, uploads) keep a plain caption
+  let control = children;
+  let forId: string | undefined;
+  if (isValidElement<{ id?: string }>(children) && ["input", "textarea", "select"].includes(children.type as string)) {
+    forId = children.props.id || autoId;
+    control = cloneElement(children, { id: forId });
+  }
   return (
     <div className="field">
-      <label>
+      <label htmlFor={forId}>
         {label} {optional && <span className="normal-case tracking-normal text-muted">(optional)</span>}
       </label>
-      {children}
+      {control}
     </div>
   );
 }

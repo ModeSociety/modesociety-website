@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
-/** Words ink in one after another when the paragraph scrolls into view (once). */
+/** Words ink in one after another when the paragraph scrolls into view (once); they start in the muted tone, which is still readable. */
 export function ScrubText({ text, className = "" }: { text: string; className?: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
   useGSAP(
@@ -11,9 +11,9 @@ export function ScrubText({ text, className = "" }: { text: string; className?: 
       if (prefersReducedMotion()) return;
       gsap.fromTo(
         ref.current!.querySelectorAll(".w"),
-        { opacity: 0.15 },
+        { color: "#8f5f61" },
         {
-          opacity: 1,
+          color: "#7f090d",
           duration: 0.6,
           stagger: 0.025,
           ease: "power1.out",
@@ -24,9 +24,9 @@ export function ScrubText({ text, className = "" }: { text: string; className?: 
     { scope: ref },
   );
   return (
-    <p ref={ref} className={className} aria-label={text}>
+    <p ref={ref} className={className}>
       {text.split(" ").map((w, i) => (
-        <span key={i} className="w" aria-hidden>
+        <span key={i} className="w">
           {w}{" "}
         </span>
       ))}

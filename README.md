@@ -183,6 +183,41 @@ Nothing in the code changes. Do all of this **signed in as the Mode Society Goog
 4. **Check:** sign in at `/admin` with either owner address (Vercel's `OWNER_EMAIL` and the script's `OWNER_EMAIL` are both permanent admins), re-add the team under **Access**, then send one test enquiry and confirm it lands in the Sheet.
 5. **Content:** the new Drive folders start empty, so the site shows its built-in images until media is added. Drop files into the folders (see *Drive folders*) or upload in the admin panel. Nothing carries over from the old account's Drive.
 
+## Domain: modesociety.com.au
+
+The domain is registered at **Squarespace**, which also runs its DNS. **Keep it there.** Only the two website records change. Everything else, especially the **MX record (`smtp.google.com`)** and the **TXT records** (SPF, `google-site-verification`), must stay or Google Workspace email stops.
+
+1. **Vercel** → the project → **Settings → Domains**: add `www.modesociety.com.au`, then `modesociety.com.au` and choose **Redirect to www.modesociety.com.au**. Vercel lists the DNS records it wants.
+2. **Squarespace** → **Domains → modesociety.com.au → DNS**:
+   - Delete the **Squarespace Defaults** website records (four `A` records on `@`: 198.185.159.144/145 and 198.49.23.144/145, and the `www` `CNAME` to `ext-sq.squarespace.com`).
+   - Add the records Vercel shows. Usually `A` `@` → `76.76.21.21` and `CNAME` `www` → `cname.vercel-dns.com`. If Vercel gives different values, use Vercel's.
+   - Leave MX and TXT records alone.
+3. Wait until Vercel shows **Valid Configuration** (minutes, occasionally a few hours). The SSL certificate is automatic.
+4. **Vercel → Settings → Environment Variables:** `NEXT_PUBLIC_SITE_URL` = `https://www.modesociety.com.au`, then **Redeploy**.
+5. **Google Cloud → Google Auth Platform → Clients:** add `https://www.modesociety.com.au` to *Authorised JavaScript origins*, so admin sign-in works on the new address.
+6. Only then cancel the Squarespace **website** plan, making sure the **domain** stays registered and on auto-renew.
+
+> Vercel's free Hobby plan is for non-commercial use. For the agency's live site, upgrade the project to **Vercel Pro**.
+
+## Search (SEO)
+
+**Built into the site** (wording in `src/lib/seo.ts`; FAQ answers in `src/lib/content.ts`):
+
+- A search title and description for every page, sized to show in full on Google; canonical URLs; `en-AU`.
+- `/sitemap.xml` and `/robots.txt`. Search engines and AI assistants (ChatGPT, Perplexity, Claude, Gemini…) may crawl everything except `/admin` and `/api`. *Featured in* stays out of search until it has press.
+- Structured data (schema.org): Mode Society as an organisation and professional service in Melbourne, with its socials, services and team; the website; breadcrumbs; and the FAQs on *For brands* and *For talent*.
+- A branded share image for every page (`/og?title=…`), used by Google, iMessage, WhatsApp, LinkedIn and so on. An image uploaded to the admin slot *Social share image* replaces it on the home page.
+- The old Squarespace addresses (`/home`, `/contact`, …) redirect permanently, so existing Google results keep working.
+- Speed and accessibility, which Google also ranks on: compressed photos (AVIF/WebP at the size shown), videos that load only when on screen, and labelled forms. Lighthouse (mobile, Oct 2026): SEO 100, accessibility 100, best practices 100; performance 86–93 on most pages, 72–87 on the home page (its animated hero varies between runs).
+
+**To do after the domain moves** (only an account owner can do these):
+
+1. **Google Search Console** (search.google.com/search-console): the domain already has a `google-site-verification` record, so it may already be verified under one of your Google accounts. If not, add a *Domain* property and verify it with the TXT record it gives you, in Squarespace DNS. Then **Sitemaps** → submit `https://www.modesociety.com.au/sitemap.xml`, and use **URL inspection → Request indexing** on the home, For brands, For talent and Services pages.
+2. **Bing Webmaster Tools**: *Import from Google Search Console*. This also covers DuckDuckGo, Yahoo and ChatGPT search, which use Bing's index.
+3. **Google Business Profile** (business.google.com): the single biggest lever for "talent agency Melbourne"-type searches and Maps. Set it up as a service-area business in Melbourne, with a primary category such as *Talent agency* or *Marketing agency*, the website link, photos and services. Then ask happy brands and talent for Google reviews.
+4. **Links in**: point the Instagram, TikTok and LinkedIn bios at `https://www.modesociety.com.au`; add a link from Grant Help's site; list Mode Society on Australian business and creator/influencer-agency directories.
+5. **Keep it fresh**: name the brand in each *Our work* file (`03-Teddi Lab — UGC.jpg`), add press to *Featured in* when it happens, and watch **Organic search visits** in the admin panel's Insights.
+
 ## Visit tracking & privacy
 
 The site counts visits itself; there's no Google Analytics, cookie banner or third-party tracker. Each page view sends the page, where the visit came from (the referring site's domain and any `utm_` campaign tags) and two random ids kept in the visitor's own browser: one per browser, to count unique visitors, and one per tab session, to count visits. No names, emails, IP addresses or cookies are stored. The country comes from Vercel's edge network. The tracker ignores bots and browsers with *Do Not Track* switched on, and skips anyone signed in to the admin panel, so the team's own browsing isn't counted. Counting starts from the day this version goes live.

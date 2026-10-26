@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { Mark, SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
@@ -6,10 +8,7 @@ import WorkMedia, { workNo } from "@/components/work/WorkMedia";
 import { getSiteContent } from "@/lib/backend";
 import { SLOTS } from "@/lib/slots";
 
-export const metadata: Metadata = {
-  title: "Our work",
-  description: "Influencer campaigns, UGC content and event guest lists Mode Society has run for brands in Australia and overseas.",
-};
+export const metadata: Metadata = pageMetadata("work");
 
 /* a loose editorial rhythm of crops down the grid; videos stay portrait */
 const SHAPES = ["aspect-[4/5]", "aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[2/3]", "aspect-[4/5]"];
@@ -22,6 +21,7 @@ export default async function OurWork() {
 
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("work")} />
       <section className="wrap pb-12 pt-28 md:pb-16 md:pt-36">
         <SectionHead index="Archive" label="Case studies" meta="Since 2022" />
         <div className="mt-6 flex flex-wrap items-end gap-x-5">

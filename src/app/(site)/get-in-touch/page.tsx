@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import GetInTouch, { type FormKey } from "@/components/forms/GetInTouch";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import SocialLinks from "@/components/site/SocialLinks";
 import { GET_IN_TOUCH } from "@/lib/content";
 
-export const metadata: Metadata = { title: "Get in touch" };
+export const metadata: Metadata = pageMetadata("contact");
 
 const KEYS: FormKey[] = ["talent", "brands", "partner"];
 
@@ -15,6 +17,7 @@ export default async function GetInTouchPage({ searchParams }: { searchParams: P
   const tech = q.for === "tech";
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("contact")} />
       <section className="wrap pb-10 pt-28 md:pt-36">
         <SectionHead index="Contact" label="Brands · talent · partners" meta="Melbourne → worldwide" />
         <RiseLines

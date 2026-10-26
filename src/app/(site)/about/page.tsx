@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Infographic from "@/components/home/Infographic";
 import VideoOrbit from "@/components/home/VideoOrbit";
 import { Accordion, ExpectCards, Quote } from "@/components/sections/Blocks";
@@ -7,7 +9,7 @@ import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import { ABOUT, AGENCY_INTRO, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
 
-export const metadata: Metadata = { title: "About us" };
+export const metadata: Metadata = pageMetadata("about");
 
 export default async function About() {
   const { images } = await getSiteContent();
@@ -15,6 +17,7 @@ export default async function About() {
 
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("about")} />
       <section className="wrap pt-28 md:pt-36">
         <SectionHead index="About" label="Mode Society" meta="Est. January 2022 · Melbourne" />
         <RiseLines

@@ -14,10 +14,12 @@ export function Accordion({
   items,
   defaultOpen = -1,
   tone = "light",
+  titleClassName = "font-display text-[clamp(28px,3.2vw,48px)]",
 }: {
   items: { title: React.ReactNode; body: React.ReactNode }[];
   defaultOpen?: number;
   tone?: "light" | "dark";
+  titleClassName?: string;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const line = tone === "dark" ? "border-white/25" : "border-espresso/15";
@@ -32,7 +34,7 @@ export function Accordion({
               aria-expanded={isOpen}
               onClick={() => setOpen(isOpen ? -1 : i)}
             >
-              <span className="font-display text-[clamp(28px,3.2vw,48px)]">{it.title}</span>
+              <span className={titleClassName}>{it.title}</span>
               <span
                 className={`grid h-9 w-9 shrink-0 place-items-center border font-mono text-[18px] leading-none transition-colors duration-300 ${
                   tone === "dark" ? "border-white/50" : "border-ink"

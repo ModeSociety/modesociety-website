@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import Services from "@/components/home/Services";
@@ -11,6 +12,16 @@ import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp } from "@/components/site/Reveal";
 import { AGENCY_INTRO, AGENCY_LEAD, PRESS, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
+import { pageMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const base = pageMetadata("home");
+  const { images } = await getSiteContent();
+  const share = images["meta.share"]?.[0];
+  if (!share) return base;
+  const img = { url: share.src, alt: share.alt || "Mode Society" };
+  return { ...base, openGraph: { ...base.openGraph, images: [img] }, twitter: { ...base.twitter, images: [img.url] } };
+}
 
 export default async function Home() {
   const { images, settings } = await getSiteContent();

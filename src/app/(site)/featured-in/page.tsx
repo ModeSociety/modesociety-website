@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import Clients from "@/components/home/Clients";
 import { PressList, PressLogos } from "@/components/press/Press";
@@ -7,7 +9,12 @@ import { FadeUp, RiseLines } from "@/components/site/Reveal";
 import { PRESS } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
 
-export const metadata: Metadata = { title: "Featured in", description: "Press and media features of Mode Society." };
+export async function generateMetadata(): Promise<Metadata> {
+  const { images } = await getSiteContent();
+  const empty = !(images["press.logos"]?.length ?? 0) && !PRESS.length;
+  // an empty "coming soon" page would count against the site in search, so it stays unindexed until press is added
+  return pageMetadata("press", empty ? { robots: { index: false, follow: true } } : {});
+}
 
 export default async function FeaturedIn() {
   const { images } = await getSiteContent();
@@ -16,6 +23,7 @@ export default async function FeaturedIn() {
 
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("press")} />
       <section className="wrap overflow-hidden pb-12 pt-28 md:pb-16 md:pt-36">
         <SectionHead index="Press" label="Featured in" meta="Media & press" />
         <div className="relative mt-4">

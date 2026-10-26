@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import PartnerForm from "@/components/forms/PartnerForm";
 import { SectionHead } from "@/components/site/Editorial";
 import { RiseLines } from "@/components/site/Reveal";
 
-export const metadata: Metadata = { title: "Partner with us" };
+export const metadata: Metadata = pageMetadata("partner");
 
 export default async function PartnerWithUs({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const q = await searchParams;
   return (
-    <section className="wrap pb-24 pt-28 md:pb-32 md:pt-36">
+    <>
+      <JsonLd data={breadcrumbJsonLd("partner")} />
+      <section className="wrap pb-24 pt-28 md:pb-32 md:pt-36">
       <SectionHead index="Partners" label="B2B partnerships" meta="Referrals · affiliates · co-marketing" />
       <RiseLines
         as="h1"
@@ -21,5 +25,6 @@ export default async function PartnerWithUs({ searchParams }: { searchParams: Pr
         <PartnerForm typeHint={q.for === "tech" ? "Tech company" : ""} />
       </div>
     </section>
+    </>
   );
 }

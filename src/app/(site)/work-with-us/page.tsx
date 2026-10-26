@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import BrandForm from "@/components/forms/BrandForm";
 import Clients from "@/components/home/Clients";
@@ -7,15 +9,17 @@ import Services from "@/components/home/Services";
 import { ExpectCards, InstagramGrid, Quote } from "@/components/sections/Blocks";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
-import { AGENCY_INTRO, SERVICE_COPY } from "@/lib/content";
+import Faq from "@/components/sections/Faq";
+import { AGENCY_INTRO, BRAND_FAQ, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
 
-export const metadata: Metadata = { title: "For brands" };
+export const metadata: Metadata = pageMetadata("brands");
 
 export default async function ForBrands() {
   const { images } = await getSiteContent();
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("brands")} />
       <section className="wrap pt-28 md:pt-36">
         <SectionHead index="For brands" label="Your external PR team" meta="Influencer · UGC · Events · Funding" />
       </section>
@@ -57,6 +61,8 @@ export default async function ForBrands() {
       <Infographic />
 
       <Clients logos={images["home.clients"]} />
+
+      <Faq items={BRAND_FAQ} label="Questions brands ask" />
 
       <section id="book" className="wrap scroll-mt-24 py-20 md:py-28">
         <SectionHead index="Book a call" label="Enquiry form" meta="We reply by email" className="mb-10" />

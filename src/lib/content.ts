@@ -183,6 +183,64 @@ export const TALENT = {
 };
 
 /**
+ * Questions and answers for the For brands and For talent pages (also shown to Google as FAQ data).
+ * Every answer restates something already said elsewhere on the site; keep them in step.
+ */
+export const BRAND_FAQ = [
+  {
+    q: "What does Mode Society do for brands?",
+    a: "Think of us as your external PR team. We find the right creators, anywhere in the world, and run the collab from brief to payment: influencer campaigns, UGC content and event guest lists, plus funding through our sister company Grant Help.",
+  },
+  {
+    q: "Do you make content in house?",
+    a: "No. We don't make content in house. We find the right creators for your brand, brief them properly and manage everything from contracts to payment.",
+  },
+  {
+    q: "How do you choose creators?",
+    a: `${EXPECT.cards[0].body} ${EXPECT.cards[1].body}`,
+  },
+  {
+    q: "How much does it cost?",
+    a: "There's no price list. Every package is built around you, whether that's a full campaign, influencer seeding, a guest list or one very targeted push. Book a call and tell us what you need.",
+  },
+  {
+    q: "Can Mode Society help fund marketing overseas?",
+    a: SERVICE_COPY.find((x) => x.key === "funding")!.body,
+  },
+  {
+    q: "Where are you based, and who do you work with?",
+    a: "We're a female-led boutique agency in Melbourne, working with brands in Australia and overseas across beauty, wellness, fashion, gaming, food and beverage and consumer goods.",
+  },
+];
+
+export const TALENT_FAQ = [
+  {
+    q: "Who can apply to Mode Society?",
+    a: "Models, influencers, UGC creators and streamers across beauty, wellness, fashion, gaming and tech, whether you're just starting out or already have a portfolio behind you.",
+  },
+  {
+    q: "Do I need a big following?",
+    a: "No. We connect talent with campaigns that suit their aesthetic, not just their follower count. We ask for your follower count and engagement screenshots so we can see how your audience actually shows up for you.",
+  },
+  {
+    q: "Is representation exclusive?",
+    a: TALENT.flexible[0].body,
+  },
+  {
+    q: "Can I stay with my modelling agency?",
+    a: `Yes. ${TALENT.flexible[1].body}`,
+  },
+  {
+    q: "What do you handle for me?",
+    a: "Your own Mode Society email, brand vetting, negotiation, contracts, invoicing and payment collection, Mon–Fri online support and help growing your socials. And there's no commission on gifted collabs.",
+  },
+  {
+    q: "Can I leave if it's not working?",
+    a: TALENT.flexible[2].body,
+  },
+];
+
+/**
  * Results infographic. TODO: replace with Mode Society's real campaign figures.
  * While `illustrative` is true the section carries an "illustrative figures" note.
  */

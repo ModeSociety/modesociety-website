@@ -171,7 +171,7 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
       <div className="pointer-events-none absolute inset-0 flex flex-col">
         <div className="wrap pt-[110px] md:pt-[148px]">
           <h1 className="font-display w-full select-none text-ink">
-            <span className="sr-only">Mode Society</span>
+            <span className="sr-only">Mode Society, boutique talent and creator agency in Melbourne</span>
             {(mobile ? ["MODE", "SOCIETY"] : ["MODE SOCIETY"]).map((line) => (
               <span key={line} aria-hidden className="reveal-line">
                 <FitText className="text-[16vw] leading-[0.86]">

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { StrikeList } from "@/components/about/AboutFx";
 import TalentForm from "@/components/forms/TalentForm";
@@ -6,15 +8,17 @@ import Clients from "@/components/home/Clients";
 import { Steps } from "@/components/sections/Blocks";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines, ScrubText } from "@/components/site/Reveal";
-import { TALENT } from "@/lib/content";
+import Faq from "@/components/sections/Faq";
+import { TALENT, TALENT_FAQ } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
 
-export const metadata: Metadata = { title: "For talent" };
+export const metadata: Metadata = pageMetadata("talent");
 
 export default async function ForTalent() {
   const { images } = await getSiteContent();
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd("talent")} />
       <section className="wrap pb-16 pt-28 md:pb-24 md:pt-36">
         <SectionHead index="For talent" label="Models · influencers · UGC · streamers" meta="Applications open" />
         <RiseLines
@@ -93,6 +97,8 @@ export default async function ForTalent() {
       </section>
 
       <Clients logos={images["home.clients"]} />
+
+      <Faq items={TALENT_FAQ} label="Questions creators ask" />
 
       <section id="apply" className="wrap scroll-mt-24 py-20 md:py-28">
         <SectionHead index="Apply now" label="Talent application" className="mb-10" />

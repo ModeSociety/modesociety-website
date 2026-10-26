@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
+import EnquiriesTab from "./EnquiriesTab";
 import InsightsTab from "./InsightsTab";
 import ScheduleTab from "./ScheduleTab";
 import {
@@ -113,7 +114,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "schedule" | "insights" | "images" | "animations" | "access";
+type Tab = "schedule" | "enquiries" | "insights" | "images" | "animations" | "access";
 
 function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>("schedule");
@@ -158,7 +159,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           </div>
         </div>
         <nav className="wrap flex gap-6 overflow-x-auto text-[12px] uppercase tracking-[0.16em]">
-          {(["schedule", "insights", "images", "animations", "access"] as Tab[]).map((t) => (
+          {(["schedule", "enquiries", "insights", "images", "animations", "access"] as Tab[]).map((t) => (
             <button key={t} onClick={() => setTab(t)} className={`border-b-2 pb-3 ${tab === t ? "border-ink" : "border-transparent text-muted"}`}>
               {t}
             </button>
@@ -190,6 +191,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
             notify={notify}
           />
         )}
+        {tab === "enquiries" && <EnquiriesTab disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab content={content} reload={loadContent} notify={notify} />}
         {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}

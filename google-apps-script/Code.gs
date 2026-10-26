@@ -69,6 +69,9 @@ var MEDIA_FOLDERS = [
 
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
 
+/** The form tabs the admin panel reads back (panel name → TABS key). */
+var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', partners: 'partners' };
+
 var DEFAULT_SETTINGS = {
   heroMode: 'gravity',
   heroAutoCycle: 'false',
@@ -326,6 +329,49 @@ var ACTIONS = {
         (f.partnership || []).join(', '), f.idea, ref]);
     });
     return { reference: ref };
+  },
+
+  // ---- enquiries: the form tabs, read back for the admin panel -------------
+
+  /** Every row of the three form tabs, newest first, as header + text cells. */
+  listEnquiries: function () {
+    var out = {};
+    Object.keys(ENQUIRY_TABS).forEach(function (kind) {
+      var values = sheet_(ENQUIRY_TABS[kind]).getDataRange().getValues();
+      var rows = values.slice(1).filter(function (r) { return r.join('') !== ''; }).map(function (r) {
+        return r.map(function (v) { return v instanceof Date ? v.toISOString() : String(v); });
+      });
+      out[kind] = { headers: (values[0] || []).map(String), rows: rows.reverse() };
+    });
+    return { enquiries: out, statuses: STATUSES };
+  },
+
+  /** Sets the Status cell of the row with this Reference (rows can be sorted or deleted in the Sheet). */
+  setEnquiryStatus: function (p) {
+    var key = ENQUIRY_TABS[p.kind];
+    if (!key) throw new Error('Unknown enquiry type');
+    if (STATUSES.indexOf(p.status) < 0) throw new Error('Unknown status');
+    return withLock_(function () {
+      var sheet = sheet_(key);
+      var values = sheet.getDataRange().getValues();
+      var refCol = values[0].indexOf('Reference');
+      var statusCol = values[0].indexOf('Status');
+      for (var i = 1; i < values.length; i++) {
+        if (p.reference && String(values[i][refCol]) === String(p.reference)) {
+          sheet.getRange(i + 1, statusCol + 1).setValue(p.status);
+          return { ok: true };
+        }
+      }
+      throw new Error('That enquiry is no longer in the Sheet');
+    });
+  },
+
+  /** A talent application's screenshot, for signed-in admins only (the site checks the session). */
+  getEnquiryFile: function (p) {
+    var file = DriveApp.getFileById(p.fileId);
+    if (!isInside_(file, folder_('talent').getId())) throw new Error('not found');
+    var blob = file.getBlob();
+    return { mimeType: blob.getContentType(), name: file.getName(), data: Utilities.base64Encode(blob.getBytes()) };
   },
 
   // ---- schedule ----------------------------------------------------------

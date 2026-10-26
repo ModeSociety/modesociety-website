@@ -21,8 +21,33 @@ const DB = join(DIR, "db.json");
 const MEDIA = join(DIR, "folders");
 const MEDIA_FOLDERS = [
   "Home Page 1", "Home Page 2", "Home Page 3", "About Us 1", "Instagram",
-  "Services",
+  "Services", "Our Work", "Featured In",
 ];
+const STATUSES = ["New", "Reviewing", "Contacted", "Signed / Booked", "Declined"];
+/** Same columns as the Sheet tabs in Code.gs, so the admin panel parses both the same way. */
+const ENQUIRY_COLUMNS = {
+  talent: {
+    store: "talent",
+    headers: ["Submitted At", "Status", "Full Name", "Email", "What They Do", "Channels (handle · followers)", "Niche",
+      "Wants From An Agency", "Signed Elsewhere", "18+ / Consent", "Application Folder", "Screenshots", "Reference"],
+    row: (r) => [r.at, r.status || "New", r.name, r.email, (r.roles || []).join(", "),
+      (r.channels || []).map((c) => `${c.platform}: ${c.handle} · ${c.followers}`).join("\n"), (r.niches || []).join(", "),
+      r.wants, r.signed, r.consent ? "Yes" : "No", "https://drive.google.com/drive/folders/mock-talent",
+      (r.channels || []).flatMap((c) => c.files || []).map((f) => `https://drive.google.com/file/d/${f}/view`).join("\n"), r.reference],
+  },
+  brands: {
+    store: "bookings",
+    headers: ["Submitted At", "Status", "Brand Name", "Website / Instagram", "Your Name", "Email", "Services",
+      "About The Project", "Budget", "Timeline", "Notes", "Reference"],
+    row: (r) => [r.at, r.status || "New", r.brand, r.website, r.name, r.email, (r.services || []).join(", "), r.project, r.budget, r.timeline, r.notes, r.reference],
+  },
+  partners: {
+    store: "partners",
+    headers: ["Submitted At", "Status", "Business Name", "Type Of Business", "Website / Instagram", "Your Name", "Email",
+      "Type Of Partnership", "Partnership Idea", "Reference"],
+    row: (r) => [r.at, r.status || "New", r.business, r.type, r.website, r.name, r.email, (r.partnership || []).join(", "), r.idea, r.reference],
+  },
+};
 const MIME = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml", ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime" };
 mkdirSync(FILES, { recursive: true });
 MEDIA_FOLDERS.forEach((f) => mkdirSync(join(MEDIA, f), { recursive: true }));
@@ -128,6 +153,29 @@ const actions = {
     return { reference };
   },
 
+  listEnquiries: (db) => ({
+    enquiries: Object.fromEntries(
+      Object.entries(ENQUIRY_COLUMNS).map(([kind, c]) => [
+        kind,
+        { headers: c.headers, rows: [...(db[c.store] || [])].reverse().map((r) => c.row(r).map((v) => (v == null ? "" : String(v)))) },
+      ]),
+    ),
+    statuses: STATUSES,
+  }),
+  setEnquiryStatus: (db, p) => {
+    const c = ENQUIRY_COLUMNS[p.kind];
+    if (!c) throw new Error("Unknown enquiry type");
+    if (!STATUSES.includes(p.status)) throw new Error("Unknown status");
+    const rec = (db[c.store] || []).find((r) => r.reference === p.reference);
+    if (!rec) throw new Error("That enquiry is no longer in the Sheet");
+    rec.status = p.status;
+    return { ok: true };
+  },
+  getEnquiryFile: (db, p) => {
+    const meta = db.files[p.fileId];
+    if (!meta || meta.folder !== "talent") throw new Error("not found");
+    return { mimeType: meta.mimeType, name: p.fileId, data: readFileSync(join(FILES, p.fileId)).toString("base64") };
+  },
   listAppointments: (db, p) => ({
     items: (db.schedule ||= [])
       .filter((a) => a.date >= (p.from || "0") && a.date <= (p.to || "9"))

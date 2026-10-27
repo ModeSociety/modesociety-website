@@ -22,7 +22,7 @@ Style: editorial, like a fashion magazine. A white `#FFFFFF` page with burgundy 
 
 | Where | What it does |
 | --- | --- |
-| **Header** | The logo on the left; text links (About us · For brands · For talent · Services · Our work · Featured in · Partner with us · For Tech companies) and a **Contact us** button on the right. Smaller screens get a menu button that opens a full-screen burgundy index of every page. |
+| **Header** | The logo on the left; text links (About us · For brands · For talent · Services · Our work · Featured in · Partner with us), the **Talent | Tech** switch and a **Contact us** button on the right. Smaller screens get a menu button that opens a full-screen burgundy index of every page. |
 | **Home: hero** | A magazine-cover masthead: *MODE SOCIETY* set edge to edge across the top (stacked on phones, with the tagline and buttons straight underneath and the photos landing below them) with small cover lines above it. Over it is the interactive wall, defaulting to **Gravity**: polaroids tumble in from above and pile up, then visitors can grab and throw them. The drop waits until the intro curtain has lifted and the first photos have loaded, so it's always seen (on phones it used to finish behind the curtain). Pinboard, Scatter and Orbit can be chosen in the admin panel instead; in Pinboard, double-click a card to unpin it and carry it back up the board to pin it again. Visitors can't switch modes. |
 | **Home: the agency** | A 3D orbit of creator videos (from the Drive folder *Home Page 2*) beside the "external PR team" intro and a **Get to know us** button. |
 | **Home: services** | Four white cards on burgundy (Influencer campaigns, UGC content, Event guest lists, Funding), each with its name at the top and a small number at the foot, dealt out as you scroll. Hover (or tap) a card to flip it and read more. Funding links to Grant Help. |
@@ -43,12 +43,31 @@ Style: editorial, like a fashion magazine. A white `#FFFFFF` page with burgundy 
 | **Forms** | **Talent**: what you do; each channel with its follower count and engagement screenshots; niche; what you want from an agency; whether you're signed elsewhere; 18+ consent. **Book a call**: brand, website/Instagram, services, project, budget, timeline. **Partnerships**: business, type, partnership type, idea. All three end with "Thanks! We'll be in touch." |
 | **Everywhere** | Smooth scrolling and the normal system cursor. Visitors with *reduced motion* switched on get a calm, static version. |
 
+### ModeSociety Tech: `/tech`
+
+The gaming & tech side of Mode Society, for a different team and audience: streamers, content creators and esports athletes, and the gaming, tech and telco brands that work with them. The wording comes from *Website copy.pdf*; the look is the **Glass** direction from the homepage mocks: near-black, light beams, rounded glass panels, and Asha's pill **m** in blue as the only colour. Type is **Anybody** (condensed and wide caps), **Instrument Sans** and **Martian Mono**.
+
+A **Talent | Tech** switch in the nav, phone menu and footer of both sides moves between them.
+
+| Page | What it does |
+| --- | --- |
+| **Home** (`/tech`) | "Not just gaming." with the two front doors (*Run a campaign* / *Get signed*) beside a glass m that stands on a horizon and tilts toward the cursor (or the phone's tilt). Then *Who are we?* (words light up as it scrolls in), who we run campaigns for, the brand logos (or *This space is open* until there are any), the featured roster, the formats bento (each with a small animation), the 18+ policy band and the FAQ. Every Tech page ends with *Two ways in.* (except Contact). |
+| **For brands** (`/tech/brands`) | *Why brands call us*: key numbers (combined followers from the roster, plus total views and campaigns delivered set in the admin panel; each shows only once it's real), the intro video (Drive folder *Tech Video*), *Our process* (four steps along a beam that fills), formats, categories and brand FAQs. |
+| **For creators** (`/tech/creators`) | What we do for you, creator quotes and examples from the roster, the 18+ policy, a *Get on the roster* call and creator FAQs. |
+| **Our talent** (`/tech/talent`) | The whole roster, with a type filter, search and sort. Each card shows the photo, @, type, niche and region, total followers and every channel (linked). Cards tilt toward the cursor. |
+| **Contact** (`/tech/contact`) | *I'm a brand* / *I'm a creator*, each opening its form (`?as=brand` or `?as=creator` preselects). Creators must confirm they're 18+. |
+
+**Placeholders:** until the first creator is added in the admin panel, the roster shows four clearly marked **Sample** cards. Before launch, Asha should confirm the 18+ policy wording (`TECH_POLICY` in `src/lib/tech.ts`) and supply Tech's own social handles, if it has any (`TECH_SOCIALS`; until then the Mode Society ones are used).
+
 ### The admin panel: `/admin`
 
 Sign in with Google. Only approved accounts get in.
 
-- **Schedule:** the team calendar for calls, meetings, shoots, events and deadlines, stored in the *Schedule* tab of the Google Sheet. It has a month view with appointments colour-coded by type, and a *Coming up* list for the next 30 days (or a chosen day). Add an appointment with **+ New appointment**, or double-click a day. Each one can hold a time (or all day), client/brand, talent, location or meeting link, notes, status (Scheduled / Done / Cancelled) and who it's assigned to. **All / Mine** filters to your own, and **Add to Google Calendar** copies an appointment into anyone's calendar.
-- **Enquiries:** every talent application, brand call booking and partnership enquiry, read straight from the Google Sheet, newest first, with search, a status filter and a *new* count for each type. Open one to read every answer, see a talent's engagement screenshots (shown only to signed-in admins; the files stay private in Drive), email them, or change its status (New / Reviewing / Contacted / Signed / Booked / Declined), which is saved back to the Sheet.
+The panel is shared, so everyone can see everything, but **All · Talent · Tech** at the top narrows it to one side, and each browser remembers its choice. On *Tech*, Enquiries shows only Tech brands and Tech creators, Schedule only Tech appointments, Insights only `/tech` traffic and Tech enquiries, and Images only the Tech slots. The Roster tab is Tech-only; Animations is talent-only.
+
+- **Schedule:** the team calendar for calls, meetings, shoots, events and deadlines, stored in the *Schedule* tab of the Google Sheet. It has a month view with appointments colour-coded by type, and a *Coming up* list for the next 30 days (or a chosen day). Add an appointment with **+ New appointment**, or double-click a day. Each one can hold a time (or all day), client/brand, talent, location or meeting link, notes, status (Scheduled / Done / Cancelled), who it's assigned to, and which side it belongs to (Mode Society or ModeSociety Tech). **All / Mine** filters to your own, and **Add to Google Calendar** copies an appointment into anyone's calendar.
+- **Roster (Tech):** add, edit, reorder, feature or hide the creators on ModeSociety Tech, with a photo, @, type, niche, region, each channel's link and follower count (e.g. `84K`) and an optional quote. Below the list are the *For brands* key numbers (combined total views, campaigns delivered). Stored in the *Tech Roster* tab, which can be edited in the Sheet too.
+- **Enquiries:** every talent application, brand call booking, partnership enquiry and Tech brand/creator enquiry, read straight from the Google Sheet, newest first, with search, a status filter and a *new* count for each type. Open one to read every answer, see a talent's engagement screenshots (shown only to signed-in admins; the files stay private in Drive), email them, or change its status (New / Reviewing / Contacted / Signed / Booked / Declined), which is saved back to the Sheet.
 - **Insights:** site traffic for the last 7, 30 or 90 days, each compared with the period before:
   - **Organic search visits** (visits from Google, Bing and other search engines without ads), visitors, visits, page views and enquiries as a share of visits.
   - A daily chart of visits by source (organic search, social, direct, referral, campaign/ads), with a hover breakdown and a table view.
@@ -71,6 +90,8 @@ Sign in with Google. Only approved accounts get in.
 | **Services** | Photos and videos for the pinwheel on the Services page. |
 | **Our Work** | Campaign photos and videos for the Our work page. The file name becomes the caption, e.g. `03-Teddi Lab — UGC.jpg` shows as *003 — Teddi Lab — UGC* (the `03-` only sets the order). |
 | **Featured In** | Logos of publications Mode Society has been featured in. |
+| **Tech Brands** | ModeSociety Tech: logos of brands Tech creators have worked with. |
+| **Tech Video** | ModeSociety Tech: the brand intro video (MP4) on *For brands*. |
 
 Files show in name order, so prefix them `01-`, `02-` and so on to control the order. Media in these folders is set to "anyone with the link can view" so the site can display it.
 
@@ -83,6 +104,9 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | **Partnerships** | B2B partnership enquiries. |
 | **Schedule** | The team calendar (admin panel → Schedule). It can be edited in the Sheet too: keep the *ID* column. |
 | **Visits** | One row per page view (time, page, source, referring site, campaign, anonymous session/visitor ids, device, country). Rows older than ~13 months are removed automatically. |
+| **Tech Brand Enquiries** | ModeSociety Tech brand enquiries: category, formats, the campaign, budget and timeline, with a **Status** dropdown. Blue header and tab. |
+| **Tech Creator Applications** | ModeSociety Tech creator applications: handle, what they're applying as, channels with follower counts, niche, region and the 18+ confirmation. |
+| **Tech Roster** | The ModeSociety Tech roster (admin panel → Roster). One row per creator, with a link and follower column pair per platform. Keep the *ID* column. |
 | **Images**, **Settings**, **Admins** | Written by the admin panel. |
 
 ---
@@ -106,7 +130,7 @@ Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_
 
 ### 2. Deploy the backend (Google Apps Script)
 
-> **Updating an existing backend?** Paste the new `Code.gs`, run `setup` again (it adds any missing tabs and folders, such as *Schedule*, *Visits*, *Our Work* and *Featured In*, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
+> **Updating an existing backend?** Paste the new `Code.gs`, run `setup` again (it adds any missing tabs, folders and columns, such as the *Tech* tabs, the *Tech Brands* and *Tech Video* folders and the Schedule's *Side* column, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
 
 Do this **signed in as the owner of that Drive**.
 
@@ -247,7 +271,9 @@ src/components/home/wall/engines.ts   The four hero modes
 src/components/services/              The Services page showcase (pinwheel + animated steps)
 src/components/work/, press/          Our work gallery/teaser and Featured in (press logos + articles)
 src/components/site/Editorial.tsx     Editorial pieces: section rules, red marker strokes, fit-to-width type
-src/components/admin/                 Admin panel (Schedule, Insights, Images, Animations, Access)
+src/components/admin/                 Admin panel (Schedule, Enquiries, Insights, Images, Roster, Animations, Access)
+src/app/tech/, src/components/tech/   ModeSociety Tech (/tech): pages, Glass theme pieces, glass m, roster, forms
+src/lib/tech.ts         All the ModeSociety Tech wording, roster types and form options
 src/components/site/Tracker.tsx       Anonymous page-view tracking (→ /api/track → Visits tab)
 src/app/(site)/…        Public pages
 src/app/admin/          Admin panel
@@ -259,5 +285,5 @@ src/app/media/[id]      Serves Drive images through the site (nothing in Drive i
 - Uploaded images are resized in the browser (max 2400 px) to keep uploads fast and under the host's 4.5 MB request limit. Transparent PNGs, such as logos, stay transparent.
 - Site content is cached for 10 minutes and refreshed immediately whenever an admin saves.
 - Built-in images come from *MS Edits/Website Assets* (optimised into `public/assets`), and the logo is vectorised from `Logo.PNG` (`public/brand/logo.svg`). Anything put in the Drive folders replaces them. Videos over ~7 MB weren't bundled; add them to Drive *Home Page 2* instead.
-- Still to supply (marked `TODO` in `src/lib/content.ts` and `src/lib/forms.ts`): the LinkedIn URL (the icon stays hidden until it's set), real infographic figures, the final budget and timeline options, the full AI "Where we draw the line" text, and the talent-agreement wording for *Flexible representation*. "For Tech companies" currently opens the partnership form.
+- Still to supply (marked `TODO` in `src/lib/content.ts` and `src/lib/forms.ts`): the LinkedIn URL (the icon stays hidden until it's set), real infographic figures, the final budget and timeline options, the full AI "Where we draw the line" text, and the talent-agreement wording for *Flexible representation*. For ModeSociety Tech, see the placeholders note under *ModeSociety Tech*.
 - Forms have a hidden honeypot field and basic rate limiting against spam.

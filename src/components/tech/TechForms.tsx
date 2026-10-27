@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import StepForm, { Chips, Field, isEmail } from "@/components/forms/StepForm";
 import { postJson } from "@/lib/upload";
@@ -282,10 +282,8 @@ function CreatorForm() {
 }
 
 /** Contact page: "I'm a brand" / "I'm a creator", each opening its form. ?as=brand|creator preselects. */
-export default function TechForms() {
-  const params = useSearchParams();
+export default function TechForms({ initial = "brand" }: { initial?: Kind }) {
   const router = useRouter();
-  const initial: Kind = params.get("as") === "creator" ? "creator" : "brand";
   const [kind, setKind] = useState<Kind>(initial);
   const choose = (k: Kind) => {
     setKind(k);

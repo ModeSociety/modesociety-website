@@ -41,8 +41,13 @@ export default function GlassM({ className = "" }: { className?: string }) {
     };
     addEventListener("pointermove", onMove, { passive: true });
     addEventListener("deviceorientation", onTilt);
-    raf = requestAnimationFrame(tick);
+    // start after the page has loaded, so the first paint isn't competing with the loop
+    const start = () => (raf = requestAnimationFrame(tick));
+    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    const timer = idle ? idle(start, { timeout: 1500 }) : window.setTimeout(start, 600);
     return () => {
+      if (idle) (window as unknown as { cancelIdleCallback: (h: number) => void }).cancelIdleCallback(timer);
+      else clearTimeout(timer);
       cancelAnimationFrame(raf);
       removeEventListener("pointermove", onMove);
       removeEventListener("deviceorientation", onTilt);

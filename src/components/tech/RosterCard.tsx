@@ -10,7 +10,17 @@ import { SampleTag } from "./ui";
  * One creator: photo, name and @, type and niche, total followers and each channel
  * (linked when there's a URL). Tilts toward the cursor with a glare.
  */
-export default function RosterCard({ m, sample = false, compactLayout = false }: { m: RosterMember; sample?: boolean; compactLayout?: boolean }) {
+export default function RosterCard({
+  m,
+  sample = false,
+  compactLayout = false,
+  heading: H = "h3",
+}: {
+  m: RosterMember;
+  sample?: boolean;
+  compactLayout?: boolean;
+  heading?: "h2" | "h3";
+}) {
   const ref = useRef<HTMLElement>(null);
   const total = totalFollowers(m);
   const channels = PLATFORMS.filter((p) => m.platforms[p.id]);
@@ -66,7 +76,7 @@ export default function RosterCard({ m, sample = false, compactLayout = false }:
           {m.type}
           {m.region ? ` · ${m.region}` : ""}
         </p>
-        <h3 className="tech-display mt-1 text-[30px] text-white">{m.name}</h3>
+        <H className="tech-display mt-1 text-[30px] text-white">{m.name}</H>
         {m.handle && <p className="tech-mono text-[12px] text-[#89b2fd]">@{m.handle}</p>}
         {m.niche && !compactLayout && <p className="mt-2 text-[14px] text-[#aab2c0]">{m.niche}</p>}
         {channels.length > 0 && (

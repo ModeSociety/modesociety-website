@@ -18,7 +18,7 @@ export default function TechHero() {
       gsap
         .timeline({ delay: 0.1 })
         .from(".h-letter", { yPercent: 110, duration: 1.1, ease: "expo.out", stagger: 0.03 })
-        .from(".h-fade", { y: 18, opacity: 0, duration: 0.9, ease: "expo.out", stagger: 0.08 }, "-=0.8")
+        .from(".h-fade", { y: 18, duration: 0.9, ease: "expo.out", stagger: 0.08 }, "-=0.8")
         .from(".h-stage", { opacity: 0, scale: 0.94, duration: 1.4, ease: "expo.out" }, 0.2);
     },
     { scope: ref },

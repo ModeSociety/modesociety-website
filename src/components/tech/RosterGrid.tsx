@@ -57,7 +57,7 @@ export default function RosterGrid({ members, sample }: { members: RosterMember[
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {list.map((m) => (
             <li key={m.id}>
-              <RosterCard m={m} sample={sample} />
+              <RosterCard m={m} sample={sample} heading="h2" />
             </li>
           ))}
         </ul>

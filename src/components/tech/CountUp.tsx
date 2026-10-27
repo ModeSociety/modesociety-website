@@ -41,7 +41,8 @@ export default function CountUp({ value, className = "" }: { value: number | str
   }, [value, numeric]);
 
   return (
-    <span ref={ref} className={`tabular-nums ${className}`} aria-label={final}>
+    <span ref={ref} className={`tabular-nums ${className}`}>
+      <span className="sr-only">{final}</span>
       <span aria-hidden>{text}</span>
     </span>
   );

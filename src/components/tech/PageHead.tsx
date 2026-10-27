@@ -13,7 +13,7 @@ export default function PageHead({ eyebrow, title, lead, ghost, children }: { ey
       gsap
         .timeline()
         .from(".ph-letter", { yPercent: 110, duration: 1, ease: "expo.out", stagger: 0.025 })
-        .from(".ph-fade", { y: 16, opacity: 0, duration: 0.8, ease: "expo.out", stagger: 0.08 }, "-=0.7")
+        .from(".ph-fade", { y: 16, duration: 0.8, ease: "expo.out", stagger: 0.08 }, "-=0.7")
         .from(".ph-ghost", { opacity: 0, y: 40, duration: 1.6, ease: "expo.out" }, 0);
     },
     { scope: ref },

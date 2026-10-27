@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       notes: clean(raw?.notes, 2000),
       status: cleanList([raw?.status], APPOINTMENT_STATUSES)[0] || "Scheduled",
       assignee: clean(raw?.assignee, 200).toLowerCase(),
+      side: raw?.side === "tech" ? ("tech" as const) : ("talent" as const),
     };
     if (!item.title) throw new HttpError(400, "Give the appointment a title");
     if (!DATE_RE.test(item.date)) throw new HttpError(400, "Pick a date");

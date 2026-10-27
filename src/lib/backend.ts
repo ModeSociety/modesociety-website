@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import type { RosterMember } from "./tech";
 import {
   CTA_STYLES,
   DEFAULT_SETTINGS,
@@ -58,6 +59,7 @@ type RawSite = {
   /** media folder path → files, e.g. "Home Page 2" → videos */
   folders?: Record<string, FolderFile[]>;
   logoSvg?: string;
+  roster?: RosterMember[];
 };
 
 function fromFolder(files: FolderFile[] = [], accept: SlotDef["accept"], alt: string): SiteImage[] {
@@ -112,6 +114,8 @@ export function buildContent(raw: RawSite | null): SiteContent {
   return {
     settings: parseSettings(raw?.settings),
     images,
+    roster: (raw?.roster ?? []).map((m) => ({ ...m, photo: m.photo ? mediaUrl(m.photo) : "" })),
+    techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },
     logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),
     connected: Boolean(raw),
   };

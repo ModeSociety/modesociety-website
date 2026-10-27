@@ -21,7 +21,7 @@ const DB = join(DIR, "db.json");
 const MEDIA = join(DIR, "folders");
 const MEDIA_FOLDERS = [
   "Home Page 1", "Home Page 2", "Home Page 3", "About Us 1", "Instagram",
-  "Services", "Our Work", "Featured In",
+  "Services", "Our Work", "Featured In", "Tech Brands", "Tech Video",
 ];
 const STATUSES = ["New", "Reviewing", "Contacted", "Signed / Booked", "Declined"];
 /** Same columns as the Sheet tabs in Code.gs, so the admin panel parses both the same way. */
@@ -40,6 +40,19 @@ const ENQUIRY_COLUMNS = {
     headers: ["Submitted At", "Status", "Brand Name", "Website / Instagram", "Your Name", "Email", "Services",
       "About The Project", "Budget", "Timeline", "Notes", "Reference"],
     row: (r) => [r.at, r.status || "New", r.brand, r.website, r.name, r.email, (r.services || []).join(", "), r.project, r.budget, r.timeline, r.notes, r.reference],
+  },
+  techBrands: {
+    store: "techBrands",
+    headers: ["Submitted At", "Status", "Brand Name", "Website", "Your Name", "Email", "Category", "Formats",
+      "About The Campaign", "Budget", "Timeline", "Reference"],
+    row: (r) => [r.at, r.status || "New", r.brand, r.website, r.name, r.email, (r.categories || []).join(", "), (r.formats || []).join(", "), r.about, r.budget, r.timeline, r.reference],
+  },
+  techCreators: {
+    store: "techCreators",
+    headers: ["Submitted At", "Status", "Full Name", "Handle", "Email", "Applying As", "Channels (platform · handle · followers)",
+      "Games / Niche", "Region", "18+", "Anything Else", "Reference"],
+    row: (r) => [r.at, r.status || "New", r.name, r.handle, r.email, r.as,
+      (r.channels || []).map((c) => `${c.platform}: ${c.handle} · ${c.followers}`).join("\n"), r.niche, r.region, r.adult ? "Yes" : "No", r.notes, r.reference],
   },
   partners: {
     store: "partners",
@@ -95,7 +108,8 @@ const actions = {
       : svg
         ? readFileSync(join(MEDIA, "Home Page 1", svg.name), "utf8")
         : "";
-    return { settings: db.settings, images: db.images, folders, logoSvg };
+    const roster = [...(db.roster || [])].filter((m) => m.visible).sort((a, b) => a.order - b.order);
+    return { settings: db.settings, images: db.images, folders, logoSvg, roster };
   },
   getInfo: () => ({
     spreadsheetUrl: "https://docs.google.com/spreadsheets/d/mock",
@@ -176,6 +190,36 @@ const actions = {
     if (!meta || meta.folder !== "talent") throw new Error("not found");
     return { mimeType: meta.mimeType, name: p.fileId, data: readFileSync(join(FILES, p.fileId)).toString("base64") };
   },
+  submitTechBrand: (db, p) => {
+    const reference = ref("TB");
+    (db.techBrands ||= []).push({ at: new Date().toISOString(), reference, ...p.fields });
+    return { reference };
+  },
+  submitTechCreator: (db, p) => {
+    const reference = ref("TC");
+    (db.techCreators ||= []).push({ at: new Date().toISOString(), reference, ...p.fields });
+    return { reference };
+  },
+  listRoster: (db) => ({ items: [...(db.roster || [])].sort((a, b) => a.order - b.order) }),
+  saveRosterMember: (db, p) => {
+    const list = (db.roster ||= []);
+    const item = { ...p.item };
+    const i = item.id ? list.findIndex((m) => m.id === item.id) : -1;
+    if (i >= 0) list[i] = { ...list[i], ...item };
+    else list.push({ ...item, id: randomUUID().slice(0, 8), order: item.order || list.length + 1 });
+    return { item: i >= 0 ? list[i] : list.at(-1) };
+  },
+  deleteRosterMember: (db, p) => {
+    db.roster = (db.roster || []).filter((m) => m.id !== p.id);
+    return { ok: true };
+  },
+  setRosterOrder: (db, p) => {
+    (p.ids || []).forEach((id, i) => {
+      const m = (db.roster || []).find((x) => x.id === id);
+      if (m) m.order = i + 1;
+    });
+    return { ok: true };
+  },
   listAppointments: (db, p) => ({
     items: (db.schedule ||= [])
       .filter((a) => a.date >= (p.from || "0") && a.date <= (p.to || "9"))
@@ -183,7 +227,7 @@ const actions = {
   }),
   saveAppointment: (db, p) => {
     const list = (db.schedule ||= []);
-    const item = { ...p.item };
+    const item = { ...p.item, side: p.item?.side === "tech" ? "tech" : "talent" };
     const i = item.id ? list.findIndex((a) => a.id === item.id) : -1;
     if (i >= 0) list[i] = { ...list[i], ...item };
     else list.push({ ...item, id: randomUUID().slice(0, 8), createdBy: p.by });
@@ -197,18 +241,19 @@ const actions = {
     (db.visits ||= []).push({ ...p, date: day(new Date()) });
     return { ok: true };
   },
-  getStats: (db, p) => stats(db, Number(p.days) || 30),
+  getStats: (db, p) => stats(db, Number(p.days) || 30, p.side === "tech" || p.side === "talent" ? p.side : "all"),
 };
 
 const day = (d) => d.toISOString().slice(0, 10);
 
 /** Same shape as getStats in google-apps-script/Code.gs. */
-function stats(db, days) {
+function stats(db, days, side = "all") {
   const now = Date.now();
   const from = day(new Date(now - (days - 1) * 864e5));
   const prevFrom = day(new Date(now - (2 * days - 1) * 864e5));
   const to = day(new Date(now));
-  const visits = db.visits || [];
+  const isTech = (path) => /^\/tech(\/|$)/.test(String(path));
+  const visits = (db.visits || []).filter((v) => side === "all" || (side === "tech") === isTech(v.path));
   const summarise = (rows) => {
     const sessions = new Map();
     for (const v of rows) if (!sessions.has(v.session)) sessions.set(v.session, v);
@@ -235,7 +280,7 @@ function stats(db, days) {
     return o;
   });
   const forms = (k, a, b, excl) => (db[k] || []).filter((x) => x.at.slice(0, 10) >= a && (excl ? x.at.slice(0, 10) < b : x.at.slice(0, 10) <= b)).length;
-  const sched = (db.schedule || []).filter((a) => a.status !== "Cancelled");
+  const sched = (db.schedule || []).filter((a) => a.status !== "Cancelled" && (side === "all" || (a.side || "talent") === side));
   return {
     range: { from, to, days },
     totals: cur.totals,
@@ -246,8 +291,10 @@ function stats(db, days) {
     referrers: top(count(ss.filter((s) => s.referrer), (s) => s.referrer), 8),
     devices: count(ss, (s) => s.device || "desktop"),
     countries: top(count(ss.filter((s) => s.country), (s) => s.country), 8),
+    side,
     forms: {
       talent: forms("talent", from, to), bookings: forms("bookings", from, to), partners: forms("partners", from, to),
+      techBrands: forms("techBrands", from, to), techCreators: forms("techCreators", from, to),
       previous: { talent: forms("talent", prevFrom, from, true), bookings: forms("bookings", prevFrom, from, true), partners: forms("partners", prevFrom, from, true) },
     },
     schedule: { upcoming: sched.filter((a) => a.date >= to).length, thisPeriod: sched.filter((a) => a.date >= from && a.date <= to).length },

@@ -15,7 +15,7 @@ import {
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function blank(date: string, assignee: string): Appointment {
-  return { id: "", title: "", type: "Call", date, start: "10:00", end: "11:00", client: "", talent: "", location: "", notes: "", status: "Scheduled", assignee };
+  return { id: "", title: "", type: "Call", date, start: "10:00", end: "11:00", client: "", talent: "", location: "", notes: "", status: "Scheduled", assignee, side: "talent" };
 }
 
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);

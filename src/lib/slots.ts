@@ -1,3 +1,5 @@
+import type { RosterMember } from "./tech";
+
 /**
  * Every image on the public site is a "slot". The admin panel is generated from
  * this list, and each slot falls back to its defaults until something is uploaded.
@@ -21,6 +23,10 @@ export type SlotDef = {
   knockout?: boolean;
   /** uploads are added after the Drive folder / built-in images instead of replacing them */
   additive?: boolean;
+  /** which side of Mode Society it belongs to (default: talent) */
+  side?: "talent" | "tech";
+  /** not listed in the Images tab (managed elsewhere, e.g. roster photos) */
+  hidden?: boolean;
   defaults: { src: string; alt: string; type?: "image" | "video" }[];
 };
 
@@ -151,6 +157,44 @@ export const SLOTS: SlotDef[] = [
     knockout: true,
     defaults: [],
   },
+  // ---- ModeSociety Tech (/tech) ----
+  {
+    id: "tech.clients",
+    label: "Tech — brands our creators have worked with",
+    page: "Tech",
+    side: "tech",
+    hint: "Logos for the ModeSociety Tech home page. Until there's at least one, the section says the space is open. Drive folder: \"Tech Brands\". White backgrounds are removed automatically.",
+    kind: "collection",
+    max: 60,
+    accept: "image",
+    folder: "Tech Brands",
+    knockout: true,
+    additive: true,
+    defaults: [],
+  },
+  {
+    id: "tech.intro",
+    label: "Tech — intro video for brands",
+    page: "Tech",
+    side: "tech",
+    hint: "The short ModeSociety Tech introduction on the For brands page (MP4, landscape). Drop it in the Drive folder \"Tech Video\" (too large to upload here). A photo works as a placeholder.",
+    kind: "single",
+    accept: "media",
+    folder: "Tech Video",
+    defaults: [],
+  },
+  {
+    id: "tech.roster",
+    label: "Tech — roster photos",
+    page: "Tech",
+    side: "tech",
+    hint: "Managed from the Roster tab, one photo per creator.",
+    kind: "collection",
+    max: 200,
+    accept: "image",
+    hidden: true,
+    defaults: [],
+  },
   { id: "contact.brands", label: "For brands panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: asset("instagram", 4), alt: "For brands" }] },
   { id: "contact.talent", label: "For talent panel", page: "Home", hint: "Used by the Split, Tilt and Blinds styles of the \"Let's work together\" section.", kind: "single", accept: "image", defaults: [{ src: asset("hero", 3), alt: "For talent" }] },
   { id: "meta.share", label: "Social share image", page: "Link previews", hint: "Shown when the site is shared on socials/iMessage. Landscape 1200×630.", kind: "single", accept: "image", defaults: [] },
@@ -221,6 +265,10 @@ export type SiteImage = {
 export type SiteContent = {
   settings: SiteSettings;
   images: Record<string, SiteImage[]>;
+  /** ModeSociety Tech: visible roster members, in display order */
+  roster: RosterMember[];
+  /** ModeSociety Tech key numbers set in the admin panel ("" = not set) */
+  techStats: { views: string; campaigns: string };
   /** sanitised logo SVG markup (fills set to currentColor), or "" for the text wordmark */
   logoSvg: string;
   connected: boolean;

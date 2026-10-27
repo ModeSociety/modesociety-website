@@ -23,6 +23,8 @@ export type Appointment = {
   /** admin email, or "" for unassigned */
   assignee: string;
   createdBy?: string;
+  /** which side it belongs to (older appointments are "talent") */
+  side: "talent" | "tech";
 };
 
 /**

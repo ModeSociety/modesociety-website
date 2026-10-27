@@ -53,7 +53,15 @@ export type Stats = {
   referrers: { key: string; value: number }[];
   devices: Record<string, number>;
   countries: { key: string; value: number }[];
-  forms: { talent: number; bookings: number; partners: number; previous: { talent: number; bookings: number; partners: number } };
+  side?: "all" | "talent" | "tech";
+  forms: {
+    talent: number;
+    bookings: number;
+    partners: number;
+    techBrands?: number;
+    techCreators?: number;
+    previous: { talent: number; bookings: number; partners: number; techBrands?: number; techCreators?: number };
+  };
   schedule: { upcoming: number; thisPeriod: number };
 };
 

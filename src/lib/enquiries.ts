@@ -1,11 +1,13 @@
 /** Form submissions as the admin panel shows them (read back from the Sheet's form tabs). */
 
-export type EnquiryKind = "talent" | "brands" | "partners";
+export type EnquiryKind = "talent" | "brands" | "partners" | "techBrands" | "techCreators";
 
-export const ENQUIRY_KINDS: { id: EnquiryKind; label: string; tab: string }[] = [
-  { id: "talent", label: "Talent", tab: "Talent" },
-  { id: "brands", label: "Brand calls", tab: "Book a Call" },
-  { id: "partners", label: "Partnerships", tab: "Partnerships" },
+export const ENQUIRY_KINDS: { id: EnquiryKind; label: string; tab: string; side: "talent" | "tech" }[] = [
+  { id: "talent", label: "Talent", tab: "Talent", side: "talent" },
+  { id: "brands", label: "Brand calls", tab: "Book a Call", side: "talent" },
+  { id: "partners", label: "Partnerships", tab: "Partnerships", side: "talent" },
+  { id: "techBrands", label: "Tech brands", tab: "Tech Brand Enquiries", side: "tech" },
+  { id: "techCreators", label: "Tech creators", tab: "Tech Creator Applications", side: "tech" },
 ];
 
 export const ENQUIRY_STATUSES = ["New", "Reviewing", "Contacted", "Signed / Booked", "Declined"] as const;
@@ -34,6 +36,8 @@ const TITLE: Record<EnquiryKind, [string, string]> = {
   talent: ["Full Name", "What They Do"],
   brands: ["Brand Name", "Your Name"],
   partners: ["Business Name", "Your Name"],
+  techBrands: ["Brand Name", "Your Name"],
+  techCreators: ["Full Name", "Applying As"],
 };
 
 /** Maps Sheet rows to enquiries by column name, so reordering columns in the Sheet doesn't break it. */

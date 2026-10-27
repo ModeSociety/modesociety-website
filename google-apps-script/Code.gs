@@ -34,16 +34,39 @@ var TABS = {
   schedule: {
     name: 'Schedule',
     headers: ['ID', 'Title', 'Type', 'Date', 'Start', 'End', 'Client / Brand', 'Talent', 'Location / Link', 'Notes',
-      'Status', 'Assigned To', 'Created By', 'Updated At'],
+      'Status', 'Assigned To', 'Created By', 'Updated At', 'Side'],
   },
   visits: {
     name: 'Visits',
     headers: ['Time', 'Date', 'Path', 'Source', 'Referrer', 'Campaign', 'Session', 'Visitor', 'New Visitor', 'Device', 'Country'],
   },
+  // ---- ModeSociety Tech (gaming & tech side, /tech) ----
+  techBrands: {
+    name: 'Tech Brand Enquiries',
+    headers: ['Submitted At', 'Status', 'Brand Name', 'Website', 'Your Name', 'Email', 'Category', 'Formats',
+      'About The Campaign', 'Budget', 'Timeline', 'Reference'],
+  },
+  techCreators: {
+    name: 'Tech Creator Applications',
+    headers: ['Submitted At', 'Status', 'Full Name', 'Handle', 'Email', 'Applying As', 'Channels (platform · handle · followers)',
+      'Games / Niche', 'Region', '18+', 'Anything Else', 'Reference'],
+  },
+  roster: {
+    name: 'Tech Roster',
+    headers: ['ID', 'Order', 'Name', 'Handle', 'Type', 'Niche', 'Region', 'Quote', 'Featured', 'Visible', 'Photo File ID']
+      .concat(['Twitch', 'YouTube', 'TikTok', 'Instagram', 'X', 'Kick'].reduce(function (a, n) { return a.concat([n + ' URL', n + ' Followers']); }, []))
+      .concat(['Updated At', 'Updated By']),
+  },
 };
+
+/** Roster platforms, in Sheet column order (keep in sync with src/lib/tech.ts). */
+var ROSTER_PLATFORMS = ['twitch', 'youtube', 'tiktok', 'instagram', 'x', 'kick'];
+var ROSTER_FIELDS = ['id', 'order', 'name', 'handle', 'type', 'niche', 'region', 'quote', 'featured', 'visible', 'photo'];
 
 /** Schedule columns, in sheet order (keep in sync with TABS.schedule.headers). */
 var SCHEDULE_FIELDS = ['id', 'title', 'type', 'date', 'start', 'end', 'client', 'talent', 'location', 'notes', 'status', 'assignee'];
+/** Column 15 of Schedule: which side an appointment belongs to ('talent' | 'tech'; blank = talent). */
+var SCHEDULE_SIDE_COL = 15;
 var VISITS_KEEP_DAYS = 400;
 
 var FOLDERS = {
@@ -65,12 +88,14 @@ var MEDIA_FOLDERS = [
   'Services',
   'Our Work',
   'Featured In',
+  'Tech Brands',
+  'Tech Video',
 ];
 
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
 
 /** The form tabs the admin panel reads back (panel name → TABS key). */
-var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', partners: 'partners' };
+var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', partners: 'partners', techBrands: 'techBrands', techCreators: 'techCreators' };
 
 var DEFAULT_SETTINGS = {
   heroMode: 'gravity',
@@ -112,12 +137,19 @@ function setup() {
   Object.keys(TABS).forEach(function (key) {
     var def = TABS[key];
     var sheet = ss.getSheetByName(def.name) || ss.insertSheet(def.name);
+    var tech = /^Tech /.test(def.name);
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(def.headers);
-      sheet.getRange(1, 1, 1, def.headers.length).setFontWeight('bold').setBackground('#7f090d').setFontColor('#ffffff');
+      sheet.getRange(1, 1, 1, def.headers.length).setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
       sheet.setFrozenRows(1);
+      if (tech) sheet.setTabColor('#3e5ef1');
+    } else if (sheet.getLastColumn() < def.headers.length) {
+      // a newer version added columns at the end (e.g. Schedule → Side): add their headers
+      var have = sheet.getLastColumn();
+      sheet.getRange(1, have + 1, 1, def.headers.length - have).setValues([def.headers.slice(have)])
+        .setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
     }
-    if (key === 'talent' || key === 'bookings' || key === 'partners') {
+    if (key === 'talent' || key === 'bookings' || key === 'partners' || key === 'techBrands' || key === 'techCreators') {
       var rule = SpreadsheetApp.newDataValidation().requireValueInList(STATUSES, true).build();
       sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
     }
@@ -191,7 +223,10 @@ var ACTIONS = {
     // An SVG uploaded to the logo slot in the admin panel wins over the one in "Home Page 1".
     var uploadedLogo = images.filter(function (r) { return r.slot === 'brand.logo'; })[0];
     var logoSvg = uploadedLogo ? svgText_(uploadedLogo.fileId) : '';
-    return { settings: readSettings_(), images: images, folders: folders, logoSvg: logoSvg || findLogoSvg_(folders['Home Page 1']) };
+    return {
+      settings: readSettings_(), images: images, folders: folders, logoSvg: logoSvg || findLogoSvg_(folders['Home Page 1']),
+      roster: readRoster_().filter(function (m) { return m.visible; }),
+    };
   },
 
   getInfo: function () {
@@ -331,6 +366,84 @@ var ACTIONS = {
     return { reference: ref };
   },
 
+  submitTechBrand: function (p) {
+    var f = p.fields || {};
+    var ref = reference_('TB');
+    withLock_(function () {
+      sheet_('techBrands').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.categories || []).join(', '),
+        (f.formats || []).join(', '), f.about, f.budget, f.timeline, ref]);
+    });
+    return { reference: ref };
+  },
+
+  submitTechCreator: function (p) {
+    var f = p.fields || {};
+    var ref = reference_('TC');
+    var channels = (f.channels || []).map(function (c) { return c.platform + ': ' + c.handle + ' · ' + c.followers; });
+    withLock_(function () {
+      sheet_('techCreators').appendRow([new Date(), 'New', f.name, f.handle, f.email, f.as, channels.join('\n'), f.niche,
+        f.region, f.adult ? 'Yes' : 'No', f.notes, ref]);
+    });
+    return { reference: ref };
+  },
+
+  // ---- Tech roster (admin panel → Roster; also editable in the Sheet) ----
+
+  listRoster: function () {
+    return { items: readRoster_() };
+  },
+
+  /** Creates (no id) or updates a roster member. */
+  saveRosterMember: function (p) {
+    var m = p.item || {};
+    return withLock_(function () {
+      var sheet = sheet_('roster');
+      var values = sheet.getDataRange().getValues();
+      var row = -1;
+      if (m.id) for (var i = 1; i < values.length; i++) if (String(values[i][0]) === m.id) row = i + 1;
+      if (!m.id || row < 0) {
+        m.id = Utilities.getUuid().slice(0, 8);
+        if (!m.order) m.order = values.length; // new members go to the end
+      }
+      var cells = ROSTER_FIELDS.map(function (k) {
+        var v = m[k];
+        return k === 'featured' || k === 'visible' ? (v ? 'Yes' : 'No') : v == null ? '' : v;
+      });
+      ROSTER_PLATFORMS.forEach(function (k) {
+        var pl = (m.platforms || {})[k] || {};
+        cells.push(pl.url || '', pl.followers || '');
+      });
+      cells.push(new Date(), p.by || '');
+      if (row > 0) sheet.getRange(row, 1, 1, cells.length).setValues([cells]);
+      else sheet.appendRow(cells);
+      return { item: m };
+    });
+  },
+
+  deleteRosterMember: function (p) {
+    return withLock_(function () {
+      var sheet = sheet_('roster');
+      var values = sheet.getDataRange().getValues();
+      for (var i = values.length - 1; i >= 1; i--) if (String(values[i][0]) === String(p.id)) sheet.deleteRow(i + 1);
+      return { ok: true };
+    });
+  },
+
+  /** Saves the display order: `ids` top to bottom. */
+  setRosterOrder: function (p) {
+    return withLock_(function () {
+      var sheet = sheet_('roster');
+      var values = sheet.getDataRange().getValues();
+      var pos = {};
+      (p.ids || []).forEach(function (id, i) { pos[id] = i + 1; });
+      for (var i = 1; i < values.length; i++) {
+        var id = String(values[i][0]);
+        if (pos[id]) sheet.getRange(i + 1, 2).setValue(pos[id]);
+      }
+      return { ok: true };
+    });
+  },
+
   // ---- enquiries: the form tabs, read back for the admin panel -------------
 
   /** Every row of the three form tabs, newest first, as header + text cells. */
@@ -393,11 +506,12 @@ var ACTIONS = {
       if (item.id) for (var i = 1; i < values.length; i++) if (String(values[i][0]) === item.id) row = i + 1;
       if (!item.id || row < 0) item.id = Utilities.getUuid().slice(0, 8);
       var cells = SCHEDULE_FIELDS.map(function (k) { return item[k] || ''; });
+      var side = item.side === 'tech' ? 'tech' : 'talent';
       if (row > 0) {
-        cells.push(values[row - 1][12] || p.by || '', new Date());
+        cells.push(values[row - 1][12] || p.by || '', new Date(), side);
         sheet.getRange(row, 1, 1, cells.length).setValues([cells]);
       } else {
-        cells.push(p.by || '', new Date());
+        cells.push(p.by || '', new Date(), side);
         sheet.appendRow(cells);
       }
       return { item: item };
@@ -426,6 +540,12 @@ var ACTIONS = {
   /** Traffic and business numbers for the last `days` days, plus the period before for comparison. */
   getStats: function (p) {
     var days = Math.min(Math.max(Number(p.days) || 30, 1), 365);
+    var side = p.side === 'tech' || p.side === 'talent' ? p.side : 'all';
+    var onSide = function (path) {
+      if (side === 'all') return true;
+      var tech = /^\/tech(\/|$)/.test(String(path));
+      return side === 'tech' ? tech : !tech;
+    };
     var today = new Date();
     var from = dayString_(new Date(today.getTime() - (days - 1) * 864e5));
     var prevFrom = dayString_(new Date(today.getTime() - (2 * days - 1) * 864e5));
@@ -443,6 +563,7 @@ var ACTIONS = {
       var r = rows[i];
       var day = asDay_(r[1]);
       if (day < prevFrom) break; // rows are in time order
+      if (!onSide(r[2])) continue;
       var inCur = day >= from;
       var t = inCur ? cur : prev;
       var session = String(r[6]);
@@ -469,7 +590,7 @@ var ACTIONS = {
     var prevOrganic = 0;
     Object.keys(prev.sessions).forEach(function (k) { if (prev.sessions[k] === 'organic') prevOrganic++; });
 
-    var schedule = readSchedule_();
+    var schedule = readSchedule_().filter(function (a) { return side === 'all' || a.side === side; });
     return {
       range: { from: from, to: to, days: days },
       totals: summary_(cur, cur.sources.organic || 0),
@@ -480,8 +601,10 @@ var ACTIONS = {
       referrers: top_(cur.referrers, 8),
       devices: cur.devices,
       countries: top_(cur.countries, 8),
+      side: side,
       forms: {
         talent: countSince_('talent', from, to), bookings: countSince_('bookings', from, to), partners: countSince_('partners', from, to),
+        techBrands: countSince_('techBrands', from, to), techCreators: countSince_('techCreators', from, to),
         previous: {
           talent: countSince_('talent', prevFrom, from, true), bookings: countSince_('bookings', prevFrom, from, true),
           partners: countSince_('partners', prevFrom, from, true),
@@ -495,16 +618,41 @@ var ACTIONS = {
   },
 };
 
+function readRoster_() {
+  var sheet = sheet_('roster');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var width = ROSTER_FIELDS.length + ROSTER_PLATFORMS.length * 2;
+  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, width).getValues();
+  return values
+    .filter(function (r) { return r[0] && r[2]; })
+    .map(function (r) {
+      var o = {};
+      ROSTER_FIELDS.forEach(function (k, i) { o[k] = String(r[i]); });
+      o.order = Number(r[1]) || 999;
+      o.featured = /^(yes|true|1)$/i.test(String(r[8]));
+      o.visible = !/^(no|false|0)$/i.test(String(r[9]));
+      o.platforms = {};
+      ROSTER_PLATFORMS.forEach(function (k, j) {
+        var url = String(r[ROSTER_FIELDS.length + j * 2] || '').trim();
+        var followers = String(r[ROSTER_FIELDS.length + j * 2 + 1] || '').trim();
+        if (url || followers) o.platforms[k] = { url: url, followers: followers };
+      });
+      return o;
+    })
+    .sort(function (a, b) { return a.order - b.order; });
+}
+
 function readSchedule_() {
   var sheet = sheet_('schedule');
   if (!sheet || sheet.getLastRow() < 2) return [];
-  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, SCHEDULE_FIELDS.length + 2).getValues();
+  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, SCHEDULE_SIDE_COL).getValues();
   return values
     .filter(function (r) { return r[0]; })
     .map(function (r) {
       var o = {};
       SCHEDULE_FIELDS.forEach(function (k, i) { o[k] = r[i] instanceof Date ? (k === 'date' ? asDay_(r[i]) : timeString_(r[i])) : String(r[i]); });
       o.createdBy = String(r[12] || '');
+      o.side = String(r[SCHEDULE_SIDE_COL - 1] || '') === 'tech' ? 'tech' : 'talent';
       return o;
     })
     .sort(function (a, b) { return (a.date + a.start).localeCompare(b.date + b.start); });

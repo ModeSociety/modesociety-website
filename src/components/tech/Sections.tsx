@@ -13,7 +13,7 @@ export function Categories() {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {TECH_CATEGORIES.map((c, i) => (
-        <FadeUp key={c.title} delay={i * 0.06} className="t-panel group p-6">
+        <FadeUp key={c.title} delay={i * 0.06} className="t-panel t-foil group p-6">
           <div className="flex items-start justify-between gap-4">
             <h3 className="tech-mono text-[12px] uppercase leading-snug text-white">{c.title}</h3>
             <span className="text-[#89b2fd] transition-transform duration-500 group-hover:translate-x-1">→</span>
@@ -31,7 +31,7 @@ export function Formats() {
   return (
     <div className="grid gap-3 md:grid-cols-6">
       {/* campaigns: several creators, one brand goal */}
-      <FadeUp className="t-panel flex min-h-[300px] flex-col justify-between p-7 md:col-span-4">
+      <FadeUp className="t-panel t-foil flex min-h-[300px] flex-col justify-between p-7 md:col-span-4">
         <div aria-hidden className="relative h-28">
           <svg viewBox="0 0 600 110" className="h-full w-full" fill="none">
             <defs>
@@ -59,7 +59,7 @@ export function Formats() {
       </FadeUp>
 
       {/* UGC: three clips, the middle one playing */}
-      <FadeUp delay={0.05} className="t-panel flex min-h-[300px] flex-col justify-between p-7 md:col-span-2">
+      <FadeUp delay={0.05} className="t-panel t-foil flex min-h-[300px] flex-col justify-between p-7 md:col-span-2">
         <div aria-hidden className="flex h-28 items-end justify-center gap-2">
           <span className="h-20 w-12 rounded-[10px] bg-[#141824] shadow-[inset_0_0_0_1px_rgba(233,236,241,0.15)]" />
           <span className="t-float grid h-28 w-16 place-items-center rounded-[12px] bg-[linear-gradient(180deg,#4b6ff5,#1d3278)] shadow-[0_10px_30px_-10px_#4b6ff5]">
@@ -74,7 +74,7 @@ export function Formats() {
       </FadeUp>
 
       {/* streaming: a live signal */}
-      <FadeUp className="t-panel flex min-h-[280px] flex-col justify-between p-7 md:col-span-2">
+      <FadeUp className="t-panel t-foil flex min-h-[280px] flex-col justify-between p-7 md:col-span-2">
         <div aria-hidden className="relative grid h-28 place-items-center">
           {[0, 0.9, 1.8].map((d) => (
             <span key={d} className="t-ring absolute h-12 w-12 rounded-full border border-[#89b2fd]/60" style={{ animationDelay: `${d}s` }} />
@@ -91,7 +91,7 @@ export function Formats() {
       </FadeUp>
 
       {/* guest lists: a ticket */}
-      <FadeUp delay={0.05} className="t-panel flex min-h-[280px] flex-col justify-between p-7 md:col-span-2">
+      <FadeUp delay={0.05} className="t-panel t-foil flex min-h-[280px] flex-col justify-between p-7 md:col-span-2">
         <div aria-hidden className="flex h-28 items-center">
           <div className="relative flex h-16 w-full max-w-[280px] items-center justify-between rounded-[12px] bg-[#141824] px-5 shadow-[inset_0_0_0_1px_rgba(233,236,241,0.15)] transition-transform duration-500 hover:-rotate-2">
             <span className="tech-mono text-[11px] uppercase text-[#aab2c0]">Guest list</span>
@@ -107,7 +107,7 @@ export function Formats() {
       </FadeUp>
 
       {/* management: who we look after */}
-      <FadeUp delay={0.1} className="t-panel flex min-h-[280px] flex-col justify-between p-7 md:col-span-2">
+      <FadeUp delay={0.1} className="t-panel t-foil flex min-h-[280px] flex-col justify-between p-7 md:col-span-2">
         <p aria-hidden className="tech-display text-[26px] leading-[1] text-white/90">
           Creators.
           <br />

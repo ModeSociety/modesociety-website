@@ -31,7 +31,7 @@ export default async function TechCreators() {
         <SectionTitle title="What we do for you." className="mb-10" />
         <div className="grid gap-3 md:grid-cols-2">
           {TECH_FOR_CREATORS.map((c, i) => (
-            <FadeUp key={c.title} delay={(i % 2) * 0.06} className="t-panel flex min-h-[220px] flex-col justify-between p-8">
+            <FadeUp key={c.title} delay={(i % 2) * 0.06} className="t-panel t-foil flex min-h-[220px] flex-col justify-between p-8">
               <span className="tech-mono text-[11px] text-[#89b2fd]">0{i + 1}</span>
               <div>
                 <h3 className="tech-display text-[clamp(32px,3vw,46px)] text-white">{c.title}</h3>

@@ -796,3 +796,47 @@ html:has(.tech-root) body {
 .t-float {
   animation: t-float 7s ease-in-out infinite;
 }
+
+/* character select */
+@keyframes cs-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+    filter: brightness(1.6) saturate(0.6);
+  }
+}
+@keyframes cs-scan {
+  from {
+    background-position: 0 -40%;
+  }
+  to {
+    background-position: 0 140%;
+    opacity: 0;
+  }
+}
+@keyframes cs-bar {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* holographic foil on hover (format cards): a rainbow sheen that follows the pointer */
+.t-foil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.1), transparent 45%),
+    linear-gradient(115deg, transparent 20%, rgba(120, 200, 255, 0.14) 35%, rgba(190, 140, 255, 0.14) 48%, rgba(120, 255, 210, 0.12) 60%, transparent 75%);
+  background-size: 100% 100%, 220% 220%;
+  background-position: 0 0, var(--fx, 50%) 50%;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+  z-index: 2;
+}
+.t-foil:hover::after {
+  opacity: 1;
+}

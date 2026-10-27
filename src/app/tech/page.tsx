@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Lede from "@/components/tech/Lede";
-import RosterCard from "@/components/tech/RosterCard";
+import CharacterSelect from "@/components/tech/CharacterSelect";
 import { Categories, Formats, Policy, TechFaq, TechLogos } from "@/components/tech/Sections";
 import TechHero from "@/components/tech/TechHero";
 import { SampleTag, SectionTitle } from "@/components/tech/ui";
@@ -15,7 +15,8 @@ export const metadata: Metadata = pageMetadata("techHome");
 export default async function TechHome() {
   const { images, roster } = await getSiteContent();
   const { members, sample } = rosterFor(roster);
-  const featured = (members.filter((m) => m.featured).length ? members.filter((m) => m.featured) : members).slice(0, 4);
+  // featured first, topped up with the rest so the select screen has a full grid
+  const featured = [...members.filter((m) => m.featured), ...members.filter((m) => !m.featured)].slice(0, 8);
 
   return (
     <>
@@ -43,7 +44,7 @@ export default async function TechHome() {
       {/* Our talent */}
       <section className="wrap py-20 md:py-28">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-          <SectionTitle eyebrow="Our talent" title="The roster." lead="Streamers, content creators and esports athletes across gaming and tech. Quality over volume." />
+          <SectionTitle eyebrow="Our talent" title="Choose your creator." lead="Streamers, content creators and esports athletes across gaming and tech. Quality over volume." />
           <div className="flex items-center gap-4">
             {sample && (
               <span className="flex items-center gap-2 text-[13px] text-[#8c95a5]">
@@ -55,15 +56,7 @@ export default async function TechHome() {
             </Link>
           </div>
         </div>
-        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {featured.map((m, i) => (
-            <li key={m.id}>
-              <FadeUp delay={i * 0.06} className="h-full">
-                <RosterCard m={m} sample={sample} />
-              </FadeUp>
-            </li>
-          ))}
-        </ul>
+        <CharacterSelect members={featured} sample={sample} />
       </section>
 
       {/* What we run */}

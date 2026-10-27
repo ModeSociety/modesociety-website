@@ -1,7 +1,7 @@
 import Link from "next/link";
 import FooterCta from "./FooterCta";
+import Keyboard from "./Keyboard";
 import SideSwitch from "@/components/site/SideSwitch";
-import { FitText } from "@/components/site/Editorial";
 import SocialLinks from "@/components/site/SocialLinks";
 import { COMPANY } from "@/lib/content";
 import { TECH_MENU } from "@/lib/tech";
@@ -37,10 +37,10 @@ export default function TechFooter() {
           </div>
         </div>
 
-        <div className="mt-14 flex items-end gap-[2.4vw] text-white md:mt-20">
-          <MarkM className="h-[clamp(44px,8.4vw,132px)] w-auto shrink-0" />
+        <div className="mt-14 flex flex-col gap-5 text-white md:mt-20 md:flex-row md:items-end md:gap-[2.4vw]">
+          <MarkM className="h-[clamp(52px,8.4vw,132px)] w-fit shrink-0" />
           <div className="min-w-0 flex-1">
-            <FitText className="tech-display leading-[0.8]">ModeSociety Tech</FitText>
+            <Keyboard />
           </div>
         </div>
 

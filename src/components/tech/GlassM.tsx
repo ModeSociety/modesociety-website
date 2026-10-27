@@ -4,102 +4,154 @@ import { useEffect, useId, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 import { M_PATH, M_WINDOW } from "./mark-paths";
 
+const LAYERS = 14; // slices that give the m its thickness
+
 /**
- * The hero centrepiece: Asha's m as a glass object under a light beam. It tilts toward
- * the cursor (or the phone's tilt), its highlight slides across the glass, and it sits on
- * a soft reflection. All SVG and CSS, no images.
+ * Asha's m as a thick glass object: a lit front face over a stack of slices, so it has real
+ * depth when it turns. It leans toward the cursor (or the phone's tilt), and can be grabbed
+ * and spun; a fling keeps spinning and settles face-on. A tap gives it a full turn.
  */
 export default function GlassM({ className = "" }: { className?: string }) {
   const id = useId().replace(/:/g, "");
   const wrap = useRef<HTMLDivElement>(null);
+  const rig = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = wrap.current;
-    if (!el || prefersReducedMotion()) return;
+    const r = rig.current;
+    if (!el || !r) return;
+    const setDepth = () => el.style.setProperty("--slice", `${(el.clientWidth * 0.13) / LAYERS}px`);
+    setDepth();
+    const ro = new ResizeObserver(setDepth);
+    ro.observe(el);
+    if (prefersReducedMotion()) return () => ro.disconnect();
+
     const t0 = performance.now();
     let tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+    let spin = 0, vel = 0, drag: null | { x: number; last: number; t: number; moved: number; id: number } = null;
+
     const onMove = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      tx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (window.innerWidth / 2)));
-      ty = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2)));
+      if (drag && e.pointerId === drag.id) {
+        const now = performance.now();
+        const dx = e.clientX - drag.last;
+        drag.moved += Math.abs(dx);
+        spin += dx * 0.55;
+        vel = (dx * 0.55) / Math.max(now - drag.t, 8) * 16; // degrees per frame
+        drag.last = e.clientX;
+        drag.t = now;
+        return;
+      }
+      const b = el.getBoundingClientRect();
+      tx = Math.max(-1, Math.min(1, (e.clientX - (b.left + b.width / 2)) / (window.innerWidth / 2)));
+      ty = Math.max(-1, Math.min(1, (e.clientY - (b.top + b.height / 2)) / (window.innerHeight / 2)));
+    };
+    const onDown = (e: PointerEvent) => {
+      drag = { x: e.clientX, last: e.clientX, t: performance.now(), moved: 0, id: e.pointerId };
+      vel = 0;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = "grabbing";
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (drag.moved < 6) vel = 22; // a tap: one full turn
+      drag = null;
+      el.style.cursor = "";
     };
     const onTilt = (e: DeviceOrientationEvent) => {
       if (e.gamma == null || e.beta == null) return;
       tx = Math.max(-1, Math.min(1, e.gamma / 30));
       ty = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
     };
+
     const tick = (now: number) => {
       const idle = (now - t0) / 1000;
-      // ease toward the pointer, plus a slow idle sway so it never sits dead still
-      x += (tx + Math.sin(idle * 0.5) * 0.12 - x) * 0.06;
+      x += (tx + Math.sin(idle * 0.5) * 0.14 - x) * 0.06;
       y += (ty + Math.cos(idle * 0.4) * 0.08 - y) * 0.06;
-      el.style.setProperty("--rx", `${(-y * 12).toFixed(2)}deg`);
-      el.style.setProperty("--ry", `${(x * 18).toFixed(2)}deg`);
+      if (!drag) {
+        spin += vel;
+        vel *= 0.955;
+        if (Math.abs(vel) < 0.6) {
+          // settle on the nearest face-on turn
+          const target = Math.round(spin / 360) * 360;
+          spin += (target - spin) * 0.08;
+          vel = 0;
+        }
+      }
+      r.style.transform = `rotateX(${(-y * 14).toFixed(2)}deg) rotateY(${(x * 24 + spin).toFixed(2)}deg)`;
       el.style.setProperty("--hx", `${(50 + x * 38).toFixed(1)}%`);
       el.style.setProperty("--hy", `${(30 + y * 26).toFixed(1)}%`);
       raf = requestAnimationFrame(tick);
     };
+
     addEventListener("pointermove", onMove, { passive: true });
+    el.addEventListener("pointerdown", onDown);
+    addEventListener("pointerup", onUp);
+    addEventListener("pointercancel", onUp);
     addEventListener("deviceorientation", onTilt);
-    // start after the page has loaded, so the first paint isn't competing with the loop
+    // start once the page is idle, so first paint isn't competing with the loop
     const start = () => (raf = requestAnimationFrame(tick));
-    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-    const timer = idle ? idle(start, { timeout: 1500 }) : window.setTimeout(start, 600);
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    const handle = ric ? ric(start, { timeout: 1500 }) : window.setTimeout(start, 600);
     return () => {
-      if (idle) (window as unknown as { cancelIdleCallback: (h: number) => void }).cancelIdleCallback(timer);
-      else clearTimeout(timer);
+      if (ric) (window as unknown as { cancelIdleCallback: (h: number) => void }).cancelIdleCallback(handle);
+      else clearTimeout(handle);
       cancelAnimationFrame(raf);
+      ro.disconnect();
       removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerdown", onDown);
+      removeEventListener("pointerup", onUp);
+      removeEventListener("pointercancel", onUp);
       removeEventListener("deviceorientation", onTilt);
     };
   }, []);
 
   // positioned by the caller (e.g. "absolute bottom-[28%] …"); relative when used inline
   const position = /\b(absolute|fixed|sticky)\b/.test(className) ? "" : "relative";
+  const svgBox = "-2 -505 553 507";
   return (
-    <div ref={wrap} className={`select-none ${position} ${className}`} aria-hidden style={{ perspective: "1200px" }}>
-      {/* beam falling on the m */}
-      <div className="pointer-events-none absolute -top-[30%] left-1/2 h-[90%] w-[46%] -translate-x-1/2 rotate-[8deg] bg-[linear-gradient(180deg,transparent,rgba(160,190,255,0.35)_40%,rgba(75,111,245,0.12)_75%,transparent)] blur-2xl" />
-      <div
-        className="relative mx-auto w-full transition-transform duration-75"
-        style={{ transform: "rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))", transformStyle: "preserve-3d" }}
-      >
-        <svg viewBox="-60 -560 670 562" className="block w-full overflow-visible">
+    <div
+      ref={wrap}
+      className={`cursor-grab touch-pan-y select-none ${position} ${className}`}
+      style={{ perspective: "1400px", aspectRatio: "553 / 507" }}
+      title="Drag to spin"
+      aria-hidden
+    >
+      {/* bloom behind */}
+      <div className="pointer-events-none absolute -inset-[18%] rounded-full bg-[radial-gradient(closest-side,rgba(75,111,245,0.45),transparent)] blur-2xl" />
+      <div ref={rig} className="absolute inset-0" style={{ transformStyle: "preserve-3d" }}>
+        {/* the slices: dark glass at the back, lighter toward the face */}
+        {Array.from({ length: LAYERS }).map((_, i) => (
+          <svg
+            key={i}
+            viewBox={svgBox}
+            className="absolute inset-0 h-full w-full"
+            style={{ transform: `translateZ(calc(var(--slice, 4px) * ${-(i + 1)}))` }}
+          >
+            <path d={M_PATH} fillRule="evenodd" fill={`rgb(${28 + (LAYERS - i) * 3}, ${44 + (LAYERS - i) * 5}, ${150 + (LAYERS - i) * 6})`} />
+          </svg>
+        ))}
+        {/* back face, so a spin shows the m the right way round */}
+        <svg viewBox={svgBox} className="absolute inset-0 h-full w-full" style={{ transform: `translateZ(calc(var(--slice, 4px) * ${-(LAYERS + 1)})) rotateY(180deg)` }}>
+          <path d={M_PATH} fillRule="evenodd" fill="#2a40b8" transform="translate(551 0) scale(-1 1)" />
+        </svg>
+        {/* the lit glass face */}
+        <svg viewBox={svgBox} className="absolute inset-0 h-full w-full overflow-visible">
           <defs>
             <linearGradient id={`body${id}`} gradientUnits="userSpaceOnUse" x1="0" y1="-503" x2="0" y2="0">
-              <stop offset="0" stopColor="#5b7cff" />
-              <stop offset="0.55" stopColor="#3a55e0" />
-              <stop offset="1" stopColor="#1b2a8a" />
+              <stop offset="0" stopColor="#6b88ff" />
+              <stop offset="0.55" stopColor="#3f5ae6" />
+              <stop offset="1" stopColor="#2337a8" />
             </linearGradient>
             <linearGradient id={`rim${id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#e7efff" stopOpacity="0.95" />
-              <stop offset="0.35" stopColor="#9fbaff" stopOpacity="0.55" />
-              <stop offset="1" stopColor="#4b6ff5" stopOpacity="0.15" />
+              <stop offset="0" stopColor="#eef3ff" stopOpacity="0.95" />
+              <stop offset="0.4" stopColor="#a9c2ff" stopOpacity="0.55" />
+              <stop offset="1" stopColor="#4b6ff5" stopOpacity="0.2" />
             </linearGradient>
-            <radialGradient id={`glow${id}`} cx="0.5" cy="0.55" r="0.55">
-              <stop offset="0" stopColor="#4b6ff5" stopOpacity="0.55" />
-              <stop offset="1" stopColor="#4b6ff5" stopOpacity="0" />
-            </radialGradient>
-            <filter id={`blur${id}`} x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="14" />
-            </filter>
             <clipPath id={`clip${id}`}>
               <path d={M_PATH} fillRule="evenodd" />
             </clipPath>
-            <linearGradient id={`floor${id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#fff" stopOpacity="0.32" />
-              <stop offset="0.6" stopColor="#fff" stopOpacity="0" />
-            </linearGradient>
-            <mask id={`floorMask${id}`} maskUnits="userSpaceOnUse" x="-60" y="0" width="670" height="300">
-              <rect x="-60" y="0" width="670" height="300" fill={`url(#floor${id})`} />
-            </mask>
           </defs>
-
-          {/* bloom behind */}
-          <ellipse cx="275" cy="-230" rx="330" ry="280" fill={`url(#glow${id})`} />
-          {/* body */}
           <path d={M_PATH} fill={`url(#body${id})`} fillRule="evenodd" />
-          {/* inner light: a soft bright core that follows the highlight */}
           <g clipPath={`url(#clip${id})`}>
             <foreignObject x="-2" y="-505" width="553" height="507">
               <div
@@ -107,24 +159,19 @@ export default function GlassM({ className = "" }: { className?: string }) {
                   width: "100%",
                   height: "100%",
                   background:
-                    "radial-gradient(38% 30% at var(--hx, 50%) var(--hy, 30%), rgba(235,242,255,0.75), rgba(160,190,255,0.25) 45%, transparent 70%)",
+                    "radial-gradient(36% 28% at var(--hx, 50%) var(--hy, 30%), rgba(240,245,255,0.8), rgba(170,195,255,0.25) 45%, transparent 70%), linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.14) 48%, transparent 56%)",
                 }}
               />
             </foreignObject>
-            {/* depth: the lower half darkens into the floor */}
-            <rect x="-2" y="-200" width="553" height="210" fill="#0a1240" opacity="0.35" filter={`url(#blur${id})`} />
           </g>
-          {/* glass rim */}
           <path d={M_PATH} fill="none" stroke={`url(#rim${id})`} strokeWidth="3" fillRule="evenodd" />
-          {/* the dark pill window, with its own inner rim */}
-          <path d={M_WINDOW} fill="#05060a" />
-          <path d={M_WINDOW} fill="none" stroke="#9fbaff" strokeOpacity="0.45" strokeWidth="2" />
-          {/* floor reflection */}
-          <g mask={`url(#floorMask${id})`} opacity="0.55">
-            <path d={M_PATH} transform="translate(0 6) scale(1 -1)" fill={`url(#body${id})`} fillRule="evenodd" />
-          </g>
+          <path d={M_WINDOW} fill="none" stroke="#c3d4ff" strokeOpacity="0.6" strokeWidth="2.5" />
         </svg>
       </div>
+      {/* floor reflection */}
+      <svg viewBox={svgBox} preserveAspectRatio="xMidYMin slice" className="pointer-events-none absolute left-0 top-full h-[45%] w-full opacity-30 [mask-image:linear-gradient(180deg,rgba(0,0,0,0.8),transparent)]" style={{ transform: "scaleY(-1)", transformOrigin: "50% 0" }}>
+        <path d={M_PATH} fillRule="evenodd" fill="#3f5ae6" />
+      </svg>
     </div>
   );
 }

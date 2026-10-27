@@ -2,62 +2,119 @@
 
 import Link from "next/link";
 import { useRef } from "react";
+import Marquee from "@/components/site/Marquee";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { introDone } from "@/lib/intro";
+import { TECH_CATEGORIES, TECH_FORMATS } from "@/lib/tech";
+import Decode from "./Decode";
 import GlassM from "./GlassM";
-import { Eyebrow } from "./ui";
+import GridFloor from "./GridFloor";
+
+/** Corner brackets, like a game HUD frame. */
+function Brackets() {
+  const c = "absolute h-5 w-5 border-[#89b2fd]/50";
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-4 md:inset-6">
+      <span className={`${c} left-0 top-0 border-l border-t`} />
+      <span className={`${c} right-0 top-0 border-r border-t`} />
+      <span className={`${c} bottom-0 left-0 border-b border-l`} />
+      <span className={`${c} bottom-0 right-0 border-b border-r`} />
+    </div>
+  );
+}
 
 /**
- * "NOT JUST GAMING." with the two front doors (brands, creators) on the left and the
- * glass m under a beam on the right, a giant outlined "TECH." behind it.
+ * The Tech hero: an arena (perspective grid floor to a horizon, stars above) with the
+ * thick glass m standing on the horizon, a decoding headline, HUD readouts, the two
+ * front doors, and a broadcast ticker along the bottom.
  */
 export default function TechHero() {
   const ref = useRef<HTMLElement>(null);
   useGSAP(
     () => {
       if (prefersReducedMotion()) return;
-      gsap
-        .timeline({ delay: 0.1 })
+      // plays as the boot screen (first visit) wipes away
+      const tl = gsap.timeline({ paused: true, delay: 0.1 });
+      tl
         .from(".h-letter", { yPercent: 110, duration: 1.1, ease: "expo.out", stagger: 0.03 })
         .from(".h-fade", { y: 18, duration: 0.9, ease: "expo.out", stagger: 0.08 }, "-=0.8")
-        .from(".h-stage", { opacity: 0, scale: 0.94, duration: 1.4, ease: "expo.out" }, 0.2);
+        .from(".h-arena", { opacity: 0, duration: 1.6, ease: "power2.out" }, 0)
+        .from(".h-m", { y: 60, opacity: 0, duration: 1.6, ease: "expo.out" }, 0.3);
+      let live = true;
+      introDone().then(() => {
+        if (live) tl.play();
+      });
+      return () => {
+        live = false;
+      };
     },
     { scope: ref },
   );
 
-  // letters rise one by one, but each word stays whole when the line wraps
   const line = (text: string) => (
     <span className="block overflow-hidden pb-[0.06em]">
-      {text.split(" ").map((word, w) => (
+      {text.split(" ").map((word, w, all) => (
         <span key={w} className="inline-block whitespace-nowrap">
           {word.split("").map((c, i) => (
             <span key={i} className="h-letter inline-block">
               {c}
             </span>
           ))}
-          {w < text.split(" ").length - 1 && <span className="inline-block">&nbsp;</span>}
+          {w < all.length - 1 && <span className="inline-block">&nbsp;</span>}
         </span>
       ))}
     </span>
   );
 
-  return (
-    <section ref={ref} className="relative overflow-hidden pb-16 pt-24 md:pb-24 md:pt-32">
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_75%_10%,rgba(62,94,241,0.22),transparent_70%)]" />
-      <div className="wrap relative grid items-center gap-10 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-6">
-          <Eyebrow className="h-fade">Gaming and tech creators</Eyebrow>
-          <h1 className="tech-wide mt-4 text-[clamp(42px,6.1vw,96px)] text-white">
-            <span className="sr-only">ModeSociety Tech: </span>
-            {line("Not just")}
-            {line("gaming.")}
-          </h1>
-          <p className="h-fade mt-6 max-w-xl text-[clamp(17px,1.45vw,21px)] leading-relaxed text-[#d2d8e2]">
-            We sign streamers, content creators and esports athletes across gaming and wider tech, and build brand campaigns around them.
-          </p>
+  const ticker = ["Now casting", ...TECH_CATEGORIES.map((c) => c.title), ...TECH_FORMATS.map((f) => f.title)];
 
-          <div className="mt-10 grid gap-3 sm:grid-cols-2">
-            <div className="h-fade t-panel p-6">
-              <Eyebrow>For brands</Eyebrow>
+  return (
+    <section ref={ref} className="relative overflow-hidden">
+      {/* phones: headline, arena, doors · from lg: the arena fills the hero, headline top-left, doors bottom-left */}
+      <div className="relative flex flex-col lg:min-h-[max(720px,100svh)] lg:justify-between">
+        {/* the arena: its own block on phones, the full hero behind everything from lg */}
+        <div className="h-arena relative order-2 aspect-[4/3.6] sm:aspect-[16/10] lg:absolute lg:inset-0 lg:aspect-auto">
+          <GridFloor horizon={0.62} />
+          <div aria-hidden className="t-ghost-word absolute bottom-[38%] right-[3%] hidden text-[clamp(160px,22vw,340px)] lg:block">
+            Tech.
+          </div>
+          <GlassM className="h-m absolute bottom-[38%] left-1/2 w-[56%] -translate-x-1/2 sm:w-[40%] lg:left-auto lg:right-[11%] lg:w-[min(30vw,460px)] lg:translate-x-0" />
+          <Brackets />
+          {/* HUD readouts */}
+          <div aria-hidden className="tech-mono pointer-events-none absolute right-7 top-[88px] hidden text-right text-[10.5px] uppercase leading-[1.9] text-[#8c95a5] lg:block">
+            <div>
+              <span className="t-live mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#89b2fd]" />
+              Status · signing creators
+            </div>
+            <div>Region · AU → worldwide</div>
+            <div>Mode · gaming &amp; tech</div>
+          </div>
+          <p aria-hidden className="tech-mono pointer-events-none absolute bottom-[33%] right-[11%] hidden text-[10.5px] uppercase text-[#8c95a5] lg:block lg:w-[min(30vw,460px)] lg:text-center">
+            Drag to spin
+          </p>
+        </div>
+
+        <div className="wrap pointer-events-none relative z-10 order-1 pt-24 md:pt-32">
+          <div className="pointer-events-auto lg:max-w-[50%]">
+            <p className="h-fade tech-mono text-[11px] uppercase text-[#8c95a5]">
+              <Decode text="Gaming and tech creators" immediate delay={0.3} />
+            </p>
+            <h1 className="tech-wide mt-4 text-[clamp(42px,6.1vw,100px)] text-white [text-shadow:0_0_40px_rgba(75,111,245,0.35)]">
+              <span className="sr-only">ModeSociety Tech: </span>
+              {line("Not just")}
+              {line("gaming.")}
+            </h1>
+            <p className="h-fade mt-6 max-w-xl text-[clamp(17px,1.45vw,21px)] leading-relaxed text-[#d2d8e2]">
+              We sign streamers, content creators and esports athletes across gaming and wider tech, and build brand campaigns around them.
+            </p>
+          </div>
+
+        </div>
+
+        <div className="wrap pointer-events-none relative z-10 order-3 pb-10 lg:pb-24">
+          <div className="pointer-events-auto grid gap-3 sm:grid-cols-2 lg:max-w-[640px]">
+            <div className="h-fade t-panel p-6 backdrop-blur-md">
+              <p className="tech-mono text-[11px] uppercase text-[#8c95a5]">Player 1 · For brands</p>
               <h2 className="tech-display mt-3 text-[34px] text-white">Run a campaign.</h2>
               <p className="mt-2 text-[14px] leading-relaxed text-[#aab2c0]">Creator campaigns, UGC, streams and event guest lists, built around your brand.</p>
               <div className="mt-5 flex flex-wrap items-center gap-4">
@@ -69,8 +126,8 @@ export default function TechHero() {
                 </Link>
               </div>
             </div>
-            <div className="h-fade t-panel p-6">
-              <Eyebrow>For creators</Eyebrow>
+            <div className="h-fade t-panel p-6 backdrop-blur-md">
+              <p className="tech-mono text-[11px] uppercase text-[#8c95a5]">Player 2 · For creators</p>
               <h2 className="tech-display mt-3 text-[34px] text-white">Get signed.</h2>
               <p className="mt-2 text-[14px] leading-relaxed text-[#aab2c0]">Management for streamers, creators, players and teams. Adults only, by application.</p>
               <div className="mt-5 flex flex-wrap items-center gap-4">
@@ -84,18 +141,24 @@ export default function TechHero() {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="h-stage relative lg:col-span-6">
-          <div className="t-panel relative aspect-[4/4.2] overflow-hidden sm:aspect-[4/3.6] lg:aspect-[4/4.4]">
-            <div aria-hidden className="t-ghost-word absolute left-1/2 top-[4%] -translate-x-1/2 text-[clamp(120px,19vw,300px)]">
-              Tech.
-            </div>
-            {/* horizon */}
-            <div aria-hidden className="absolute inset-x-0 bottom-0 h-[28%] bg-[linear-gradient(180deg,rgba(62,94,241,0.2),rgba(7,8,12,0.92))] shadow-[inset_0_1px_0_rgba(137,178,253,0.35)]" />
-            {/* the m stands on the horizon; its reflection falls below it */}
-            <GlassM className="absolute bottom-[28%] left-1/2 w-[66%] -translate-x-1/2" />
-          </div>
-        </div>
+      {/* broadcast ticker */}
+      <div className="relative border-y border-white/[0.08] bg-[#0b0e16]/80 py-3 backdrop-blur">
+        <Marquee speed={42}>
+          {ticker.map((t, i) => (
+            <span key={`${t}-${i}`} className="tech-mono mx-5 inline-flex items-center gap-3 whitespace-nowrap text-[11.5px] uppercase text-[#aab2c0]">
+              {i === 0 ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3e5ef1] px-2 py-0.5 text-[10px] text-white">
+                  <span className="t-live h-1.5 w-1.5 rounded-full bg-white" /> Live
+                </span>
+              ) : (
+                <span className="text-[#3e5ef1]">◆</span>
+              )}
+              {t}
+            </span>
+          ))}
+        </Marquee>
       </div>
     </section>
   );

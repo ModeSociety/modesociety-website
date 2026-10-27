@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import Tracker from "@/components/site/Tracker";
+import TechBoot from "./TechBoot";
 
 /**
  * Wraps every /tech page: smooth scrolling, the anonymous visit counter, and the
@@ -42,6 +43,7 @@ export default function TechShell({ children }: { children: React.ReactNode }) {
       const r = panel.getBoundingClientRect();
       panel.style.setProperty("--mx", `${e.clientX - r.left}px`);
       panel.style.setProperty("--my", `${e.clientY - r.top}px`);
+      panel.style.setProperty("--fx", `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`);
     };
     document.addEventListener("pointermove", onMove, { passive: true });
     return () => document.removeEventListener("pointermove", onMove);
@@ -49,6 +51,7 @@ export default function TechShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <TechBoot />
       <Tracker />
       {children}
     </>

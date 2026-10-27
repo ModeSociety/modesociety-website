@@ -113,7 +113,6 @@ export default function GlassM({ className = "" }: { className?: string }) {
       ref={wrap}
       className={`cursor-grab touch-pan-y select-none ${position} ${className}`}
       style={{ perspective: "1400px", aspectRatio: "553 / 507" }}
-      title="Drag to spin"
       aria-hidden
     >
       {/* bloom behind */}

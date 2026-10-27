@@ -89,9 +89,6 @@ export default function TechHero() {
             <div>Region · AU → worldwide</div>
             <div>Mode · gaming &amp; tech</div>
           </div>
-          <p aria-hidden className="tech-mono pointer-events-none absolute bottom-[33%] right-[11%] hidden text-[10.5px] uppercase text-[#8c95a5] lg:block lg:w-[min(30vw,460px)] lg:text-center">
-            Drag to spin
-          </p>
         </div>
 
         <div className="wrap pointer-events-none relative z-10 order-1 pt-24 md:pt-32">

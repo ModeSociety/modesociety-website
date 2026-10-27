@@ -15,6 +15,11 @@ const PRIORITY: Record<PageKey, number> = {
   contact: 0.6,
   partner: 0.5,
   press: 0.4,
+  techHome: 0.9,
+  techBrands: 0.8,
+  techCreators: 0.8,
+  techTalent: 0.7,
+  techContact: 0.6,
 };
 
 /** /sitemap.xml: every public page. "Featured in" joins once there's press on it. */
@@ -27,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .map((k) => ({
       url: `${SITE_URL}${PAGES[k].path === "/" ? "" : PAGES[k].path}`,
       lastModified: now,
-      changeFrequency: k === "work" || k === "press" ? "weekly" : "monthly",
+      changeFrequency: k === "work" || k === "press" || k === "techTalent" ? "weekly" : "monthly",
       priority: PRIORITY[k],
     }));
 }

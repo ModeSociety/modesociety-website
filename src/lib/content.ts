@@ -17,8 +17,7 @@ export const MENU = [
   { href: "/our-work", label: "Our work" },
   { href: "/featured-in", label: "Featured in" },
   { href: "/partner-with-us", label: "Partner with us" },
-  // TODO: dedicated For Tech companies page; until then it opens the partnership form.
-  { href: "/partner-with-us?for=tech", label: "For Tech companies" },
+  { href: "/tech", label: "ModeSociety Tech" },
   { href: "/get-in-touch", label: "Contact us" },
 ];
 

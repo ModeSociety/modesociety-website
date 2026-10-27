@@ -39,7 +39,7 @@ export function Accordion({
               <span
                 className={`grid h-9 w-9 shrink-0 place-items-center border font-mono text-[18px] leading-none transition-colors duration-300 ${
                   tone === "dark" ? "border-white/50" : "border-ink"
-                } ${isOpen ? (tone === "dark" ? "bg-white text-ink" : "bg-ink text-white") : ""}`}
+                } ${isOpen ? (tone === "dark" ? "bg-white text-[#07080c]" : "bg-ink text-white") : ""}`}
                 aria-hidden
               >
                 {isOpen ? "−" : "+"}

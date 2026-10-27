@@ -9,13 +9,17 @@ import { ABOUT, INSTAGRAM_URL, LINKEDIN_URL, SERVICE_COPY, TIKTOK_URL } from "./
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.modesociety.com.au").replace(/\/$/, "");
 export const SITE_NAME = "Mode Society";
 
-export type PageKey = "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact" | "partner";
+export type PageKey =
+  | "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact" | "partner"
+  | "techHome" | "techBrands" | "techCreators" | "techTalent" | "techContact";
+
+export const TECH_NAME = "ModeSociety Tech";
 
 /**
  * Titles stay under ~60 characters and descriptions under ~155 so Google shows them whole.
  * `og` is the line set large on the page's share image.
  */
-export const PAGES: Record<PageKey, { path: string; title: string; description: string; og: string; crumb: string }> = {
+export const PAGES: Record<PageKey, { path: string; title: string; description: string; og: string; crumb: string; tech?: boolean }> = {
   home: {
     path: "/",
     title: "Mode Society | Influencer & Talent Agency, Melbourne",
@@ -87,14 +91,58 @@ export const PAGES: Record<PageKey, { path: string; title: string; description: 
     og: "Partner with us",
     crumb: "Partner with us",
   },
+  techHome: {
+    path: "/tech",
+    tech: true,
+    title: "ModeSociety Tech | Gaming & Tech Creator Agency",
+    description:
+      "Talent and creator agency for streamers, content creators and esports athletes, running brand campaigns and events across gaming and tech worldwide.",
+    og: "Not just gaming.",
+    crumb: "ModeSociety Tech",
+  },
+  techBrands: {
+    path: "/tech/brands",
+    tech: true,
+    title: "Gaming Influencer Marketing for Brands | ModeSociety Tech",
+    description:
+      "Campaigns with streamers, creators and esports athletes for gaming gear, energy drinks, tech, telco and game publishers, with transparent reporting.",
+    og: "Run a campaign.",
+    crumb: "For brands",
+  },
+  techCreators: {
+    path: "/tech/creators",
+    tech: true,
+    title: "Management for Streamers & Gaming Creators | ModeSociety Tech",
+    description:
+      "Brand partnerships, emails, pitching, invoicing and growth for streamers, content creators and esports athletes. Every creator we sign is 18 or over.",
+    og: "Get signed.",
+    crumb: "For creators",
+  },
+  techTalent: {
+    path: "/tech/talent",
+    tech: true,
+    title: "Our Talent: Streamers & Gaming Creators | ModeSociety Tech",
+    description: "The ModeSociety Tech roster: streamers, content creators, esports athletes and teams, with their channels and audience size.",
+    og: "The roster.",
+    crumb: "Our talent",
+  },
+  techContact: {
+    path: "/tech/contact",
+    tech: true,
+    title: "Contact ModeSociety Tech | Brand Enquiry or Apply",
+    description: "Brands, tell us what you're launching. Streamers, creators and esports athletes, apply to sign with ModeSociety Tech.",
+    og: "Two ways in.",
+    crumb: "Contact",
+  },
 };
 
-export const ogImageUrl = (line: string) => `/og?title=${encodeURIComponent(line)}`;
+export const ogImageUrl = (line: string, tech = false) => `/og?title=${encodeURIComponent(line)}${tech ? "&theme=tech" : ""}`;
 
 /** Full metadata for a page: title, description, canonical URL and share previews. */
 export function pageMetadata(key: PageKey, extra: Partial<Metadata> = {}): Metadata {
   const p = PAGES[key];
-  const image = { url: ogImageUrl(p.og), width: 1200, height: 630, alt: `${SITE_NAME}: ${p.og}` };
+  const name = p.tech ? TECH_NAME : SITE_NAME;
+  const image = { url: ogImageUrl(p.og, p.tech), width: 1200, height: 630, alt: `${name}: ${p.og}` };
   return {
     title: { absolute: p.title },
     description: p.description,
@@ -102,7 +150,7 @@ export function pageMetadata(key: PageKey, extra: Partial<Metadata> = {}): Metad
     openGraph: {
       type: "website",
       url: p.path,
-      siteName: SITE_NAME,
+      siteName: name,
       locale: "en_AU",
       title: p.title,
       description: p.description,
@@ -173,13 +221,33 @@ export function organizationJsonLd() {
   };
 }
 
+/** ModeSociety Tech, as a department of Mode Society. */
+export function techOrganizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${SITE_URL}/tech#organization`,
+    name: TECH_NAME,
+    url: `${SITE_URL}/tech`,
+    logo: { "@type": "ImageObject", url: `${SITE_URL}/brand/tech-512.png`, width: 512, height: 512 },
+    description: PAGES.techHome.description,
+    parentOrganization: { "@id": ORG_ID },
+    address: { "@type": "PostalAddress", addressLocality: "Melbourne", addressRegion: "VIC", addressCountry: "AU" },
+    areaServed: "Worldwide",
+    knowsAbout: ["Gaming influencer marketing", "Streamer sponsorships", "Esports talent management", "UGC", "Tech creator campaigns"],
+    sameAs: [INSTAGRAM_URL, TIKTOK_URL, LINKEDIN_URL],
+  };
+}
+
 /** "Home › For brands" trail for a sub-page. */
 export function breadcrumbJsonLd(key: PageKey) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: PAGES.home.crumb, item: SITE_URL },
+      PAGES[key].tech
+        ? { "@type": "ListItem", position: 1, name: TECH_NAME, item: `${SITE_URL}/tech` }
+        : { "@type": "ListItem", position: 1, name: PAGES.home.crumb, item: SITE_URL },
       { "@type": "ListItem", position: 2, name: PAGES[key].crumb, item: `${SITE_URL}${PAGES[key].path}` },
     ],
   };

@@ -541,3 +541,258 @@ textarea.input {
     transform: translateX(var(--from, 40px));
   }
 }
+
+/* =========================================================================
+   ModeSociety Tech (/tech): the "Glass" direction.
+   Near-black ground, light beams, Asha's blue as the only accent. Everything is
+   scoped to .tech-root, and the shared tokens are re-pointed so the shared form
+   components (fields, chips, buttons) pick up the dark theme by themselves.
+   ========================================================================= */
+html:has(.tech-root),
+html:has(.tech-root) body {
+  background: #07080c;
+}
+.tech-root {
+  --t-ground: #07080c;
+  --t-surface: #0e1118;
+  --t-surface-2: #141824;
+  --t-text: #e9ecf1;
+  --t-text-2: #aab2c0;
+  --t-text-3: #8c95a5;
+  --t-line: rgba(233, 236, 241, 0.1);
+  --t-line-2: rgba(233, 236, 241, 0.18);
+  --t-blue: #3e5ef1;
+  --t-blue-2: #4b6ff5;
+  --t-blue-light: #89b2fd;
+  --t-ice: #d0e0ff;
+
+  /* shared tokens, re-pointed for the dark theme */
+  --paper: var(--t-ground);
+  --paper-2: var(--t-surface-2);
+  --ink: var(--t-text);
+  --ink-2: var(--t-text-2);
+  --muted: var(--t-text-3);
+  --line: var(--t-line-2);
+  --pin: var(--t-blue-light);
+  --red: var(--t-blue-light);
+  --espresso: #e9ecf1;
+
+  position: relative;
+  min-height: 100svh;
+  background: var(--t-ground);
+  color: var(--t-text);
+  font-family: var(--font-instrument-sans), system-ui, sans-serif;
+  overflow-x: clip;
+}
+.tech-root ::selection {
+  background: var(--t-blue);
+  color: #fff;
+}
+
+/* type: condensed caps for headlines, wide caps for the big statements, mono for labels */
+.tech-root .font-display,
+.tech-display {
+  font-family: var(--font-anybody), "Arial Narrow", sans-serif;
+  font-variation-settings: "wdth" 62;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 0.92;
+}
+.tech-wide {
+  font-family: var(--font-anybody), sans-serif;
+  font-variation-settings: "wdth" 128;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+}
+.tech-root .eyebrow,
+.tech-root .font-mono,
+.tech-mono {
+  font-family: var(--font-martian-mono), ui-monospace, monospace;
+  letter-spacing: 0.06em;
+}
+.tech-root .eyebrow {
+  color: var(--t-text-3);
+}
+.tech-root .font-serif {
+  font-family: var(--font-anybody), sans-serif;
+  font-style: normal;
+  font-variation-settings: "wdth" 128;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* buttons: glass-blue pill, and a hairline ghost */
+.tech-root .btn {
+  --bg: linear-gradient(180deg, #a9c6ff, #7a9eff);
+  --fg: #061024;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.95em 1.5em;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-instrument-sans), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35) inset,
+    0 10px 30px -10px rgba(75, 111, 245, 0.8);
+  transition:
+    transform 0.25s var(--ease-out),
+    box-shadow 0.25s var(--ease-out);
+}
+.tech-root .btn::before {
+  display: none;
+}
+.tech-root .btn:hover {
+  color: var(--fg);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+    0 14px 40px -10px rgba(75, 111, 245, 1);
+}
+.tech-root .btn.ghost {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--t-text);
+  box-shadow: 0 0 0 1px var(--t-line-2) inset;
+}
+.tech-root .btn.ghost:hover {
+  color: #fff;
+  background: rgba(137, 178, 253, 0.08);
+  box-shadow: 0 0 0 1px rgba(137, 178, 253, 0.6) inset;
+}
+.tech-root .chip {
+  border-radius: 999px;
+  border-color: var(--t-line-2);
+  color: var(--t-text);
+}
+.tech-root .chip[aria-pressed="true"] {
+  background: var(--t-blue);
+  border-color: var(--t-blue);
+  color: #fff;
+  transform: none;
+}
+.tech-root .input {
+  color: var(--t-text);
+  border-bottom-color: var(--t-line-2);
+}
+.tech-root .input:focus {
+  border-color: var(--t-blue-light);
+}
+.tech-root .input::placeholder {
+  color: #6c7484;
+}
+.tech-root select.input option {
+  background: var(--t-surface);
+}
+
+/* glass panel with a pointer-following glow (set --mx/--my from JS) */
+.t-panel {
+  position: relative;
+  border-radius: 24px;
+  background:
+    radial-gradient(600px circle at var(--mx, 50%) var(--my, -20%), rgba(75, 111, 245, 0.16), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  box-shadow:
+    0 0 0 1px var(--t-line) inset,
+    0 30px 60px -40px rgba(0, 0, 0, 0.9);
+  isolation: isolate;
+  overflow: hidden;
+}
+.t-panel::before {
+  /* a lit rim along the top edge */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(400px circle at var(--mx, 50%) var(--my, -30%), rgba(137, 178, 253, 0.55), transparent 45%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+@media (max-width: 767px) {
+  .t-panel {
+    border-radius: 20px;
+  }
+}
+
+/* outlined giant word behind content ("TECH.", "BRIEF.") */
+.t-ghost-word {
+  font-family: var(--font-anybody), sans-serif;
+  font-variation-settings: "wdth" 62;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.82;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(137, 178, 253, 0.28);
+  background: linear-gradient(180deg, rgba(75, 111, 245, 0.22), transparent 75%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* the drifting light beams behind sections */
+.t-beam {
+  position: absolute;
+  width: 34vw;
+  max-width: 520px;
+  height: 160%;
+  top: -30%;
+  background: linear-gradient(180deg, transparent, rgba(137, 178, 253, 0.16) 35%, rgba(75, 111, 245, 0.07) 60%, transparent);
+  filter: blur(28px);
+  transform: rotate(var(--r, 18deg));
+  pointer-events: none;
+  animation: t-beam-drift 14s ease-in-out infinite alternate;
+  mix-blend-mode: screen;
+}
+@keyframes t-beam-drift {
+  from {
+    translate: -6% 0;
+    opacity: 0.6;
+  }
+  to {
+    translate: 8% 0;
+    opacity: 1;
+  }
+}
+
+/* streaming rings, "live" dot */
+@keyframes t-ring {
+  from {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.t-ring {
+  animation: t-ring 2.8s var(--ease-out) infinite;
+}
+@keyframes t-live {
+  50% {
+    opacity: 0.35;
+  }
+}
+.t-live {
+  animation: t-live 1.6s ease-in-out infinite;
+}
+@keyframes t-float {
+  50% {
+    translate: 0 -10px;
+  }
+}
+.t-float {
+  animation: t-float 7s ease-in-out infinite;
+}

@@ -169,3 +169,8 @@ export const TECH_BUDGETS = ["Under $5k", "$5k–$15k", "$15k–$50k", "$50k+", 
 export const TECH_TIMELINES = ["ASAP", "Next 1–3 months", "3–6 months", "Just exploring"] as const;
 export const TECH_CATEGORY_OPTIONS = TECH_CATEGORIES.map((c) => c.title.replace(" & ", " and "));
 export const TECH_FORMAT_OPTIONS = TECH_FORMATS.map((f) => f.title);
+
+/** The roster to show: the real one, or the marked samples until the first creator is added. */
+export function rosterFor(real: RosterMember[]) {
+  return real.length ? { members: real, sample: false } : { members: SAMPLE_ROSTER, sample: true };
+}

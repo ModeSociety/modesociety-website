@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { INSTAGRAM_URL, MENU } from "@/lib/content";
 import Logo from "./Logo";
+import SideSwitch from "./SideSwitch";
 
-const INLINE = MENU.filter((m) => m.href !== "/get-in-touch");
+// the Tech side has its own switch next to Contact us
+const INLINE = MENU.filter((m) => m.href !== "/get-in-touch" && m.href !== "/tech");
 
 export default function Nav() {
   const pathname = usePathname();
@@ -60,6 +62,7 @@ export default function Nav() {
                 {l.label}
               </Link>
             ))}
+            <SideSwitch current="talent" />
             <Link href="/get-in-touch" className="btn !py-3">
               Contact us <span className="arrow">↗</span>
             </Link>
@@ -97,6 +100,9 @@ export default function Nav() {
               </Link>
             ))}
           </nav>
+          <div className="mt-8">
+            <SideSwitch current="talent" tone="dark" />
+          </div>
           <div className="mt-8 flex items-end justify-between font-mono text-[12px] uppercase tracking-[0.04em] text-white/80">
             <Link href="/get-in-touch">Make an enquiry →</Link>
             <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer">

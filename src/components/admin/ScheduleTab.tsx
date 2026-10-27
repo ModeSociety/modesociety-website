@@ -11,11 +11,12 @@ import {
   type Appointment,
   type AppointmentType,
 } from "@/lib/schedule";
+import type { SideFilter } from "@/lib/side";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function blank(date: string, assignee: string): Appointment {
-  return { id: "", title: "", type: "Call", date, start: "10:00", end: "11:00", client: "", talent: "", location: "", notes: "", status: "Scheduled", assignee, side: "talent" };
+function blank(date: string, assignee: string, side: SideFilter): Appointment {
+  return { id: "", title: "", type: "Call", date, start: "10:00", end: "11:00", client: "", talent: "", location: "", notes: "", status: "Scheduled", assignee, side: side === "tech" ? "tech" : "talent" };
 }
 
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
@@ -38,11 +39,13 @@ export default function ScheduleTab({
   team,
   disabled,
   notify,
+  side = "all",
 }: {
   me: string;
   team: string[];
   disabled: boolean;
   notify: (m: string) => void;
+  side?: SideFilter;
 }) {
   const today = ymd(new Date());
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -83,7 +86,7 @@ export default function ScheduleTab({
     load();
   }, [load]);
 
-  const visible = mine ? items.filter((a) => a.assignee === me) : items;
+  const visible = items.filter((a) => (!mine || a.assignee === me) && (side === "all" || a.side === side));
   const byDay = useMemo(() => {
     const m = new Map<string, Appointment[]>();
     for (const a of visible) m.set(a.date, [...(m.get(a.date) || []), a]);
@@ -130,7 +133,7 @@ export default function ScheduleTab({
                 </button>
               ))}
             </div>
-            <button className="btn !py-3" onClick={() => setEditing(blank(day || today, me))}>
+            <button className="btn !py-3" onClick={() => setEditing(blank(day || today, me, side))}>
               + New appointment
             </button>
           </div>
@@ -161,7 +164,7 @@ export default function ScheduleTab({
                 tabIndex={0}
                 aria-label={`${prettyDate(d, { weekday: "long", day: "numeric", month: "long" })}, ${list.length} appointment${list.length === 1 ? "" : "s"}`}
                 onClick={() => setDay(selected ? null : d)}
-                onDoubleClick={() => setEditing(blank(d, me))}
+                onDoubleClick={() => setEditing(blank(d, me, side))}
                 onKeyDown={(e) => e.key === "Enter" && setDay(selected ? null : d)}
                 className={`group min-h-[64px] cursor-pointer border-b border-r border-line p-1.5 text-left transition-colors md:min-h-[104px] ${
                   outside ? "bg-paper-2/60" : ""
@@ -176,7 +179,7 @@ export default function ScheduleTab({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setEditing(blank(d, me));
+                      setEditing(blank(d, me, side));
                     }}
                     className="hidden h-6 w-6 place-items-center rounded-full text-ink-2 hover:bg-ink hover:text-white group-hover:grid"
                     aria-label={`Add an appointment on ${prettyDate(d)}`}
@@ -247,6 +250,7 @@ export default function ScheduleTab({
                       {a.end && `–${a.end}`}
                     </span>
                   )}
+                  {side === "all" && a.side === "tech" && <span className="rounded-full bg-[#3e5ef1] px-2 py-0.5 text-white">Tech</span>}
                   {a.status !== "Scheduled" && <span className="ml-auto rounded-full bg-paper-2 px-2 py-0.5">{a.status}</span>}
                 </div>
                 <div className={`mt-1 font-medium text-ink ${a.status === "Cancelled" ? "line-through" : ""}`}>{a.title}</div>
@@ -404,6 +408,13 @@ function Editor({
             <input id="ap-location" className="input" value={a.location} onChange={field("location")} />
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
+            <div className="field">
+              <label htmlFor="ap-side">Side</label>
+              <select id="ap-side" className="input" value={a.side} onChange={(e) => set("side", e.target.value === "tech" ? "tech" : "talent")}>
+                <option value="talent">Mode Society (talent)</option>
+                <option value="tech">ModeSociety Tech</option>
+              </select>
+            </div>
             <div className="field">
               <label htmlFor="ap-assignee">Assigned to</label>
               <select id="ap-assignee" className="input" value={a.assignee} onChange={(e) => set("assignee", e.target.value)}>

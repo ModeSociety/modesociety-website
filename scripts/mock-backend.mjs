@@ -295,7 +295,7 @@ function stats(db, days, side = "all") {
     forms: {
       talent: forms("talent", from, to), bookings: forms("bookings", from, to), partners: forms("partners", from, to),
       techBrands: forms("techBrands", from, to), techCreators: forms("techCreators", from, to),
-      previous: { talent: forms("talent", prevFrom, from, true), bookings: forms("bookings", prevFrom, from, true), partners: forms("partners", prevFrom, from, true) },
+      previous: { talent: forms("talent", prevFrom, from, true), bookings: forms("bookings", prevFrom, from, true), partners: forms("partners", prevFrom, from, true), techBrands: forms("techBrands", prevFrom, from, true), techCreators: forms("techCreators", prevFrom, from, true) },
     },
     schedule: { upcoming: sched.filter((a) => a.date >= to).length, thisPeriod: sched.filter((a) => a.date >= from && a.date <= to).length },
   };

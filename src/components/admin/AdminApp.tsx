@@ -4,6 +4,8 @@ import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import EnquiriesTab from "./EnquiriesTab";
+import RosterTab from "./RosterTab";
+import type { SideFilter } from "@/lib/side";
 import InsightsTab from "./InsightsTab";
 import ScheduleTab from "./ScheduleTab";
 import {
@@ -114,10 +116,66 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "schedule" | "enquiries" | "insights" | "images" | "animations" | "access";
+type Tab = "schedule" | "enquiries" | "insights" | "images" | "roster" | "animations" | "access";
+
+/** Which tabs each side uses: the roster is Tech only, the animations are the talent site's. */
+const TABS: { id: Tab; sides: SideFilter[] }[] = [
+  { id: "schedule", sides: ["all", "talent", "tech"] },
+  { id: "enquiries", sides: ["all", "talent", "tech"] },
+  { id: "insights", sides: ["all", "talent", "tech"] },
+  { id: "images", sides: ["all", "talent", "tech"] },
+  { id: "roster", sides: ["all", "tech"] },
+  { id: "animations", sides: ["all", "talent"] },
+  { id: "access", sides: ["all", "talent", "tech"] },
+];
+const SIDE_KEY = "ms-admin-side";
+
+/** All · Talent · Tech: everyone sees everything, but each team can narrow the panel to its side. */
+function SidePicker({ side, onChange }: { side: SideFilter; onChange: (s: SideFilter) => void }) {
+  const opts: { id: SideFilter; label: string }[] = [
+    { id: "all", label: "All" },
+    { id: "talent", label: "Talent" },
+    { id: "tech", label: "Tech" },
+  ];
+  return (
+    <div className="flex rounded-full border border-line p-1 font-mono text-[11px] uppercase tracking-[0.06em]" role="group" aria-label="Show which side of Mode Society">
+      {opts.map((o) => (
+        <button
+          key={o.id}
+          aria-pressed={side === o.id}
+          onClick={() => onChange(o.id)}
+          className={`rounded-full px-3 py-1.5 transition-colors ${
+            side === o.id ? (o.id === "tech" ? "bg-[#3e5ef1] text-white" : "bg-ink text-white") : "text-ink-2 hover:text-ink"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>("schedule");
+  const [side, setSideState] = useState<SideFilter>("all");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SIDE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore this admin's last choice
+      if (saved === "talent" || saved === "tech" || saved === "all") setSideState(saved);
+    } catch {
+      /* storage blocked */
+    }
+  }, []);
+  const setSide = (s: SideFilter) => {
+    setSideState(s);
+    try {
+      localStorage.setItem(SIDE_KEY, s);
+    } catch {
+      /* storage blocked */
+    }
+    if (!TABS.find((t) => t.id === tab)?.sides.includes(s)) setTab("schedule");
+  };
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loadError, setLoadError] = useState("");
   const [toast, setToast] = useState("");
@@ -151,6 +209,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           <div className="flex items-center gap-4">
             <span className="font-display text-sm">MODE SOCIETY</span>
             <span className="eyebrow hidden sm:inline">Admin</span>
+            <SidePicker side={side} onChange={setSide} />
           </div>
           <div className="flex items-center gap-3 text-sm">
             <a href="/" target="_blank" className="link-underline hidden sm:inline">View site ↗</a>
@@ -159,7 +218,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           </div>
         </div>
         <nav className="wrap flex gap-6 overflow-x-auto text-[12px] uppercase tracking-[0.16em]">
-          {(["schedule", "enquiries", "insights", "images", "animations", "access"] as Tab[]).map((t) => (
+          {TABS.filter((t) => t.sides.includes(side)).map(({ id: t }) => (
             <button key={t} onClick={() => setTab(t)} className={`border-b-2 pb-3 ${tab === t ? "border-ink" : "border-transparent text-muted"}`}>
               {t}
             </button>
@@ -179,7 +238,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           <div className="mb-8 flex flex-wrap gap-2 text-sm">
             <a className="chip" href={me.info.spreadsheetUrl} target="_blank" rel="noreferrer">▦ Open Google Sheet</a>
             <a className="chip" href={me.info.folderUrl} target="_blank" rel="noreferrer">▤ Website folder</a>
-            <a className="chip" href={me.info.talentFolderUrl} target="_blank" rel="noreferrer">▤ Talent applications</a>
+            {side !== "tech" && <a className="chip" href={me.info.talentFolderUrl} target="_blank" rel="noreferrer">▤ Talent applications</a>}
           </div>
         )}
 
@@ -189,11 +248,13 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
             team={[...new Set([me.owner, me.backendOwner, ...(me.admins || [])].filter((e): e is string => Boolean(e)))]}
             disabled={!me.backendConfigured}
             notify={notify}
+            side={side}
           />
         )}
-        {tab === "enquiries" && <EnquiriesTab disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
-        {tab === "insights" && <InsightsTab disabled={!me.backendConfigured} />}
-        {tab === "images" && content && <ImagesTab content={content} reload={loadContent} notify={notify} />}
+        {tab === "enquiries" && <EnquiriesTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
+        {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
+        {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}
+        {tab === "roster" && <RosterTab disabled={!me.backendConfigured} techStats={content?.techStats} notify={notify} />}
         {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}
         {tab === "animations" && (
           <AnimationsTab key={JSON.stringify(content?.settings ?? null)} settings={content?.settings} disabled={!content} reload={loadContent} notify={notify} />
@@ -216,8 +277,9 @@ function Notice({ children }: { children: React.ReactNode }) {
 // Images
 // ---------------------------------------------------------------------------
 
-function ImagesTab({ content, reload, notify }: { content: SiteContent; reload: () => Promise<void>; notify: (m: string) => void }) {
-  const pages = Array.from(new Set(SLOTS.map((s) => s.page)));
+function ImagesTab({ content, reload, notify, side }: { content: SiteContent; reload: () => Promise<void>; notify: (m: string) => void; side: SideFilter }) {
+  const slots = SLOTS.filter((s) => !s.hidden && (side === "all" || (s.side ?? "talent") === side));
+  const pages = Array.from(new Set(slots.map((s) => s.page)));
   return (
     <div className="grid gap-14">
       <p className="max-w-2xl text-ink-2">
@@ -228,7 +290,7 @@ function ImagesTab({ content, reload, notify }: { content: SiteContent; reload: 
         <section key={page}>
           <h2 className="eyebrow mb-4 border-b border-line pb-3">{page}</h2>
           <div className="grid gap-6 lg:grid-cols-2">
-            {SLOTS.filter((s) => s.page === page).map((slot) => (
+            {slots.filter((s) => s.page === page).map((slot) => (
               <SlotEditor key={slot.id} slot={slot} images={content.images[slot.id] || []} reload={reload} notify={notify} />
             ))}
           </div>

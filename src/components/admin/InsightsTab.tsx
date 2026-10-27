@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { SideFilter } from "@/lib/side";
 import { SOURCE_COLORS, SOURCE_LABELS, SOURCES, type Source, type Stats } from "@/lib/insights";
 
 const RANGES = [7, 30, 90] as const;
@@ -173,7 +174,7 @@ function DailyChart({ daily }: { daily: Stats["daily"] }) {
   );
 }
 
-export default function InsightsTab({ disabled }: { disabled: boolean }) {
+export default function InsightsTab({ disabled, side = "all" }: { disabled: boolean; side?: SideFilter }) {
   const [days, setDays] = useState<(typeof RANGES)[number]>(30);
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
@@ -186,7 +187,7 @@ export default function InsightsTab({ disabled }: { disabled: boolean }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch when the range changes
     setLoading(true);
     setError("");
-    fetch(`/api/admin/stats?days=${days}`, { cache: "no-store" })
+    fetch(`/api/admin/stats?days=${days}&side=${side}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         if (!live) return;
@@ -198,7 +199,7 @@ export default function InsightsTab({ disabled }: { disabled: boolean }) {
     return () => {
       live = false;
     };
-  }, [days, disabled]);
+  }, [days, disabled, side]);
 
   const sourceRows = useMemo(
     () => (stats ? SOURCES.map((k) => ({ key: k, value: stats.sources[k] || 0 })) : []),
@@ -209,8 +210,20 @@ export default function InsightsTab({ disabled }: { disabled: boolean }) {
 
   const t = stats?.totals;
   const p = stats?.previous;
-  const enquiries = stats ? stats.forms.talent + stats.forms.bookings + stats.forms.partners : 0;
-  const prevEnquiries = stats ? stats.forms.previous.talent + stats.forms.previous.bookings + stats.forms.previous.partners : 0;
+  // the business rows for the side being viewed
+  const businessRows: [string, number, number][] = stats
+    ? ([
+        ["Talent applications", stats.forms.talent, stats.forms.previous.talent, "talent"],
+        ["Brand call bookings", stats.forms.bookings, stats.forms.previous.bookings, "talent"],
+        ["Partnership enquiries", stats.forms.partners, stats.forms.previous.partners, "talent"],
+        ["Tech brand enquiries", stats.forms.techBrands ?? 0, stats.forms.previous.techBrands ?? 0, "tech"],
+        ["Tech creator applications", stats.forms.techCreators ?? 0, stats.forms.previous.techCreators ?? 0, "tech"],
+      ] as const)
+        .filter((r) => side === "all" || r[3] === side)
+        .map((r) => [r[0], r[1], r[2]])
+    : [];
+  const enquiries = businessRows.reduce((s, r) => s + r[1], 0);
+  const prevEnquiries = businessRows.reduce((s, r) => s + r[2], 0);
   const deviceRows = stats ? (["mobile", "desktop", "tablet"] as const).map((k) => ({ key: k, value: stats.devices[k] || 0 })).filter((r) => r.value) : [];
 
   return (
@@ -335,13 +348,7 @@ export default function InsightsTab({ disabled }: { disabled: boolean }) {
             </Panel>
             <Panel title="Business" note={`Last ${days} days, compared with the ${days} days before.`}>
               <dl className="grid gap-3 text-sm">
-                {(
-                  [
-                    ["Talent applications", stats.forms.talent, stats.forms.previous.talent],
-                    ["Brand call bookings", stats.forms.bookings, stats.forms.previous.bookings],
-                    ["Partnership enquiries", stats.forms.partners, stats.forms.previous.partners],
-                  ] as const
-                ).map(([label, now, before]) => (
+                {businessRows.map(([label, now, before]) => (
                   <div key={label} className="flex items-baseline justify-between gap-3 border-b border-line pb-2">
                     <dt className="text-ink">{label}</dt>
                     <dd className="text-right">

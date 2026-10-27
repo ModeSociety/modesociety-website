@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { postJson } from "@/lib/upload";
 import { ENQUIRY_KINDS, ENQUIRY_STATUSES, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
+import type { SideFilter } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
 
@@ -122,11 +123,22 @@ function Detail({ e, onStatus, saving }: { e: Enquiry; onStatus: (s: string) => 
  * Talent applications, brand call bookings and partnership enquiries, read from the
  * Google Sheet. Status changes are written back to the Sheet.
  */
-export default function EnquiriesTab({ disabled, sheetUrl, notify }: { disabled: boolean; sheetUrl?: string; notify: (m: string) => void }) {
+export default function EnquiriesTab({
+  disabled,
+  sheetUrl,
+  notify,
+  side = "all",
+}: {
+  disabled: boolean;
+  sheetUrl?: string;
+  notify: (m: string) => void;
+  side?: SideFilter;
+}) {
+  const kinds = ENQUIRY_KINDS.filter((k) => side === "all" || k.side === side);
   const [items, setItems] = useState<Items | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [kind, setKind] = useState<EnquiryKind>("talent");
+  const [kind, setKind] = useState<EnquiryKind>(kinds[0].id);
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState("");
@@ -185,7 +197,7 @@ export default function EnquiriesTab({ disabled, sheetUrl, notify }: { disabled:
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Enquiry type">
-          {ENQUIRY_KINDS.map((k) => {
+          {kinds.map((k) => {
             const fresh = items?.[k.id].filter((e) => e.status === "New").length || 0;
             return (
               <button

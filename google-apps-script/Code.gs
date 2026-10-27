@@ -608,6 +608,7 @@ var ACTIONS = {
         previous: {
           talent: countSince_('talent', prevFrom, from, true), bookings: countSince_('bookings', prevFrom, from, true),
           partners: countSince_('partners', prevFrom, from, true),
+          techBrands: countSince_('techBrands', prevFrom, from, true), techCreators: countSince_('techCreators', prevFrom, from, true),
         },
       },
       schedule: {

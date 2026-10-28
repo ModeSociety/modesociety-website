@@ -611,6 +611,36 @@ var ACTIONS = {
     });
   },
 
+  /**
+   * Deletes a declined enquiry: its Sheet row, and for a talent application its folder of screenshots
+   * (moved to the Drive bin, which keeps it for 30 days). Only rows whose Status is Declined can go.
+   */
+  deleteEnquiry: function (p) {
+    var key = ENQUIRY_TABS[p.kind];
+    if (!key) throw new Error('Unknown enquiry type');
+    return withLock_(function () {
+      var sheet = sheet_(key);
+      var values = sheet.getDataRange().getValues();
+      var refCol = values[0].indexOf('Reference');
+      var statusCol = values[0].indexOf('Status');
+      var folderCol = values[0].indexOf('Application Folder');
+      for (var i = values.length - 1; i >= 1; i--) {
+        if (!p.reference || String(values[i][refCol]) !== String(p.reference)) continue;
+        if (String(values[i][statusCol]) !== 'Declined') throw new Error('Only declined enquiries can be deleted');
+        var folderId = folderCol < 0 ? '' : (String(values[i][folderCol]).match(/folders\/([-\w]+)/) || [])[1];
+        sheet.deleteRow(i + 1);
+        if (folderId) {
+          try {
+            var folder = DriveApp.getFolderById(folderId);
+            if (isInside_(folder, folder_('talent').getId())) folder.setTrashed(true);
+          } catch (e) { /* already gone */ }
+        }
+        return { ok: true };
+      }
+      throw new Error('That enquiry is no longer in the Sheet');
+    });
+  },
+
   /** A talent application's screenshot, for signed-in admins only (the site checks the session). */
   getEnquiryFile: function (p) {
     var file = DriveApp.getFileById(p.fileId);

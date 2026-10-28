@@ -6,6 +6,8 @@ import { ENQUIRY_KINDS, ENQUIRY_STATUSES, type Enquiry, type EnquiryKind } from 
 import type { SideFilter } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
+/** an enquiry type, or "declined": every declined enquiry, wherever it came from */
+type View = EnquiryKind | "declined";
 
 const STATUS_STYLE: Record<string, string> = {
   New: "bg-ink text-white",
@@ -61,7 +63,7 @@ function Shot({ id, n }: { id: string; n: number }) {
   );
 }
 
-function Detail({ e, onStatus, saving }: { e: Enquiry; onStatus: (s: string) => void; saving: boolean }) {
+function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: string) => void; onDelete?: () => void; saving: boolean }) {
   const subject = encodeURIComponent(`Mode Society — ${e.kind === "talent" ? "your application" : "your enquiry"} (${e.reference})`);
   return (
     <div className="grid gap-8 border-t border-line bg-paper-2/40 px-4 py-6 md:grid-cols-[1fr_240px] md:px-6">
@@ -111,6 +113,11 @@ function Detail({ e, onStatus, saving }: { e: Enquiry; onStatus: (s: string) => 
             Application folder in Drive ↗
           </a>
         )}
+        {onDelete && (
+          <button onClick={onDelete} disabled={saving} className="w-fit text-pin underline underline-offset-4">
+            Delete permanently
+          </button>
+        )}
         <p className="font-mono text-[11px] text-muted">
           Ref {e.reference || "—"} · {new Date(e.submittedAt).toLocaleString("en-AU", { dateStyle: "medium", timeStyle: "short" })}
         </p>
@@ -138,7 +145,7 @@ export default function EnquiriesTab({
   const [items, setItems] = useState<Items | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [kind, setKind] = useState<EnquiryKind>(kinds[0].id);
+  const [kind, setKind] = useState<View>(kinds[0].id);
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState("");
@@ -165,14 +172,24 @@ export default function EnquiriesTab({
     load();
   }, [load]);
 
+  // declined enquiries leave their own list for the Declined view, where they can be deleted
+  const declined = useMemo(
+    () =>
+      kinds
+        .flatMap((k) => (items?.[k.id] || []).filter((e) => e.status === "Declined"))
+        .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)),
+    [items, kinds],
+  );
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (items?.[kind] || []).filter(
+    const pool = kind === "declined" ? declined : (items?.[kind] || []).filter((e) => e.status !== "Declined");
+    return pool.filter(
       (e) =>
-        (status === "all" || (status === "open" ? !["Signed / Booked", "Declined"].includes(e.status) : e.status === status)) &&
+        (kind === "declined" || status === "all" || (status === "open" ? e.status !== "Signed / Booked" : e.status === status)) &&
         (!q || [e.title, e.subtitle, e.email, e.reference, ...e.fields.map((f) => f.value)].join(" ").toLowerCase().includes(q)),
     );
-  }, [items, kind, status, query]);
+  }, [items, kind, status, query, declined]);
+  const kindLabel = (k: EnquiryKind) => ENQUIRY_KINDS.find((x) => x.id === k)!.label;
 
   const setEnquiryStatus = async (e: Enquiry, next: string) => {
     const prev = e.status;
@@ -182,13 +199,43 @@ export default function EnquiriesTab({
     setSaving(e.reference);
     try {
       await postJson("/api/admin/enquiries", { kind: e.kind, reference: e.reference, status: next });
-      notify(`Marked ${next.toLowerCase()}`);
+      if (next === "Declined") {
+        setOpen("");
+        notify(`${e.title} moved to Declined`);
+      } else if (prev === "Declined") {
+        setOpen("");
+        notify(`${e.title} moved back to ${kindLabel(e.kind)}`);
+      } else notify(`Marked ${next.toLowerCase()}`);
     } catch (err) {
       patch(prev);
       notify((err as Error).message);
     } finally {
       setSaving("");
     }
+  };
+
+  const remove = async (list: Enquiry[]) => {
+    if (!list.length) return;
+    const ask =
+      list.length === 1
+        ? `Delete ${list[0].title}'s ${list[0].kind === "talent" || list[0].kind === "techCreators" ? "application" : "enquiry"} for good? It's removed from the Sheet${list[0].files.length || list[0].folderUrl ? ", and their screenshots go to the Drive bin" : ""}.`
+        : `Delete all ${list.length} declined enquiries for good? They're removed from the Sheet, and any talent screenshots go to the Drive bin.`;
+    if (!confirm(ask)) return;
+    const gone = new Set<string>();
+    for (const e of list) {
+      setSaving(e.reference);
+      try {
+        await postJson("/api/admin/enquiries", { kind: e.kind, reference: e.reference }, "DELETE");
+        gone.add(`${e.kind}:${e.reference}`);
+      } catch (err) {
+        notify((err as Error).message);
+        break;
+      }
+    }
+    setSaving("");
+    setOpen("");
+    setItems((cur) => cur && (Object.fromEntries(Object.entries(cur).map(([k, v]) => [k, v.filter((x) => !gone.has(`${x.kind}:${x.reference}`))])) as Items));
+    if (gone.size) notify(gone.size === 1 ? "Deleted" : `${gone.size} enquiries deleted`);
   };
 
   if (disabled) return <p className="text-muted">Connect the backend to see enquiries.</p>;
@@ -199,6 +246,7 @@ export default function EnquiriesTab({
         <div className="flex flex-wrap gap-2" role="group" aria-label="Enquiry type">
           {kinds.map((k) => {
             const fresh = items?.[k.id].filter((e) => e.status === "New").length || 0;
+            const count = items ? items[k.id].filter((e) => e.status !== "Declined").length : "–";
             return (
               <button
                 key={k.id}
@@ -210,11 +258,22 @@ export default function EnquiriesTab({
                 aria-pressed={kind === k.id}
               >
                 {k.label}
-                <span className="text-[12px] opacity-70">{items ? items[k.id].length : "–"}</span>
+                <span className="text-[12px] opacity-70">{count}</span>
                 {fresh > 0 && <span className="rounded-full bg-red px-1.5 text-[11px] font-semibold text-white">{fresh} new</span>}
               </button>
             );
           })}
+          <button
+            onClick={() => {
+              setKind("declined");
+              setOpen("");
+            }}
+            className="chip"
+            aria-pressed={kind === "declined"}
+          >
+            Declined
+            <span className="text-[12px] opacity-70">{items ? declined.length : "–"}</span>
+          </button>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <input
@@ -224,13 +283,15 @@ export default function EnquiriesTab({
             placeholder="Search names, emails, answers…"
             className="w-56 border border-line bg-white px-3 py-2"
           />
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-line bg-white px-3 py-2" aria-label="Filter by status">
-            <option value="all">All statuses</option>
-            <option value="open">Still open</option>
-            {ENQUIRY_STATUSES.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
+          {kind !== "declined" && (
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-line bg-white px-3 py-2" aria-label="Filter by status">
+              <option value="all">All statuses</option>
+              <option value="open">Still open</option>
+              {ENQUIRY_STATUSES.filter((s) => s !== "Declined").map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+          )}
           <button className="chip" onClick={load} disabled={loading}>
             {loading ? "Refreshing…" : "↻ Refresh"}
           </button>
@@ -245,11 +306,28 @@ export default function EnquiriesTab({
       {error && <p className="mb-4 border-l-2 border-pin bg-paper-2 p-4 text-sm text-ink-2">Couldn&apos;t load enquiries: {error}</p>}
       {!items && !error && <p className="text-muted">Loading enquiries…</p>}
 
+      {items && kind === "declined" && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-2">
+          <p>Everything marked Declined, from every form. Change its status to move it back, or delete it for good.</p>
+          {declined.length > 1 && (
+            <button className="text-pin underline underline-offset-4" disabled={Boolean(saving)} onClick={() => remove(declined)}>
+              Delete all {declined.length} declined
+            </button>
+          )}
+        </div>
+      )}
+
       {items && (
         <ul className="border border-line bg-white">
           {list.length === 0 && (
             <li className="p-8 text-center text-muted">
-              {items[kind].length ? "Nothing matches that search or filter." : `No ${ENQUIRY_KINDS.find((k) => k.id === kind)!.label.toLowerCase()} yet.`}
+              {kind === "declined"
+                ? declined.length
+                  ? "Nothing matches that search."
+                  : "Nothing declined. Enquiries you mark Declined move here."
+                : items[kind].some((e) => e.status !== "Declined")
+                  ? "Nothing matches that search or filter."
+                  : `No ${kindLabel(kind).toLowerCase()} yet.`}
             </li>
           )}
           {list.map((e) => {
@@ -269,20 +347,29 @@ export default function EnquiriesTab({
                     <span className="block truncate text-[13px] text-muted md:hidden">{e.subtitle || e.email}</span>
                   </span>
                   <span className="hidden min-w-0 truncate text-[14px] text-ink-2 md:block">
+                    {kind === "declined" && <span className="text-muted">{kindLabel(e.kind)} · </span>}
                     {e.subtitle}
                     {e.subtitle && e.email ? " · " : ""}
                     {e.email}
                   </span>
                   <StatusPill status={e.status} />
                 </button>
-                {isOpen && <Detail e={e} saving={saving === e.reference} onStatus={(s) => setEnquiryStatus(e, s)} />}
+                {isOpen && (
+                  <Detail
+                    e={e}
+                    saving={saving === e.reference}
+                    onStatus={(s) => setEnquiryStatus(e, s)}
+                    onDelete={e.status === "Declined" ? () => remove([e]) : undefined}
+                  />
+                )}
               </li>
             );
           })}
         </ul>
       )}
       <p className="mt-3 text-xs text-muted">
-        Read from the Google Sheet (tabs <em>Talent</em>, <em>Book a Call</em> and <em>Partnerships</em>). Status changes are saved there too.
+        Read from the Google Sheet (one tab per form). Status changes are saved there too; a declined enquiry stays in its tab, marked Declined, until
+        it&apos;s deleted here.
       </p>
     </div>
   );

@@ -186,6 +186,16 @@ const actions = {
     rec.status = p.status;
     return { ok: true };
   },
+  deleteEnquiry: (db, p) => {
+    const c = ENQUIRY_COLUMNS[p.kind];
+    if (!c) throw new Error("Unknown enquiry type");
+    const list = db[c.store] || [];
+    const rec = list.find((r) => r.reference === p.reference);
+    if (!rec) throw new Error("That enquiry is no longer in the Sheet");
+    if (rec.status !== "Declined") throw new Error("Only declined enquiries can be deleted");
+    db[c.store] = list.filter((r) => r !== rec);
+    return { ok: true };
+  },
   getEnquiryFile: (db, p) => {
     const meta = db.files[p.fileId];
     if (!meta || meta.folder !== "talent") throw new Error("not found");

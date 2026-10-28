@@ -31,3 +31,19 @@ export async function POST(req: Request) {
     return errorResponse(err, { expose: true });
   }
 }
+
+/** Deletes a declined enquiry from the Sheet (and a talent's screenshots folder, to the Drive bin). */
+export async function DELETE(req: Request) {
+  try {
+    assertSameOrigin(req);
+    await requireAdmin();
+    const body = await req.json();
+    const kind = cleanList([body?.kind], ENQUIRY_KINDS.map((k) => k.id))[0];
+    const reference = clean(body?.reference, 40);
+    if (!kind || !reference) throw new HttpError(400, "Missing enquiry or type");
+    await callBackend("deleteEnquiry", { kind, reference });
+    return Response.json({ ok: true });
+  } catch (err) {
+    return errorResponse(err, { expose: true });
+  }
+}

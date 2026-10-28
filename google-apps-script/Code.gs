@@ -9,6 +9,8 @@
  *   ROOT_FOLDER_ID  – the Drive folder the website lives in: its ID or its full URL (required)
  *   SHARED_SECRET   – long random string, must match APPS_SCRIPT_SECRET on the site (required)
  *   OWNER_EMAIL     – permanent admin that can never be removed (optional, recommended)
+ *   NOTIFY_EMAIL    – where new enquiries are emailed (optional; default pr@modesociety.com.au,
+ *                     comma-separate several, or "off" to stop the emails)
  * Everything else (SPREADSHEET_ID, sub-folder IDs) is created by setup().
  */
 
@@ -91,6 +93,10 @@ var MEDIA_FOLDERS = [
   'Tech Brands',
   'Tech Video',
 ];
+
+/** New form submissions are emailed here unless the NOTIFY_EMAIL script property says otherwise. */
+var DEFAULT_NOTIFY_EMAIL = 'pr@modesociety.com.au';
+var SITE_URL = 'https://www.modesociety.com.au';
 
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
 
@@ -343,6 +349,11 @@ var ACTIONS = {
       sheet_('talent').appendRow([new Date(), 'New', f.name, f.email, (f.roles || []).join(', '), channels.join('\n'),
         (f.niches || []).join(', '), f.wants, f.signed, f.consent ? 'Yes' : 'No', folder.getUrl(), shots.join('\n'), ref]);
     });
+    notify_('New talent application: ' + (f.name || 'Unnamed'), ref, f.email, [
+      ['Name', f.name], ['Email', f.email], ['What they do', (f.roles || []).join(', ')], ['Channels', channels.join('\n')],
+      ['Niche', (f.niches || []).join(', ')], ['Wants from an agency', f.wants], ['Signed elsewhere', f.signed],
+      ['18+ / consent', f.consent ? 'Yes' : 'No'], ['Application folder', folder.getUrl()],
+    ]);
     return { reference: ref };
   },
 
@@ -353,6 +364,11 @@ var ACTIONS = {
       sheet_('bookings').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.services || []).join(', '),
         f.project, f.budget, f.timeline, f.notes, ref]);
     });
+    notify_('New brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
+      ['Brand', f.brand], ['Website / Instagram', f.website], ['Name', f.name], ['Email', f.email],
+      ['Services', (f.services || []).join(', ')], ['About the project', f.project], ['Budget', f.budget],
+      ['Timeline', f.timeline], ['Notes', f.notes],
+    ]);
     return { reference: ref };
   },
 
@@ -363,6 +379,10 @@ var ACTIONS = {
       sheet_('partners').appendRow([new Date(), 'New', f.business, f.type, f.website, f.name, f.email,
         (f.partnership || []).join(', '), f.idea, ref]);
     });
+    notify_('New partnership enquiry: ' + (f.business || f.name || 'Unnamed'), ref, f.email, [
+      ['Business', f.business], ['Type of business', f.type], ['Website / Instagram', f.website], ['Name', f.name],
+      ['Email', f.email], ['Type of partnership', (f.partnership || []).join(', ')], ['Partnership idea', f.idea],
+    ]);
     return { reference: ref };
   },
 
@@ -373,6 +393,11 @@ var ACTIONS = {
       sheet_('techBrands').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.categories || []).join(', '),
         (f.formats || []).join(', '), f.about, f.budget, f.timeline, ref]);
     });
+    notify_('New Tech brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
+      ['Brand', f.brand], ['Website', f.website], ['Name', f.name], ['Email', f.email],
+      ['Category', (f.categories || []).join(', ')], ['Formats', (f.formats || []).join(', ')],
+      ['About the campaign', f.about], ['Budget', f.budget], ['Timeline', f.timeline],
+    ]);
     return { reference: ref };
   },
 
@@ -384,6 +409,10 @@ var ACTIONS = {
       sheet_('techCreators').appendRow([new Date(), 'New', f.name, f.handle, f.email, f.as, channels.join('\n'), f.niche,
         f.region, f.adult ? 'Yes' : 'No', f.notes, ref]);
     });
+    notify_('New Tech creator application: ' + (f.name || f.handle || 'Unnamed'), ref, f.email, [
+      ['Name', f.name], ['Handle', f.handle], ['Email', f.email], ['Applying as', f.as], ['Channels', channels.join('\n')],
+      ['Games / niche', f.niche], ['Region', f.region], ['18+', f.adult ? 'Yes' : 'No'], ['Anything else', f.notes],
+    ]);
     return { reference: ref };
   },
 
@@ -618,6 +647,47 @@ var ACTIONS = {
     };
   },
 };
+
+// ---------------------------------------------------------------------------
+// Enquiry emails
+// ---------------------------------------------------------------------------
+
+/**
+ * Emails a new submission to the PR inbox; replying goes straight to the person who filled in the form.
+ * A mail failure (quota, bad address) is logged and never loses the submission: it is already in the Sheet.
+ */
+function notify_(subject, ref, replyTo, rows) {
+  var to = String(PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL') || DEFAULT_NOTIFY_EMAIL).trim();
+  if (!to || /^off$/i.test(to)) return;
+  var filled = rows.filter(function (r) { return String(r[1] == null ? '' : r[1]).trim() !== ''; });
+  var esc = function (v) {
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  };
+  var cell = function (v) {
+    var raw = String(v).trim();
+    return /^https?:\/\/\S+$/.test(raw) ? '<a href="' + esc(raw) + '">' + esc(raw) + '</a>' : esc(raw).replace(/\n/g, '<br>');
+  };
+  var html = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a">' +
+    '<p style="margin:0 0 14px"><b>' + esc(subject) + '</b> <span style="color:#888">· ' + esc(ref) + '</span></p>' +
+    '<table cellpadding="8" style="border-collapse:collapse;max-width:640px">' +
+    filled.map(function (r) {
+      return '<tr><td style="vertical-align:top;color:#666;white-space:nowrap;border-bottom:1px solid #eee">' + esc(r[0]) +
+        '</td><td style="border-bottom:1px solid #eee">' + cell(r[1]) + '</td></tr>';
+    }).join('') +
+    '</table><p style="margin:18px 0 0;color:#666">Reply to this email to answer them directly. ' +
+    'Set its status under Enquiries in the <a href="' + SITE_URL + '/admin">admin panel</a>.</p></div>';
+  var body = subject + ' (' + ref + ')\n\n' +
+    filled.map(function (r) { return r[0] + ': ' + String(r[1]); }).join('\n') +
+    '\n\nReply to this email to answer them directly. Admin panel: ' + SITE_URL + '/admin';
+  try {
+    var mail = { to: to, subject: subject + ' (' + ref + ')', body: body, htmlBody: html, name: 'Mode Society website' };
+    var reply = normaliseEmail_(replyTo);
+    if (reply) mail.replyTo = reply;
+    MailApp.sendEmail(mail);
+  } catch (err) {
+    console.error('Could not email ' + ref + ': ' + err);
+  }
+}
 
 function readRoster_() {
   var sheet = sheet_('roster');

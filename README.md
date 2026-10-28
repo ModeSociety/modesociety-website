@@ -109,6 +109,8 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | **Tech Roster** | The ModeSociety Tech roster (admin panel → Roster). One row per creator, with a link and follower column pair per platform. Keep the *ID* column. |
 | **Images**, **Settings**, **Admins** | Written by the admin panel. |
 
+Every new form submission is also **emailed to `pr@modesociety.com.au`** (from the account that runs the backend), with the answers laid out and *Reply-To* set to the sender, so replying answers them directly. Change the address with the `NOTIFY_EMAIL` script property. The Sheet row is written first, so a mail failure never loses an enquiry.
+
 ---
 
 ## Setup
@@ -130,7 +132,7 @@ Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_
 
 ### 2. Deploy the backend (Google Apps Script)
 
-> **Updating an existing backend?** Paste the new `Code.gs`, run `setup` again (it adds any missing tabs, folders and columns, such as the *Tech* tabs, the *Tech Brands* and *Tech Video* folders and the Schedule's *Side* column, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
+> **Updating an existing backend?** Paste the new `Code.gs` (and `appsscript.json` if it changed: it lists the permissions, e.g. sending the enquiry emails), run `setup` again and approve any new permission (it adds any missing tabs, folders and columns, such as the *Tech* tabs, the *Tech Brands* and *Tech Video* folders and the Schedule's *Side* column, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
 
 Do this **signed in as the owner of that Drive**.
 
@@ -141,6 +143,7 @@ Do this **signed in as the owner of that Drive**.
    - `SHARED_SECRET`: a long random string. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. This same value becomes `APPS_SCRIPT_SECRET`.
    - `OWNER_EMAIL`: the address of the account that owns the Drive (a permanent admin, alongside Vercel's `OWNER_EMAIL`)
    - `ROOT_FOLDER_ID` (optional): an existing folder's ID from step 1. Leave it out and `setup` makes the folder.
+   - `NOTIFY_EMAIL` (optional): where every new enquiry is emailed. Defaults to `pr@modesociety.com.au`; comma-separate several addresses, or set `off` to stop the emails.
 5. Back in the editor, select the **`setup`** function and click **Run**. Approve the permissions prompt. On a personal Gmail you'll see "Google hasn't verified this app": click **Advanced → Go to Mode Society Backend**. This is your own script, so that's expected. `setup` creates the folder (if needed), the Sheet, the sub-folders and a nightly clean-up job, and logs their links. Running it again is safe.
 6. **Deploy → New deployment →** type **Web app**. Set *Execute as* to **Me** and *Who has access* to **Anyone**. Click **Deploy** and copy the **Web app URL**. That's `APPS_SCRIPT_URL`.
 

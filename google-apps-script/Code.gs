@@ -108,6 +108,8 @@ var MEDIA_FOLDERS = [
 /** New form submissions are emailed here unless the NOTIFY_EMAIL script property says otherwise. */
 var DEFAULT_NOTIFY_EMAIL = 'pr@modesociety.com.au';
 var SITE_URL = 'https://www.modesociety.com.au';
+/** Gmail takes 25 MB of attachments per email; files past this are linked to in the application folder instead. */
+var MAX_ATTACH_BYTES = 20 * 1024 * 1024;
 
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
 
@@ -354,8 +356,9 @@ var ACTIONS = {
     var person = safeName_(f.name || 'Unnamed');
     var folder = folder_('talent').createFolder(date + ' — ' + person + ' (' + ref + ')');
     var shots = [];
+    var files = [];
     var channels = (f.channels || []).map(function (c) {
-      var links = claimFiles_(c.files, folder, person + ' — ' + safeName_(c.platform) + ' insights');
+      var links = claimFiles_(c.files, folder, person + ' — ' + safeName_(c.platform) + ' insights', files);
       shots = shots.concat(links);
       return c.platform + ': ' + c.handle + ' · ' + c.followers;
     });
@@ -367,7 +370,7 @@ var ACTIONS = {
       ['Name', f.name], ['Email', f.email], ['What they do', (f.roles || []).join(', ')], ['Channels', channels.join('\n')],
       ['Niche', (f.niches || []).join(', ')], ['Wants from an agency', f.wants], ['Signed elsewhere', f.signed],
       ['18+ / consent', f.consent ? 'Yes' : 'No'], ['Application folder', folder.getUrl()],
-    ]);
+    ], files);
     return { reference: ref };
   },
 
@@ -756,9 +759,24 @@ var ACTIONS = {
  * Emails a new submission to the PR inbox; replying goes straight to the person who filled in the form.
  * A mail failure (quota, bad address) is logged and never loses the submission: it is already in the Sheet.
  */
-function notify_(subject, ref, replyTo, rows) {
+function notify_(subject, ref, replyTo, rows, files) {
   var to = String(PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL') || DEFAULT_NOTIFY_EMAIL).trim();
   if (!to || /^off$/i.test(to)) return;
+  // what the person uploaded (talent screenshots) goes in as attachments, up to Gmail's size limit
+  var attachments = [];
+  var size = 0;
+  (files || []).forEach(function (file) {
+    try {
+      var bytes = file.getSize();
+      if (size + bytes > MAX_ATTACH_BYTES) return;
+      attachments.push(file.getBlob().setName(file.getName()));
+      size += bytes;
+    } catch (e) { /* unreadable file: it's still linked from the folder */ }
+  });
+  var left = (files || []).length - attachments.length;
+  if (files && files.length) {
+    rows = rows.concat([['Uploads', attachments.length + ' attached' + (left ? ', ' + left + ' more in the application folder (too large to attach)' : '')]]);
+  }
   var filled = rows.filter(function (r) { return String(r[1] == null ? '' : r[1]).trim() !== ''; });
   var esc = function (v) {
     return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -781,11 +799,21 @@ function notify_(subject, ref, replyTo, rows) {
     '\n\nReply to this email to answer them directly. Admin panel: ' + SITE_URL + '/admin';
   try {
     var mail = { to: to, subject: subject + ' (' + ref + ')', body: body, htmlBody: html, name: 'Mode Society website' };
+    if (attachments.length) mail.attachments = attachments;
     var reply = normaliseEmail_(replyTo);
     if (reply) mail.replyTo = reply;
     MailApp.sendEmail(mail);
   } catch (err) {
     console.error('Could not email ' + ref + ': ' + err);
+    // e.g. the attachments were refused: still send the enquiry itself
+    if (attachments.length) {
+      try {
+        delete mail.attachments;
+        MailApp.sendEmail(mail);
+      } catch (err2) {
+        console.error('Could not email ' + ref + ' without attachments either: ' + err2);
+      }
+    }
   }
 }
 
@@ -1022,8 +1050,8 @@ function isInside_(file, folderId) {
   return false;
 }
 
-/** Moves staged uploads into the application folder with readable names; returns their links. */
-function claimFiles_(ids, folder, baseName) {
+/** Moves staged uploads into the application folder with readable names; returns their links (and adds the files to `out`). */
+function claimFiles_(ids, folder, baseName, out) {
   var incomingId = folder_('incoming').getId();
   var links = [];
   (ids || []).slice(0, 10).forEach(function (id, idx) {
@@ -1033,6 +1061,7 @@ function claimFiles_(ids, folder, baseName) {
     file.setName(baseName + ' ' + ('0' + (idx + 1)).slice(-2) + ext);
     file.moveTo(folder);
     links.push(file.getUrl());
+    if (out) out.push(file);
   });
   return links;
 }

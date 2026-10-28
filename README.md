@@ -117,7 +117,7 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | **Tech Roster** | The ModeSociety Tech roster (admin panel → Roster). One row per creator, with a link and follower column pair per platform. Keep the *ID* column. |
 | **Images**, **Settings**, **Admins** | Written by the admin panel. |
 
-Every new form submission is also **emailed to `pr@modesociety.com.au`** (from the account that runs the backend), with the answers laid out and *Reply-To* set to the sender, so replying answers them directly. Change the address with the `NOTIFY_EMAIL` script property. The Sheet row is written first, so a mail failure never loses an enquiry.
+Every new form submission is also **emailed to `pr@modesociety.com.au`** (from the account that runs the backend), with the answers laid out and *Reply-To* set to the sender, so replying answers them directly. A talent application's engagement screenshots are attached to its email (up to about 20 MB; anything past that is noted in the email and stays in the application folder). Change the address with the `NOTIFY_EMAIL` script property. The Sheet row is written first, so a mail failure never loses an enquiry.
 
 ---
 

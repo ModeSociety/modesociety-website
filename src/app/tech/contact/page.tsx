@@ -6,7 +6,7 @@ import PageHead from "@/components/tech/PageHead";
 import TechForms from "@/components/tech/TechForms";
 import { Eyebrow } from "@/components/tech/ui";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
-import { TECH_CONTACT_LINE } from "@/lib/tech";
+import { getSiteContent } from "@/lib/backend";
 import { techMode } from "@/lib/techMode";
 
 export const metadata: Metadata = pageMetadata("techContact");
@@ -15,19 +15,20 @@ export default async function TechContact({ searchParams }: { searchParams: Prom
   const as = (await searchParams).as === "creator" ? "creator" : "brand";
   // before launch the forms are on the landing page
   if ((await techMode()).landing) redirect(as === "creator" ? "/tech#apply" : "/tech#enquire");
+  const hero = (await getSiteContent()).copy["techContact.hero"];
   return (
     <>
       <JsonLd data={breadcrumbJsonLd("techContact")} />
-      <PageHead eyebrow="Contact" title="Let's work together." lead={TECH_CONTACT_LINE} ghost="Hello." />
+      <PageHead eyebrow={hero.eyebrow} title={hero.heading} lead={hero.lead} ghost={hero.ghost} />
       <section className="wrap grid gap-12 pb-24 md:pb-32 lg:grid-cols-12">
         <div className="lg:col-span-8">
           <TechForms key={as} initial={as} />
         </div>
         <aside className="lg:col-span-3 lg:col-start-10">
           <div className="t-panel p-6">
-            <Eyebrow>Follow us</Eyebrow>
+            <Eyebrow>{hero.asideLabel}</Eyebrow>
             <SocialLinks className="mt-4 text-t" />
-            <p className="mt-6 text-[14px] leading-relaxed text-t2">New signings, streams and campaigns, as they happen.</p>
+            {hero.asideText && <p className="mt-6 text-[14px] leading-relaxed text-t2">{hero.asideText}</p>}
           </div>
         </aside>
       </section>

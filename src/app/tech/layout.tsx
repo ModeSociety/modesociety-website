@@ -5,6 +5,7 @@ import TechFooter from "@/components/tech/TechFooter";
 import TechNav from "@/components/tech/TechNav";
 import TechShell from "@/components/tech/TechShell";
 import JsonLd from "@/components/site/JsonLd";
+import { getSiteContent } from "@/lib/backend";
 import { techOrganizationJsonLd } from "@/lib/seo";
 import { techMode } from "@/lib/techMode";
 
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 
 export default async function TechLayout({ children }: { children: React.ReactNode }) {
   const { launched, preview, landing } = await techMode();
+  const { copy } = await getSiteContent();
   return (
     <div className={`tech-root ${anybody.variable} ${instrumentSans.variable} ${martianMono.variable}`}>
       <JsonLd data={techOrganizationJsonLd()} />
@@ -36,7 +38,7 @@ export default async function TechLayout({ children }: { children: React.ReactNo
         )}
         <TechNav landing={landing} />
         <main>{children}</main>
-        <TechFooter landing={landing} />
+        <TechFooter landing={landing} copy={copy["tech.footer"]} cta={copy["tech.cta"]} />
       </TechShell>
     </div>
   );

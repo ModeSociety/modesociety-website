@@ -1,5 +1,6 @@
 /** Small shared pieces for the ModeSociety Tech pages. */
 
+import { headingLines } from "@/components/site/Accent";
 import Decode from "./Decode";
 
 export function Eyebrow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -24,7 +25,18 @@ export function SectionTitle({
     <div className={className}>
       {eyebrow && <Eyebrow className="mb-4">{eyebrow}</Eyebrow>}
       <h2 className={`tech-display text-t ${size === "xl" ? "text-[clamp(56px,9vw,150px)]" : "text-[clamp(44px,6.4vw,104px)]"}`}>
-        {typeof title === "string" ? <Decode text={title} /> : title}
+        {typeof title !== "string" ? (
+          title
+        ) : /[*\n]/.test(title) ? (
+          // *accent* words in blue gradient type, one line per line typed
+          headingLines(title, "t-grad").map((l, i) => (
+            <span key={i} className="block">
+              {l}
+            </span>
+          ))
+        ) : (
+          <Decode text={title} />
+        )}
       </h2>
       {lead && <p className="mt-5 max-w-2xl text-[clamp(16px,1.3vw,19px)] leading-relaxed text-t2">{lead}</p>}
     </div>

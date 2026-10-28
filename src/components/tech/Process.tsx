@@ -2,14 +2,13 @@
 
 import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { TECH_PROCESS } from "@/lib/tech";
 
 /**
  * "Our process" as a quest line: four levels along a track, a player marker that travels
  * from level to level, a CLEAR stamp on each, and an XP bar filling to 100%. Plays once
  * when it scrolls into view (so it's never caught half-done). Vertical on phones.
  */
-export default function Process() {
+export default function Process({ steps }: { steps: { title: string; body: string }[] }) {
   const ref = useRef<HTMLDivElement>(null);
   useGSAP(
     () => {
@@ -59,8 +58,8 @@ export default function Process() {
           <span className="q-fill absolute inset-0 origin-top bg-[linear-gradient(180deg,#89b2fd,#3e5ef1)] md:origin-left md:bg-[linear-gradient(90deg,#89b2fd,#3e5ef1)]" />
           <span className="q-player absolute left-full top-full hidden h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[3px] bg-tblue shadow-[0_0_18px_4px_rgba(62,94,241,0.55)] md:left-full md:top-0 md:block" />
         </span>
-        {TECH_PROCESS.map((s, i) => (
-          <li key={s.title} className="q-step relative pl-14 md:pl-0 md:pt-16">
+        {steps.map((s, i) => (
+          <li key={`${s.title}-${i}`} className="q-step relative pl-14 md:pl-0 md:pt-16">
             <span aria-hidden className="q-node absolute left-0 top-0 grid h-[38px] w-[38px] place-items-center rounded-[10px] bg-[#3e5ef1] text-white shadow-[inset_0_0_0_1px_rgba(137,178,253,0.7)]">
               <span className="tech-mono text-[10px]">LV{i + 1}</span>
             </span>

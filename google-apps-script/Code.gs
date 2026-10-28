@@ -491,7 +491,7 @@ var ACTIONS = {
   /** Saves one section's text (`value` is the section as an object). */
   setContent: function (p) {
     var key = String(p.key || '');
-    if (!/^[a-z]+\.[A-Za-z]+$/.test(key)) throw new Error('Unknown section');
+    if (!/^[A-Za-z]+\.[A-Za-z]+$/.test(key)) throw new Error('Unknown section');
     var json = JSON.stringify(p.value || {});
     if (json.length > 45000) throw new Error('That section is too long to save. Shorten it a little.');
     return withLock_(function () {

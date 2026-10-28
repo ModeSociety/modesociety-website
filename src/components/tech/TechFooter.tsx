@@ -4,21 +4,30 @@ import Keyboard from "./Keyboard";
 import SideSwitch from "@/components/site/SideSwitch";
 import SocialLinks from "@/components/site/SocialLinks";
 import { COMPANY } from "@/lib/content";
+import type { SectionCopy } from "@/lib/copy";
 import { TECH_MENU } from "@/lib/tech";
 import { MarkM } from "./Mark";
 
 /** `landing`: before launch the footer leaves out the links to the pages that aren't public yet. */
-export default function TechFooter({ landing = false }: { landing?: boolean }) {
+export default function TechFooter({
+  landing = false,
+  copy,
+  cta,
+}: {
+  landing?: boolean;
+  copy: SectionCopy<"tech.footer">;
+  cta: SectionCopy<"tech.cta">;
+}) {
   return (
     <footer className="relative overflow-hidden border-t border-tline pt-16 md:pt-24">
       <div className="t-beam left-[10%]" style={{ ["--r" as string]: "-14deg" }} aria-hidden />
       <div className="wrap relative">
-        {!landing && <FooterCta />}
+        {!landing && <FooterCta copy={cta} />}
 
         <div className="grid gap-10 border-t border-tline pt-10 md:grid-cols-12">
           <div className="md:col-span-5">
             <p className="max-w-sm text-[15px] leading-relaxed text-t2">
-              Streamers, content creators and esports athletes, worldwide, for brand campaigns and events across gaming products and technology.
+              {copy.blurb}
             </p>
             <SocialLinks className="mt-6 text-t" />
           </div>
@@ -52,7 +61,7 @@ export default function TechFooter({ landing = false }: { landing?: boolean }) {
           <span>
             © {new Date().getFullYear()} {COMPANY}
           </span>
-          <span>Melbourne, Australia · Working worldwide</span>
+          <span>{copy.place}</span>
         </div>
       </div>
     </footer>

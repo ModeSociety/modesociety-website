@@ -15,14 +15,15 @@ export const metadata: Metadata = pageMetadata("techTalent");
 export default async function TechTalent() {
   // not public until ModeSociety Tech is launched (admins can preview it)
   if ((await techMode()).landing) redirect("/tech");
-  const { roster } = await getSiteContent();
+  const { roster, copy } = await getSiteContent();
+  const hero = copy["techTalent.hero"];
   const { members, sample } = rosterFor(roster);
   const total = members.reduce((s, m) => s + totalFollowers(m), 0);
 
   return (
     <>
       <JsonLd data={breadcrumbJsonLd("techTalent")} />
-      <PageHead eyebrow="Our talent" title="The roster." ghost="Talent." lead="Streamers, content creators, esports athletes and teams, with their channels and how many people follow them.">
+      <PageHead eyebrow={hero.eyebrow} title={hero.heading} ghost={hero.ghost} lead={hero.lead}>
         <div className="flex flex-wrap items-center gap-6 text-[14px] text-t2">
           <span>
             <span className="tech-display text-[28px] text-t">{members.length}</span> {members.length === 1 ? "creator" : "creators"}
@@ -42,7 +43,7 @@ export default async function TechTalent() {
       <section className="wrap pb-24 md:pb-32">
         <RosterGrid members={members} sample={sample} />
         <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-tline pt-8">
-          <p className="text-[15px] text-t2">Want one of them on your campaign, or want to join them?</p>
+          <p className="text-[15px] text-t2">{hero.cta}</p>
           <div className="flex flex-wrap gap-3">
             <Link href="/tech/contact?as=brand" className="btn">
               Brand enquiry

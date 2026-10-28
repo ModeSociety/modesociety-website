@@ -4,6 +4,7 @@ import Link from "next/link";
 import JsonLd from "@/components/site/JsonLd";
 import { FadeUp } from "@/components/site/Reveal";
 import IntroVideo from "@/components/site/IntroVideo";
+import { embedFor } from "@/lib/video";
 import CountUp from "@/components/tech/CountUp";
 import PageHead from "@/components/tech/PageHead";
 import Process from "@/components/tech/Process";
@@ -12,14 +13,14 @@ import { SectionTitle } from "@/components/tech/ui";
 import { getSiteContent } from "@/lib/backend";
 import { techMode } from "@/lib/techMode";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
-import { TECH_FAQ_BRANDS, totalFollowers } from "@/lib/tech";
+import { totalFollowers } from "@/lib/tech";
 
 export const metadata: Metadata = pageMetadata("techBrands");
 
 export default async function TechBrands() {
   // not public until ModeSociety Tech is launched (admins can preview it)
   if ((await techMode()).landing) redirect("/tech");
-  const { images, roster, techStats } = await getSiteContent();
+  const { images, roster, techStats, copy } = await getSiteContent();
   const followers = roster.reduce((s, m) => s + totalFollowers(m), 0);
   // only real numbers: roster followers, and what the team enters in the admin panel
   const stats = [
@@ -27,20 +28,22 @@ export default async function TechBrands() {
     techStats.views ? { value: techStats.views, label: "Combined total views" } : null,
     techStats.campaigns ? { value: techStats.campaigns, label: "Campaigns delivered" } : null,
   ].filter(Boolean) as { value: number | string; label: string }[];
-  const intro = images["tech.intro"]?.[0];
+  const hero = copy["techBrands.hero"];
+  const process = copy["techBrands.process"];
+  const run = copy["techBrands.run"];
+  const intro = copy["techHome.intro"];
+  const film = images["tech.intro"]?.[0];
+  const faq = copy["tech.faq"];
 
   return (
     <>
       <JsonLd data={breadcrumbJsonLd("techBrands")} />
-      <PageHead
-        eyebrow="For brands"
-        title="Why brands call us."
-        ghost="Brief."
-        lead="Creator campaigns, UGC, streams and event guest lists, built around your brand."
-      >
-        <Link href="/tech/contact?as=brand" className="btn">
-          Brand enquiry <span className="arrow">→</span>
-        </Link>
+      <PageHead eyebrow={hero.eyebrow} title={hero.heading} ghost={hero.ghost} lead={hero.lead}>
+        {hero.button && (
+          <Link href="/tech/contact?as=brand" className="btn">
+            {hero.button} <span className="arrow">→</span>
+          </Link>
+        )}
       </PageHead>
 
       {/* key numbers */}
@@ -61,29 +64,33 @@ export default async function TechBrands() {
         )}
       </section>
 
-      {intro && (
+      {!intro.hidden && (embedFor(intro.videoUrl) || film) && (
         <section className="wrap pb-20 md:pb-28">
           <FadeUp className="t-panel overflow-hidden p-2">
-            <IntroVideo media={intro} label="An introduction to ModeSociety Tech" className="rounded-[18px]" buttonClassName="bg-white text-[#0b1438]" />
+            <IntroVideo media={film} url={intro.videoUrl} label="An introduction to ModeSociety Tech" className="rounded-[18px]" buttonClassName="bg-white text-[#0b1438]" />
           </FadeUp>
         </section>
       )}
 
-      <section className="wrap py-20 md:py-28">
-        <SectionTitle eyebrow="How a campaign runs" title="Our process." className="mb-14" />
-        <Process />
-      </section>
+      {!process.hidden && (
+        <section className="wrap py-20 md:py-28">
+          <SectionTitle eyebrow={process.eyebrow} title={process.heading} className="mb-14" />
+          <Process steps={process.steps.filter((s) => s.title.trim())} />
+        </section>
+      )}
 
-      <section className="wrap py-20 md:py-28">
-        <SectionTitle title="What we run." lead="Formats we build campaigns from, mixed to suit your goal." className="mb-10" />
-        <Formats />
-        <div className="mt-16">
-          <SectionTitle title="Who we work with." className="mb-8" />
-          <Categories />
-        </div>
-      </section>
+      {!run.hidden && (
+        <section className="wrap py-20 md:py-28">
+          <SectionTitle title={run.heading} lead={run.lead} className="mb-10" />
+          <Formats items={copy["tech.formats"].items} />
+          <div className="mt-16">
+            {run.categoriesTitle && <SectionTitle title={run.categoriesTitle} className="mb-8" />}
+            <Categories items={copy["tech.categories"].items} />
+          </div>
+        </section>
+      )}
 
-      <TechFaq groups={[{ label: "For brands", items: TECH_FAQ_BRANDS }]} />
+      {!faq.hidden && <TechFaq heading={faq.heading} lead={faq.lead} groups={[{ label: "For brands", items: faq.brands }]} />}
     </>
   );
 }

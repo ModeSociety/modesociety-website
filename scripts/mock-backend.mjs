@@ -222,7 +222,7 @@ const actions = {
     return { ok: true };
   },
   setContent: (db, p) => {
-    if (!/^[a-z]+\.[A-Za-z]+$/.test(String(p.key))) throw new Error("Unknown section");
+    if (!/^[A-Za-z]+\.[A-Za-z]+$/.test(String(p.key))) throw new Error("Unknown section");
     (db.content ||= {})[p.key] = p.value || {};
     return { content: db.content };
   },

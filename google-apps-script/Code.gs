@@ -59,11 +59,19 @@ var TABS = {
       .concat(['Twitch', 'YouTube', 'TikTok', 'Instagram', 'X', 'Kick'].reduce(function (a, n) { return a.concat([n + ' URL', n + ' Followers']); }, []))
       .concat(['Updated At', 'Updated By']),
   },
+  // ---- Featured in (admin panel → Featured in) ----
+  press: {
+    name: 'Featured In',
+    headers: ['ID', 'Order', 'Slug', 'Outlet', 'Title', 'Date', 'Excerpt', 'Article', 'Link', 'Photos', 'Visible', 'Updated At', 'Updated By'],
+  },
 };
 
 /** Roster platforms, in Sheet column order (keep in sync with src/lib/tech.ts). */
 var ROSTER_PLATFORMS = ['twitch', 'youtube', 'tiktok', 'instagram', 'x', 'kick'];
 var ROSTER_FIELDS = ['id', 'order', 'name', 'handle', 'type', 'niche', 'region', 'quote', 'featured', 'visible', 'photo'];
+
+/** Featured in columns, in Sheet order. Photos are Drive file IDs, comma-separated; the first is the cover. */
+var PRESS_FIELDS = ['id', 'order', 'slug', 'outlet', 'title', 'date', 'excerpt', 'body', 'href', 'photos', 'visible'];
 
 /** Schedule columns, in sheet order (keep in sync with TABS.schedule.headers). */
 var SCHEDULE_FIELDS = ['id', 'title', 'type', 'date', 'start', 'end', 'client', 'talent', 'location', 'notes', 'status', 'assignee'];
@@ -232,6 +240,7 @@ var ACTIONS = {
     return {
       settings: readSettings_(), images: images, folders: folders, logoSvg: logoSvg || findLogoSvg_(folders['Home Page 1']),
       roster: readRoster_().filter(function (m) { return m.visible; }),
+      press: readPress_().filter(function (a) { return a.visible; }),
     };
   },
 
@@ -462,6 +471,62 @@ var ACTIONS = {
   setRosterOrder: function (p) {
     return withLock_(function () {
       var sheet = sheet_('roster');
+      var values = sheet.getDataRange().getValues();
+      var pos = {};
+      (p.ids || []).forEach(function (id, i) { pos[id] = i + 1; });
+      for (var i = 1; i < values.length; i++) {
+        var id = String(values[i][0]);
+        if (pos[id]) sheet.getRange(i + 1, 2).setValue(pos[id]);
+      }
+      return { ok: true };
+    });
+  },
+
+  // ---- Featured in (admin panel → Featured in; also editable in the Sheet) ----
+
+  listPress: function () {
+    return { items: readPress_() };
+  },
+
+  /** Creates (no id) or updates a feature. New ones go to the top of the list. */
+  savePressItem: function (p) {
+    var a = p.item || {};
+    return withLock_(function () {
+      var sheet = sheet_('press');
+      var values = sheet.getDataRange().getValues();
+      var row = -1;
+      if (a.id) for (var i = 1; i < values.length; i++) if (String(values[i][0]) === a.id) row = i + 1;
+      if (!a.id || row < 0) {
+        a.id = Utilities.getUuid().slice(0, 8);
+        a.order = 1;
+        for (var j = 1; j < values.length; j++) sheet.getRange(j + 1, 2).setValue((Number(values[j][1]) || j) + 1);
+      }
+      var cells = PRESS_FIELDS.map(function (k) {
+        var v = a[k];
+        if (k === 'visible') return v === false ? 'No' : 'Yes';
+        if (k === 'photos') return (v || []).join(', ');
+        return k === 'order' ? Number(v) || 1 : sheetText_(v);
+      });
+      cells.push(new Date(), p.by || '');
+      if (row > 0) sheet.getRange(row, 1, 1, cells.length).setValues([cells]);
+      else sheet.appendRow(cells);
+      return { item: a };
+    });
+  },
+
+  deletePressItem: function (p) {
+    return withLock_(function () {
+      var sheet = sheet_('press');
+      var values = sheet.getDataRange().getValues();
+      for (var i = values.length - 1; i >= 1; i--) if (String(values[i][0]) === String(p.id)) sheet.deleteRow(i + 1);
+      return { ok: true };
+    });
+  },
+
+  /** Saves the display order: `ids` top to bottom. */
+  setPressOrder: function (p) {
+    return withLock_(function () {
+      var sheet = sheet_('press');
       var values = sheet.getDataRange().getValues();
       var pos = {};
       (p.ids || []).forEach(function (id, i) { pos[id] = i + 1; });
@@ -713,6 +778,23 @@ function readRoster_() {
     .sort(function (a, b) { return a.order - b.order; });
 }
 
+function readPress_() {
+  var sheet = sheet_('press');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, PRESS_FIELDS.length).getValues();
+  return values
+    .filter(function (r) { return r[0] && (r[3] || r[4]); })
+    .map(function (r, i) {
+      var o = {};
+      PRESS_FIELDS.forEach(function (k, j) { o[k] = r[j] instanceof Date ? dayString_(r[j]) : String(r[j]); });
+      o.order = Number(r[1]) || 999 + i;
+      o.photos = String(r[9]).split(/[\s,]+/).filter(function (id) { return /^[-\w]{10,}$/.test(id); });
+      o.visible = !/^(no|false|0)$/i.test(String(r[10]));
+      return o;
+    })
+    .sort(function (a, b) { return a.order - b.order; });
+}
+
 function readSchedule_() {
   var sheet = sheet_('schedule');
   if (!sheet || sheet.getLastRow() < 2) return [];
@@ -949,6 +1031,12 @@ function ownerEmail_() {
 function normaliseEmail_(v) {
   var s = String(v || '').trim().toLowerCase();
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s) ? s : '';
+}
+
+/** Text for a Sheet cell: a leading = + - @ would make Sheets treat it as a formula. */
+function sheetText_(v) {
+  var s = v == null ? '' : String(v);
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
 }
 
 function safeName_(s) {

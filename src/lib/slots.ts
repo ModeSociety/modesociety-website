@@ -1,3 +1,4 @@
+import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
 
 /**
@@ -149,7 +150,7 @@ export const SLOTS: SlotDef[] = [
     id: "press.logos",
     label: "Featured in — press logos",
     page: "Featured in",
-    hint: "Logos of the publications Mode Society has been featured in (Vogue, Marie Claire…). Drive folder: \"Featured In\". White backgrounds are removed automatically. Article links are listed in src/lib/content.ts (PRESS).",
+    hint: "Logos of the publications Mode Society has been featured in (Vogue, Marie Claire…), shown above the features. Drive folder: \"Featured In\". White backgrounds are removed automatically. The features themselves are written in the Featured in tab.",
     kind: "collection",
     max: 40,
     accept: "image",
@@ -191,6 +192,17 @@ export const SLOTS: SlotDef[] = [
     hint: "Managed from the Roster tab, one photo per creator.",
     kind: "collection",
     max: 200,
+    accept: "image",
+    hidden: true,
+    defaults: [],
+  },
+  {
+    id: "press.photos",
+    label: "Featured in — photos",
+    page: "Featured in",
+    hint: "Managed from the Featured in tab, with each feature.",
+    kind: "collection",
+    max: 400,
     accept: "image",
     hidden: true,
     defaults: [],
@@ -267,6 +279,8 @@ export type SiteContent = {
   images: Record<string, SiteImage[]>;
   /** ModeSociety Tech: visible roster members, in display order */
   roster: RosterMember[];
+  /** Featured in: visible features, in display order */
+  press: PressItem[];
   /** ModeSociety Tech key numbers set in the admin panel ("" = not set) */
   techStats: { views: string; campaigns: string };
   /** sanitised logo SVG markup (fills set to currentColor), or "" for the text wordmark */

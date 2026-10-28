@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { getSiteContent } from "@/lib/backend";
-import { PRESS } from "@/lib/content";
 import { PAGES, SITE_URL, type PageKey } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -22,12 +21,19 @@ const PRIORITY: Record<PageKey, number> = {
   techContact: 0.6,
 };
 
-/** /sitemap.xml: every public page. "Featured in" joins once there's press on it. */
+/** /sitemap.xml: every public page. "Featured in" joins once there's press on it, with a page per feature. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { images } = await getSiteContent();
-  const hasPress = (images["press.logos"]?.length ?? 0) > 0 || PRESS.length > 0;
+  const { images, press } = await getSiteContent();
+  const hasPress = (images["press.logos"]?.length ?? 0) > 0 || press.length > 0;
   const now = new Date();
-  return (Object.keys(PAGES) as PageKey[])
+  const features: MetadataRoute.Sitemap = press.map((a) => ({
+    url: `${SITE_URL}/featured-in/${a.slug}`,
+    lastModified: now,
+    changeFrequency: "yearly",
+    priority: 0.4,
+    images: a.photos.slice(0, 1).map((p) => `${SITE_URL}${p.src}`),
+  }));
+  const pages: MetadataRoute.Sitemap = (Object.keys(PAGES) as PageKey[])
     .filter((k) => k !== "press" || hasPress)
     .map((k) => ({
       url: `${SITE_URL}${PAGES[k].path === "/" ? "" : PAGES[k].path}`,
@@ -35,4 +41,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: k === "work" || k === "press" || k === "techTalent" ? "weekly" : "monthly",
       priority: PRIORITY[k],
     }));
+  return [...pages, ...features];
 }

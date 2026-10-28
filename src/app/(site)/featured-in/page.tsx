@@ -3,23 +3,22 @@ import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import Clients from "@/components/home/Clients";
-import { PressList, PressLogos } from "@/components/press/Press";
+import { PressGrid, PressLogos } from "@/components/press/Press";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp, RiseLines } from "@/components/site/Reveal";
-import { PRESS } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { images } = await getSiteContent();
-  const empty = !(images["press.logos"]?.length ?? 0) && !PRESS.length;
+  const { images, press } = await getSiteContent();
+  const empty = !(images["press.logos"]?.length ?? 0) && !press.length;
   // an empty "coming soon" page would count against the site in search, so it stays unindexed until press is added
   return pageMetadata("press", empty ? { robots: { index: false, follow: true } } : {});
 }
 
 export default async function FeaturedIn() {
-  const { images } = await getSiteContent();
+  const { images, press } = await getSiteContent();
   const logos = images["press.logos"] ?? [];
-  const empty = !logos.length && !PRESS.length;
+  const empty = !logos.length && !press.length;
 
   return (
     <>
@@ -52,10 +51,10 @@ export default async function FeaturedIn() {
         </section>
       )}
 
-      {PRESS.length > 0 && (
+      {press.length > 0 && (
         <section className="wrap pb-20 md:pb-28">
-          <SectionHead index="01" label="Articles" meta={`${PRESS.length} features`} className="mb-2" />
-          <PressList />
+          <SectionHead index="01" label="Features" meta={`${press.length} feature${press.length === 1 ? "" : "s"}`} className="mb-10" />
+          <PressGrid items={press} />
         </section>
       )}
 

@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
 import {
   CTA_STYLES,
@@ -60,6 +61,7 @@ type RawSite = {
   folders?: Record<string, FolderFile[]>;
   logoSvg?: string;
   roster?: RosterMember[];
+  press?: (Omit<PressItem, "photos"> & { photos: string[] })[];
 };
 
 function fromFolder(files: FolderFile[] = [], accept: SlotDef["accept"], alt: string): SiteImage[] {
@@ -115,6 +117,7 @@ export function buildContent(raw: RawSite | null): SiteContent {
     settings: parseSettings(raw?.settings),
     images,
     roster: (raw?.roster ?? []).map((m) => ({ ...m, photo: m.photo ? mediaUrl(m.photo) : "" })),
+    press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) })),
     techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },
     logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),
     connected: Boolean(raw),
@@ -126,7 +129,7 @@ const fetchSiteCached = unstable_cache(
     if (!backendConfigured()) return null;
     return callBackend<RawSite>("getSite");
   },
-  ["site-content-v2"],
+  ["site-content-v3"],
   { tags: [SITE_TAG], revalidate: 600 },
 );
 

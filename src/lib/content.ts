@@ -268,14 +268,6 @@ export const INFOGRAPHIC = {
   },
 };
 
-/**
- * Press for the "Featured in" page, newest first. TODO: add Mode Society's real features.
- * Publication logos go in the admin slot "Featured in — press logos" (Drive folder "Featured In").
- * Until there's at least one logo or article, the page shows the brands our creators have worked with.
- */
-export type PressItem = { outlet: string; title: string; date?: string; href?: string };
-export const PRESS: PressItem[] = [];
-
 export const GET_IN_TOUCH = {
   heading: "Get in touch",
   line: "Have more questions? We're chronically online, so shoot us a message.",

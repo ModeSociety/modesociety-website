@@ -10,7 +10,7 @@ import { FeaturedStrip } from "@/components/press/Press";
 import WorkTeaser from "@/components/work/WorkTeaser";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp } from "@/components/site/Reveal";
-import { AGENCY_INTRO, AGENCY_LEAD, PRESS, SERVICE_COPY } from "@/lib/content";
+import { AGENCY_INTRO, AGENCY_LEAD, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
 import { pageMetadata } from "@/lib/seo";
 
@@ -24,10 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const { images, settings } = await getSiteContent();
+  const { images, settings, press } = await getSiteContent();
   const wall = images["home.wall"];
-  const press = images["press.logos"] ?? [];
-  const hasPress = press.length > 0 || PRESS.length > 0;
+  const logos = images["press.logos"] ?? [];
+  const hasPress = logos.length > 0 || press.length > 0;
   // section numbers run on, skipping "Featured in" until there's press to show
   const n = (k: number) => String(k + (hasPress && k >= 5 ? 1 : 0)).padStart(2, "0");
 
@@ -63,7 +63,7 @@ export default async function Home() {
 
       <Clients logos={images["home.clients"]} index={n(4)} />
 
-      <FeaturedStrip logos={press} index="05" />
+      <FeaturedStrip logos={logos} items={press} index="05" />
 
       <DualCta style={settings.ctaStyle} brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} index={n(5)} />
 

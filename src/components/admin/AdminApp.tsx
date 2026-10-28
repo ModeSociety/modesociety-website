@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import EnquiriesTab from "./EnquiriesTab";
+import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
 import type { SideFilter } from "@/lib/side";
 import InsightsTab from "./InsightsTab";
@@ -116,13 +117,14 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "schedule" | "enquiries" | "insights" | "images" | "roster" | "animations" | "access";
+type Tab = "schedule" | "enquiries" | "insights" | "press" | "images" | "roster" | "animations" | "access";
 
 /** Which tabs each side uses: the roster is Tech only, the animations are the talent site's. */
 const TABS: { id: Tab; sides: SideFilter[] }[] = [
   { id: "schedule", sides: ["all", "talent", "tech"] },
   { id: "enquiries", sides: ["all", "talent", "tech"] },
   { id: "insights", sides: ["all", "talent", "tech"] },
+  { id: "press", sides: ["all", "talent"] },
   { id: "images", sides: ["all", "talent", "tech"] },
   { id: "roster", sides: ["all", "tech"] },
   { id: "animations", sides: ["all", "talent"] },
@@ -254,6 +256,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         {tab === "enquiries" && <EnquiriesTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}
+        {tab === "press" && <PressTab disabled={!me.backendConfigured} notify={notify} />}
         {tab === "roster" && <RosterTab disabled={!me.backendConfigured} techStats={content?.techStats} notify={notify} />}
         {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}
         {tab === "animations" && (

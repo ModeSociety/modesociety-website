@@ -109,7 +109,8 @@ const actions = {
         ? readFileSync(join(MEDIA, "Home Page 1", svg.name), "utf8")
         : "";
     const roster = [...(db.roster || [])].filter((m) => m.visible).sort((a, b) => a.order - b.order);
-    return { settings: db.settings, images: db.images, folders, logoSvg, roster };
+    const press = [...(db.press || [])].filter((a) => a.visible !== false).sort((a, b) => a.order - b.order);
+    return { settings: db.settings, images: db.images, folders, logoSvg, roster, press };
   },
   getInfo: () => ({
     spreadsheetUrl: "https://docs.google.com/spreadsheets/d/mock",
@@ -217,6 +218,29 @@ const actions = {
     (p.ids || []).forEach((id, i) => {
       const m = (db.roster || []).find((x) => x.id === id);
       if (m) m.order = i + 1;
+    });
+    return { ok: true };
+  },
+  listPress: (db) => ({ items: [...(db.press || [])].sort((a, b) => a.order - b.order) }),
+  savePressItem: (db, p) => {
+    const list = (db.press ||= []);
+    const item = { ...p.item };
+    const i = item.id ? list.findIndex((a) => a.id === item.id) : -1;
+    if (i >= 0) list[i] = { ...list[i], ...item };
+    else {
+      list.forEach((a) => (a.order = (a.order || 0) + 1));
+      list.push({ ...item, id: randomUUID().slice(0, 8), order: 1 });
+    }
+    return { item: i >= 0 ? list[i] : list.at(-1) };
+  },
+  deletePressItem: (db, p) => {
+    db.press = (db.press || []).filter((a) => a.id !== p.id);
+    return { ok: true };
+  },
+  setPressOrder: (db, p) => {
+    (p.ids || []).forEach((id, i) => {
+      const a = (db.press || []).find((x) => x.id === id);
+      if (a) a.order = i + 1;
     });
     return { ok: true };
   },

@@ -116,6 +116,7 @@ var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', partners: 'partners',
 var DEFAULT_SETTINGS = {
   heroMode: 'gravity',
   heroAutoCycle: 'false',
+  techLaunched: 'false',
   introStyle: 'curtain',
   ctaStyle: 'reveal',
   footerStyle: 'magnetic',

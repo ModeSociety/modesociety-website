@@ -7,6 +7,7 @@ import CopyTab from "./CopyTab";
 import EnquiriesTab from "./EnquiriesTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
+import TechLaunch from "./TechLaunch";
 import type { SideFilter } from "@/lib/side";
 import InsightsTab from "./InsightsTab";
 import ScheduleTab from "./ScheduleTab";
@@ -263,6 +264,10 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           <h1 className="font-display text-4xl md:text-5xl">{TABS.find((t) => t.id === tab)?.label}</h1>
           <p className="mt-2 max-w-2xl text-ink-2">{TABS.find((t) => t.id === tab)?.about}</p>
         </div>
+
+        {(tab === "copy" || tab === "roster") && side !== "talent" && content && (
+          <TechLaunch launched={content.settings.techLaunched} reload={loadContent} notify={notify} />
+        )}
 
         {tab === "schedule" && (
           <ScheduleTab

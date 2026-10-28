@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import JsonLd from "@/components/site/JsonLd";
 import { FadeUp } from "@/components/site/Reveal";
+import IntroVideo from "@/components/site/IntroVideo";
 import CountUp from "@/components/tech/CountUp";
 import PageHead from "@/components/tech/PageHead";
 import Process from "@/components/tech/Process";
 import { Categories, Formats, TechFaq } from "@/components/tech/Sections";
 import { SectionTitle } from "@/components/tech/ui";
 import { getSiteContent } from "@/lib/backend";
+import { techMode } from "@/lib/techMode";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { TECH_FAQ_BRANDS, totalFollowers } from "@/lib/tech";
 
 export const metadata: Metadata = pageMetadata("techBrands");
 
 export default async function TechBrands() {
+  // not public until ModeSociety Tech is launched (admins can preview it)
+  if ((await techMode()).landing) redirect("/tech");
   const { images, roster, techStats } = await getSiteContent();
   const followers = roster.reduce((s, m) => s + totalFollowers(m), 0);
   // only real numbers: roster followers, and what the team enters in the admin panel
@@ -59,12 +64,7 @@ export default async function TechBrands() {
       {intro && (
         <section className="wrap pb-20 md:pb-28">
           <FadeUp className="t-panel overflow-hidden p-2">
-            {intro.type === "video" ? (
-              <video src={intro.src} controls playsInline preload="metadata" className="aspect-video w-full rounded-[18px] bg-black object-cover" aria-label="An introduction to ModeSociety Tech" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={intro.src} alt={intro.alt} className="aspect-video w-full rounded-[18px] object-cover" />
-            )}
+            <IntroVideo media={intro} label="An introduction to ModeSociety Tech" className="rounded-[18px]" buttonClassName="bg-white text-[#0b1438]" />
           </FadeUp>
         </section>
       )}

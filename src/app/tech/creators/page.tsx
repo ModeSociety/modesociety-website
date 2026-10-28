@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import JsonLd from "@/components/site/JsonLd";
 import { FadeUp } from "@/components/site/Reveal";
@@ -7,12 +8,15 @@ import RosterCard from "@/components/tech/RosterCard";
 import { Policy, TechFaq } from "@/components/tech/Sections";
 import { Beams, SampleTag, SectionTitle } from "@/components/tech/ui";
 import { getSiteContent } from "@/lib/backend";
+import { techMode } from "@/lib/techMode";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { rosterFor, TECH_FAQ_CREATORS, TECH_FOR_CREATORS } from "@/lib/tech";
 
 export const metadata: Metadata = pageMetadata("techCreators");
 
 export default async function TechCreators() {
+  // not public until ModeSociety Tech is launched (admins can preview it)
+  if ((await techMode()).landing) redirect("/tech");
   const { roster } = await getSiteContent();
   const { members, sample } = rosterFor(roster);
   const quotes = roster.filter((m) => m.quote);

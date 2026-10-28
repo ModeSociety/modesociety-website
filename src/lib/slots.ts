@@ -249,6 +249,8 @@ export const FOOTER_STYLES: { id: FooterStyle; label: string; description: strin
 export type SiteSettings = {
   heroMode: HeroMode;
   heroAutoCycle: boolean;
+  /** ModeSociety Tech is open to the public (false: /tech is a single landing page; admins can preview the rest) */
+  techLaunched: boolean;
   introStyle: IntroStyle;
   ctaStyle: CtaStyle;
   footerStyle: FooterStyle;
@@ -257,6 +259,7 @@ export type SiteSettings = {
 export const DEFAULT_SETTINGS: SiteSettings = {
   heroMode: "gravity",
   heroAutoCycle: false,
+  techLaunched: false,
   introStyle: "curtain",
   ctaStyle: "reveal",
   footerStyle: "magnetic",

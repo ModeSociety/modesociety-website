@@ -11,6 +11,7 @@ const FREE_TEXT = new Set(["techViews", "techCampaigns"]);
 const ALLOWED: Record<string, string[]> = {
   heroMode: HERO_MODES.map((m) => m.id),
   heroAutoCycle: ["true", "false"],
+  techLaunched: ["true", "false"],
   introStyle: INTRO_STYLES.map((m) => m.id),
   ctaStyle: CTA_STYLES.map((m) => m.id),
   footerStyle: FOOTER_STYLES.map((m) => m.id),

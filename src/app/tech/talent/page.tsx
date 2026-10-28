@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import JsonLd from "@/components/site/JsonLd";
 import PageHead from "@/components/tech/PageHead";
 import RosterGrid from "@/components/tech/RosterGrid";
 import { SampleTag } from "@/components/tech/ui";
 import { getSiteContent } from "@/lib/backend";
+import { techMode } from "@/lib/techMode";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { compact, rosterFor, totalFollowers } from "@/lib/tech";
 
 export const metadata: Metadata = pageMetadata("techTalent");
 
 export default async function TechTalent() {
+  // not public until ModeSociety Tech is launched (admins can preview it)
+  if ((await techMode()).landing) redirect("/tech");
   const { roster } = await getSiteContent();
   const { members, sample } = rosterFor(roster);
   const total = members.reduce((s, m) => s + totalFollowers(m), 0);

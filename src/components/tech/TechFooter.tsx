@@ -7,12 +7,13 @@ import { COMPANY } from "@/lib/content";
 import { TECH_MENU } from "@/lib/tech";
 import { MarkM } from "./Mark";
 
-export default function TechFooter() {
+/** `landing`: before launch the footer leaves out the links to the pages that aren't public yet. */
+export default function TechFooter({ landing = false }: { landing?: boolean }) {
   return (
     <footer className="relative overflow-hidden border-t border-tline pt-16 md:pt-24">
       <div className="t-beam left-[10%]" style={{ ["--r" as string]: "-14deg" }} aria-hidden />
       <div className="wrap relative">
-        <FooterCta />
+        {!landing && <FooterCta />}
 
         <div className="grid gap-10 border-t border-tline pt-10 md:grid-cols-12">
           <div className="md:col-span-5">
@@ -22,10 +23,13 @@ export default function TechFooter() {
             <SocialLinks className="mt-6 text-t" />
           </div>
           <nav className="grid grid-cols-2 gap-x-6 gap-y-3 text-[14px] md:col-span-4" aria-label="ModeSociety Tech">
-            <Link href="/tech" className="text-t2 transition-colors hover:text-t">
-              Home
-            </Link>
-            {TECH_MENU.map((m) => (
+            {(landing
+              ? [
+                  { href: "/tech#enquire", label: "Brand enquiry" },
+                  { href: "/tech#apply", label: "Apply to sign" },
+                ]
+              : [{ href: "/tech", label: "Home" }, ...TECH_MENU]
+            ).map((m) => (
               <Link key={m.href} href={m.href} className="text-t2 transition-colors hover:text-t">
                 {m.label}
               </Link>

@@ -97,6 +97,7 @@ function parseSettings(raw: Record<string, string> = {}): SiteSettings {
   return {
     heroMode: pick(HERO_MODES, raw.heroMode, d.heroMode),
     heroAutoCycle: raw.heroAutoCycle === "true",
+    techLaunched: raw.techLaunched === "true",
     introStyle: pick(INTRO_STYLES, raw.introStyle, d.introStyle),
     ctaStyle: pick(CTA_STYLES, raw.ctaStyle, d.ctaStyle),
     footerStyle: pick(FOOTER_STYLES, raw.footerStyle, d.footerStyle),

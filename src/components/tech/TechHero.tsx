@@ -28,7 +28,7 @@ function Brackets() {
  * thick glass m standing on the horizon, a decoding headline, HUD readouts, the two
  * front doors, and a broadcast ticker along the bottom.
  */
-export default function TechHero() {
+export default function TechHero({ landing = false }: { landing?: boolean }) {
   const ref = useRef<HTMLElement>(null);
   useGSAP(
     () => {
@@ -115,12 +115,14 @@ export default function TechHero() {
               <h2 className="tech-display mt-3 text-[34px] text-t">Run a campaign.</h2>
               <p className="mt-2 text-[14px] leading-relaxed text-t2">Creator campaigns, UGC, streams and event guest lists, built around your brand.</p>
               <div className="mt-5 flex flex-wrap items-center gap-4">
-                <Link href="/tech/contact?as=brand" className="btn !py-2.5">
+                <Link href={landing ? "#enquire" : "/tech/contact?as=brand"} className="btn !py-2.5">
                   Brand enquiry <span className="arrow">→</span>
                 </Link>
-                <Link href="/tech/brands" className="link-underline text-[13px] text-taccent">
-                  How a campaign runs
-                </Link>
+                {!landing && (
+                  <Link href="/tech/brands" className="link-underline text-[13px] text-taccent">
+                    How a campaign runs
+                  </Link>
+                )}
               </div>
             </div>
             <div className="h-fade t-panel p-6 backdrop-blur-md">
@@ -128,12 +130,14 @@ export default function TechHero() {
               <h2 className="tech-display mt-3 text-[34px] text-t">Get signed.</h2>
               <p className="mt-2 text-[14px] leading-relaxed text-t2">Management for streamers, creators, players and teams. Adults only, by application.</p>
               <div className="mt-5 flex flex-wrap items-center gap-4">
-                <Link href="/tech/contact?as=creator" className="btn !py-2.5">
+                <Link href={landing ? "#apply" : "/tech/contact?as=creator"} className="btn !py-2.5">
                   Apply to sign <span className="arrow">→</span>
                 </Link>
-                <Link href="/tech/creators" className="link-underline text-[13px] text-taccent">
-                  What management includes
-                </Link>
+                {!landing && (
+                  <Link href="/tech/creators" className="link-underline text-[13px] text-taccent">
+                    What management includes
+                  </Link>
+                )}
               </div>
             </div>
           </div>

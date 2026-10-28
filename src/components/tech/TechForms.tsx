@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StepForm, { Chips, Field, isEmail } from "@/components/forms/StepForm";
 import { postJson } from "@/lib/upload";
 import {
@@ -281,14 +281,30 @@ function CreatorForm() {
   );
 }
 
-/** Contact page: "I'm a brand" / "I'm a creator", each opening its form. ?as=brand|creator preselects. */
-export default function TechForms({ initial = "brand" }: { initial?: Kind }) {
+const HASH: Record<string, Kind> = { "#enquire": "brand", "#apply": "creator" };
+
+/**
+ * "I'm a brand" / "I'm a creator", each opening its form. On the Contact page ?as=brand|creator
+ * preselects; on the landing page (`onPage`) the links #enquire and #apply do.
+ */
+export default function TechForms({ initial = "brand", onPage = false }: { initial?: Kind; onPage?: boolean }) {
   const router = useRouter();
   const [kind, setKind] = useState<Kind>(initial);
   const choose = (k: Kind) => {
     setKind(k);
-    router.replace(`/tech/contact?as=${k}`, { scroll: false });
+    if (!onPage) router.replace(`/tech/contact?as=${k}`, { scroll: false });
   };
+  useEffect(() => {
+    if (!onPage) return;
+    const fromHash = () => {
+      const k = HASH[location.hash];
+      if (k) setKind(k);
+    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the hash is only known in the browser
+    fromHash();
+    addEventListener("hashchange", fromHash);
+    return () => removeEventListener("hashchange", fromHash);
+  }, [onPage]);
   return (
     <div>
       <div role="tablist" aria-label="Who are you?" className="mb-10 inline-flex rounded-full bg-tsurface p-1 shadow-[inset_0_0_0_1px_rgba(10,18,56,0.14)]">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import JsonLd from "@/components/site/JsonLd";
 import SocialLinks from "@/components/site/SocialLinks";
 import PageHead from "@/components/tech/PageHead";
@@ -6,11 +7,14 @@ import TechForms from "@/components/tech/TechForms";
 import { Eyebrow } from "@/components/tech/ui";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { TECH_CONTACT_LINE } from "@/lib/tech";
+import { techMode } from "@/lib/techMode";
 
 export const metadata: Metadata = pageMetadata("techContact");
 
 export default async function TechContact({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const as = (await searchParams).as === "creator" ? "creator" : "brand";
+  // before launch the forms are on the landing page
+  if ((await techMode()).landing) redirect(as === "creator" ? "/tech#apply" : "/tech#enquire");
   return (
     <>
       <JsonLd data={breadcrumbJsonLd("techContact")} />

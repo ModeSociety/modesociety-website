@@ -7,7 +7,8 @@ import SideSwitch from "@/components/site/SideSwitch";
 import { TECH_MENU } from "@/lib/tech";
 import { Wordmark } from "./Mark";
 
-export default function TechNav() {
+/** `landing`: before launch /tech is one page, so the nav only offers the two forms on it. */
+export default function TechNav({ landing = false }: { landing?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -42,7 +43,7 @@ export default function TechNav() {
           <Link href="/tech" aria-label="ModeSociety Tech home" className="relative z-10 text-t">
             <Wordmark className="h-[18px] w-auto md:h-[22px]" />
           </Link>
-          <nav className="hidden items-center gap-7 xl:flex">
+          <nav className={`hidden items-center gap-7 ${landing ? "" : "xl:flex"}`}>
             {TECH_MENU.map((l) => (
               <Link
                 key={l.href}
@@ -54,17 +55,22 @@ export default function TechNav() {
               </Link>
             ))}
           </nav>
-          <div className="hidden items-center gap-3 xl:flex">
+          <div className={`hidden items-center gap-3 ${landing ? "md:flex" : "xl:flex"}`}>
             <SideSwitch current="tech" tone="tech" />
-            <Link href="/tech/contact?as=brand" className="btn !py-2.5">
+            <Link href={landing ? "/tech#enquire" : "/tech/contact?as=brand"} className="btn !py-2.5">
               Brand enquiry
             </Link>
-            <Link href="/tech/contact?as=creator" className="btn ghost !py-2.5">
+            <Link href={landing ? "/tech#apply" : "/tech/contact?as=creator"} className="btn ghost !py-2.5">
               Apply to sign
             </Link>
           </div>
+          {landing && (
+            <Link href="/tech#contact" className="btn !px-4 !py-2 md:hidden">
+              Get in touch
+            </Link>
+          )}
           <button
-            className="relative z-10 flex h-10 w-10 flex-col items-center justify-center gap-[6px] text-t xl:hidden"
+            className={`relative z-10 h-10 w-10 flex-col items-center justify-center gap-[6px] text-t xl:hidden ${landing ? "hidden" : "flex"}`}
             onClick={() => setOpen((o) => !o)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}

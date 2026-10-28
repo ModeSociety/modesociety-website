@@ -251,6 +251,16 @@ export const SECTIONS = {
       list: ["Influencer campaigns", "UGC content", "Event guest lists", "Funding"],
     },
   },
+  "home.intro": {
+    side: "talent",
+    page: "Home",
+    path: "/",
+    title: "Intro film",
+    hint: "A landscape film under the hero. Paste a YouTube or Vimeo link, or put the video in the Drive folder \"Intro Video\". Hidden until there's a film.",
+    hideable: true,
+    fields: { label, meta, heading: heading(), body: area("Text (optional)"), videoUrl: text("YouTube or Vimeo link", "Leave empty to use the video in the Drive folder \"Intro Video\"") },
+    defaults: { label: "Meet Mode Society", meta: "Press play", heading: "Meet *Mode Society.*", body: "", videoUrl: "" },
+  },
   "home.agency": {
     side: "talent",
     page: "Home",

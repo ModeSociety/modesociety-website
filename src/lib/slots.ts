@@ -61,6 +61,16 @@ export const SLOTS: SlotDef[] = [
     defaults: range(11).map((n) => ({ src: asset("hero", n), alt: "Mode Society talent" })),
   },
   {
+    id: "home.intro",
+    label: "Intro film (landscape)",
+    page: "Home",
+    hint: "The landscape introduction under the home page hero (MP4). Drop it in the Drive folder \"Intro Video\" (too large to upload here), or paste a YouTube or Vimeo link under Pages & text → Home → Intro film. A photo works as a placeholder.",
+    kind: "single",
+    accept: "media",
+    folder: "Intro Video",
+    defaults: [],
+  },
+  {
     id: "home.videos",
     label: "Orbit videos",
     page: "Home & About",

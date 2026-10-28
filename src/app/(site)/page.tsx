@@ -9,9 +9,11 @@ import VideoOrbit from "@/components/home/VideoOrbit";
 import { FeaturedStrip } from "@/components/press/Press";
 import WorkTeaser from "@/components/work/WorkTeaser";
 import Accent from "@/components/site/Accent";
+import IntroVideo from "@/components/site/IntroVideo";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp } from "@/components/site/Reveal";
 import { getSiteContent } from "@/lib/backend";
+import { embedFor } from "@/lib/video";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,9 +30,12 @@ export default async function Home() {
   const wall = images["home.wall"];
   const logos = images["press.logos"] ?? [];
   const agency = copy["home.agency"];
+  const intro = copy["home.intro"];
+  const film = images["home.intro"]?.[0];
 
   // section numbers run on through whatever is showing
   const shown = {
+    intro: !intro.hidden && Boolean(embedFor(intro.videoUrl) || film),
     agency: !agency.hidden,
     services: true,
     work: !copy["home.work"].hidden && (images["work.gallery"]?.length ?? 0) > 0,
@@ -45,6 +50,21 @@ export default async function Home() {
   return (
     <>
       <Hero images={wall} settings={settings} text={copy["home.hero"]} />
+
+      {shown.intro && (
+        <section className="wrap pt-20 md:pt-28" aria-label="Intro film">
+          <SectionHead index={n.intro} label={intro.label} meta={intro.meta} />
+          <div className="mt-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <h2 className="font-display text-[clamp(52px,7.6vw,124px)] text-ink">
+              <Accent text={intro.heading} />
+            </h2>
+            {intro.body && <p className="max-w-sm text-[16px] leading-relaxed text-ink-2 md:pb-3">{intro.body}</p>}
+          </div>
+          <FadeUp className="mt-10">
+            <IntroVideo media={film} url={intro.videoUrl} label="An introduction to Mode Society" className="grain" buttonClassName="bg-paper text-ink !rounded-none font-mono !text-[11px] md:!text-[12px] uppercase tracking-[0.06em]" />
+          </FadeUp>
+        </section>
+      )}
 
       {shown.agency && (
         <section className="wrap py-20 md:py-28">

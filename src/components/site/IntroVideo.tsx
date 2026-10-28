@@ -38,7 +38,7 @@ export default function IntroVideo({
     <button
       type="button"
       onClick={onClick}
-      className={`absolute bottom-4 left-4 inline-flex items-center gap-3 rounded-full px-5 py-3 text-[14px] font-medium shadow-lg transition-transform hover:scale-[1.03] md:bottom-6 md:left-6 ${buttonClassName}`}
+      className={`absolute bottom-3 left-3 inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-[13px] md:gap-3 md:px-5 md:py-3 md:text-[14px] font-medium shadow-lg transition-transform hover:scale-[1.03] md:bottom-6 md:left-6 ${buttonClassName}`}
     >
       <span aria-hidden className="ml-0.5 h-0 w-0 border-y-[7px] border-l-[11px] border-y-transparent border-l-current" />
       Play with sound

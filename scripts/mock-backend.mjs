@@ -21,7 +21,7 @@ const DB = join(DIR, "db.json");
 const MEDIA = join(DIR, "folders");
 const MEDIA_FOLDERS = [
   "Home Page 1", "Home Page 2", "Home Page 3", "About Us 1", "Instagram",
-  "Services", "Our Work", "Featured In", "Tech Brands", "Tech Video",
+  "Services", "Our Work", "Featured In", "Tech Brands", "Tech Video", "Intro Video",
 ];
 const STATUSES = ["New", "Reviewing", "Contacted", "Signed / Booked", "Declined"];
 /** Same columns as the Sheet tabs in Code.gs, so the admin panel parses both the same way. */

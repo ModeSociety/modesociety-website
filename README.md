@@ -6,7 +6,7 @@ It's an animated, playable site with a simple admin panel. All content and form 
 ```
 Visitor ──► Next.js site (Vercel) ──► Google Apps Script web app ──► Google Drive folder
                     ▲                  (runs as the Drive owner)       ├─ Mode Society — Website Data (Sheet)
-Admin ─ Google sign-in ─┘                                              ├─ Home Page 1 / 2 / 3, About Us 1, Instagram, Services, Our Work, Featured In/…
+Admin ─ Google sign-in ─┘                                              ├─ Home Page 1 / 2 / 3, About Us 1, Instagram, Services, Our Work, Featured In, Intro Video/…
                                                                        ├─ Website Images/<slot>/…   (admin uploads)
                                                                        ├─ Talent Applications/<date — name>/…
                                                                        └─ _Incoming Uploads (auto-cleaned)
@@ -24,6 +24,7 @@ Style: editorial, like a fashion magazine. A white `#FFFFFF` page with burgundy 
 | --- | --- |
 | **Header** | The logo on the left; text links (About us · For brands · For talent · Services · Our work · Featured in · Partner with us), the **Talent | Tech** switch and a **Contact us** button on the right. Smaller screens get a menu button that opens a full-screen burgundy index of every page. |
 | **Home: hero** | A magazine-cover masthead: *MODE SOCIETY* set edge to edge across the top (stacked on phones, with the tagline and buttons straight underneath and the photos landing below them) with small cover lines above it. Over it is the interactive wall, defaulting to **Gravity**: polaroids tumble in from above and pile up, then visitors can grab and throw them. The drop waits until the intro curtain has lifted and the first photos have loaded, so it's always seen (on phones it used to finish behind the curtain). Pinboard, Scatter and Orbit can be chosen in the admin panel instead; in Pinboard, double-click a card to unpin it and carry it back up the board to pin it again. Visitors can't switch modes. |
+| **Home: intro film** | *Meet Mode Society.*: a landscape film under the hero, playing muted as a preview until someone presses **Play with sound**. It comes from the Drive folder *Intro Video*, or from a YouTube or Vimeo link pasted under *Pages & text → Home → Intro film*. Hidden until there's a film. |
 | **Home: the agency** | A 3D orbit of creator videos (from the Drive folder *Home Page 2*) beside the "external PR team" intro and a **Get to know us** button. |
 | **Home: services** | Four white cards on burgundy (Influencer campaigns, UGC content, Event guest lists, Funding), each with its name at the top and a small number at the foot, dealt out as you scroll. Hover (or tap) a card to flip it and read more. Funding links to Grant Help. |
 | **Home: selected work** | Four pieces from the *Our work* gallery under "Selected work.", linking to the Our work page. |
@@ -95,7 +96,8 @@ The panel is shared, so everyone can see everything, but **All · Talent · Tech
 | **Our Work** | Campaign photos and videos for the Our work page. The file name becomes the caption, e.g. `03-Teddi Lab — UGC.jpg` shows as *003 — Teddi Lab — UGC* (the `03-` only sets the order). |
 | **Featured In** | Logos of publications Mode Society has been featured in. |
 | **Tech Brands** | ModeSociety Tech: logos of brands Tech creators have worked with. |
-| **Tech Video** | ModeSociety Tech: the brand intro video (MP4) on *For brands*. |
+| **Tech Video** | ModeSociety Tech: the landscape intro film (MP4) on the Tech home page and *For brands*. A YouTube or Vimeo link under *Pages & text* takes its place. |
+| **Intro Video** | The landscape intro film (MP4) on the home page. A YouTube or Vimeo link under *Pages & text* takes its place. |
 
 Files show in name order, so prefix them `01-`, `02-` and so on to control the order. Media in these folders is set to "anyone with the link can view" so the site can display it.
 
@@ -138,7 +140,7 @@ Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_
 
 ### 2. Deploy the backend (Google Apps Script)
 
-> **Updating an existing backend?** Paste the new `Code.gs` (and `appsscript.json` if it changed: it lists the permissions, e.g. sending the enquiry emails), run `setup` again and approve any new permission (it adds any missing tabs, folders and columns, such as the *Tech* tabs, the *Tech Brands* and *Tech Video* folders and the Schedule's *Side* column, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
+> **Updating an existing backend?** Paste the new `Code.gs` (and `appsscript.json` if it changed: it lists the permissions, e.g. sending the enquiry emails), run `setup` again and approve any new permission (it adds any missing tabs, folders and columns, such as the *Tech* tabs, the *Tech Brands*, *Tech Video* and *Intro Video* folders, the *Content* and *Featured In* tabs and the Schedule's *Side* column, without touching existing data), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
 
 Do this **signed in as the owner of that Drive**.
 

@@ -102,6 +102,7 @@ var MEDIA_FOLDERS = [
   'Featured In',
   'Tech Brands',
   'Tech Video',
+  'Intro Video',
 ];
 
 /** New form submissions are emailed here unless the NOTIFY_EMAIL script property says otherwise. */

@@ -12,17 +12,17 @@ export default function SideSwitch({ current, tone = "light", className = "" }: 
   ];
   const shell =
     tone === "tech"
-      ? "bg-white/[0.04] shadow-[inset_0_0_0_1px_rgba(233,236,241,0.16)]"
+      ? "bg-white shadow-[inset_0_0_0_1px_rgba(11,20,56,0.14)]"
       : tone === "dark"
         ? "bg-white/[0.06] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.3)]"
         : "bg-paper shadow-[inset_0_0_0_1px_rgba(127,9,13,0.25)]";
   const on = (id: Side) =>
     tone === "tech"
-      ? "bg-[linear-gradient(180deg,#a9c6ff,#7a9eff)] text-[#061024]"
+      ? "bg-[linear-gradient(180deg,#5a7bff,#2f4fe0)] text-white"
       : tone === "dark"
         ? id === current ? "bg-white text-ink" : ""
         : "bg-ink text-white";
-  const off = tone === "tech" ? "text-[#aab2c0] hover:text-white" : tone === "dark" ? "text-white/75 hover:text-white" : "text-ink hover:bg-ink/5";
+  const off = tone === "tech" ? "text-[#48527a] hover:text-[#0b1438]" : tone === "dark" ? "text-white/75 hover:text-white" : "text-ink hover:bg-ink/5";
   return (
     <nav aria-label="Switch between Mode Society and ModeSociety Tech" className={`inline-flex rounded-full p-[3px] ${shell} ${className}`}>
       {sides.map((s) => (

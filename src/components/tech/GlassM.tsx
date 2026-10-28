@@ -116,9 +116,9 @@ export default function GlassM({ className = "" }: { className?: string }) {
       aria-hidden
     >
       {/* bloom behind */}
-      <div className="pointer-events-none absolute -inset-[18%] rounded-full bg-[radial-gradient(closest-side,rgba(75,111,245,0.45),transparent)] blur-2xl" />
+      <div className="pointer-events-none absolute -inset-[18%] rounded-full bg-[radial-gradient(closest-side,rgba(110,140,255,0.42),rgba(170,150,255,0.14)_60%,transparent)] blur-2xl" />
       <div ref={rig} className="absolute inset-0" style={{ transformStyle: "preserve-3d" }}>
-        {/* the slices: dark glass at the back, lighter toward the face */}
+        {/* the slices: deep blue at the back, lighter toward the face */}
         {Array.from({ length: LAYERS }).map((_, i) => (
           <svg
             key={i}

@@ -35,11 +35,11 @@ export default function TechNav() {
     <>
       <header
         className={`fixed inset-x-0 top-0 z-[100] transition-[background-color,box-shadow] duration-500 ${
-          scrolled || open ? "bg-[#07080c]/80 shadow-[0_1px_0_rgba(233,236,241,0.08)] backdrop-blur-xl" : ""
+          scrolled || open ? "bg-tground/80 shadow-[0_1px_0_rgba(10,18,56,0.08)] backdrop-blur-xl" : ""
         }`}
       >
         <div className="wrap flex h-16 items-center justify-between gap-6 md:h-[72px]">
-          <Link href="/tech" aria-label="ModeSociety Tech home" className="relative z-10 text-white">
+          <Link href="/tech" aria-label="ModeSociety Tech home" className="relative z-10 text-t">
             <Wordmark className="h-[18px] w-auto md:h-[22px]" />
           </Link>
           <nav className="hidden items-center gap-7 xl:flex">
@@ -48,7 +48,7 @@ export default function TechNav() {
                 key={l.href}
                 href={l.href}
                 aria-current={pathname === l.href ? "page" : undefined}
-                className={`text-[14px] transition-colors hover:text-white ${pathname === l.href ? "text-white" : "text-[#aab2c0]"}`}
+                className={`text-[14px] transition-colors hover:text-t ${pathname === l.href ? "text-t" : "text-t2"}`}
               >
                 {l.label}
               </Link>
@@ -64,7 +64,7 @@ export default function TechNav() {
             </Link>
           </div>
           <button
-            className="relative z-10 flex h-10 w-10 flex-col items-center justify-center gap-[6px] text-white xl:hidden"
+            className="relative z-10 flex h-10 w-10 flex-col items-center justify-center gap-[6px] text-t xl:hidden"
             onClick={() => setOpen((o) => !o)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
@@ -76,18 +76,18 @@ export default function TechNav() {
       </header>
 
       {open && (
-        <div className="fixed inset-0 z-[99] flex flex-col overflow-y-auto bg-[#07080c]/95 px-[var(--gutter)] pb-8 pt-24 backdrop-blur-xl xl:hidden">
+        <div className="fixed inset-0 z-[99] flex flex-col overflow-y-auto bg-tground/95 px-[var(--gutter)] pb-8 pt-24 backdrop-blur-xl xl:hidden">
           <nav className="flex flex-col">
             {[{ href: "/tech", label: "Home" }, ...TECH_MENU].map((l, i) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="block overflow-hidden border-b border-white/10 py-3"
+                className="block overflow-hidden border-b border-tline py-3"
               >
-                <span className="menu-link tech-display flex items-baseline justify-between text-[clamp(38px,11vw,64px)] text-white" style={{ animationDelay: `${i * 45}ms` }}>
+                <span className="menu-link tech-display flex items-baseline justify-between text-[clamp(38px,11vw,64px)] text-t" style={{ animationDelay: `${i * 45}ms` }}>
                   {l.label}
-                  <span className="tech-mono text-[11px] font-normal text-[#8c95a5]">0{i + 1}</span>
+                  <span className="tech-mono text-[11px] font-normal text-t3">0{i + 1}</span>
                 </span>
               </Link>
             ))}
@@ -101,7 +101,7 @@ export default function TechNav() {
             </Link>
           </div>
           <div className="mt-auto pt-10">
-            <p className="tech-mono mb-3 text-[11px] uppercase text-[#8c95a5]">Also from Mode Society</p>
+            <p className="tech-mono mb-3 text-[11px] uppercase text-t3">Also from Mode Society</p>
             <SideSwitch current="tech" tone="tech" />
           </div>
         </div>

@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 
 /**
- * The arena behind the Tech hero: a blue perspective grid running to a horizon, rolling
- * slowly toward the viewer, with stars above it. The floor bulges and lights up under the
+ * The arena behind the Tech hero: a blue perspective grid running to a pale-blue horizon,
+ * rolling slowly toward the viewer, with sparkles above it. The floor bulges and lights up under the
  * cursor (or a finger). Canvas 2D, paused when off screen or when the tab is hidden.
  */
 export default function GridFloor({ className = "", horizon = 0.56 }: { className?: string; horizon?: number }) {
@@ -52,17 +52,26 @@ export default function GridFloor({ className = "", horizon = 0.56 }: { classNam
       pointer.y += (pointer.ty - pointer.y) * 0.12;
       pointer.energy *= 0.985;
 
-      // stars
+      // sky: white at the top, pale blue toward the horizon
+      const sky = g.createLinearGradient(0, 0, 0, hy);
+      sky.addColorStop(0, "rgba(247,249,254,0)");
+      sky.addColorStop(1, "rgba(196,210,255,0.55)");
+      g.fillStyle = sky;
+      g.fillRect(0, 0, w, hy);
+      // the floor, faintly blue
+      g.fillStyle = "rgba(214,224,255,0.35)";
+      g.fillRect(0, hy, w, h - hy);
+      // sparkles
       for (const s of stars) {
         const tw = 0.35 + 0.65 * Math.abs(Math.sin(t * 0.0006 + s.p));
-        g.fillStyle = `rgba(200,215,255,${0.5 * tw})`;
-        g.fillRect(s.x * w, s.y * hy * 0.9, s.s, s.s);
+        g.fillStyle = `rgba(62,94,241,${0.32 * tw})`;
+        g.fillRect(s.x * w, s.y * hy * 0.9, s.s * 1.4, s.s * 1.4);
       }
       // horizon glow
       const glow = g.createLinearGradient(0, hy - 90, 0, hy + 30);
-      glow.addColorStop(0, "rgba(62,94,241,0)");
-      glow.addColorStop(0.75, "rgba(62,94,241,0.28)");
-      glow.addColorStop(1, "rgba(137,178,253,0)");
+      glow.addColorStop(0, "rgba(110,140,255,0)");
+      glow.addColorStop(0.75, "rgba(110,140,255,0.32)");
+      glow.addColorStop(1, "rgba(160,140,255,0)");
       g.fillStyle = glow;
       g.fillRect(0, hy - 90, w, 120);
 
@@ -93,7 +102,7 @@ export default function GridFloor({ className = "", horizon = 0.56 }: { classNam
           if (x === 0) g.moveTo(x, yy);
           else g.lineTo(x, yy);
         }
-        g.strokeStyle = `rgba(110,150,255,${0.28 * a})`;
+        g.strokeStyle = `rgba(62,94,241,${0.26 * a})`;
         g.lineWidth = 1;
         g.stroke();
       }
@@ -110,22 +119,22 @@ export default function GridFloor({ className = "", horizon = 0.56 }: { classNam
           else g.lineTo(x, yy);
         }
         const mid = near(vx + (xb - vx) * 0.7, hy + (h - hy) * 0.7);
-        g.strokeStyle = `rgba(${110 + mid * 100},${150 + mid * 80},255,${0.22 + mid * 0.6})`;
+        g.strokeStyle = `rgba(${62 - mid * 20},${94 - mid * 30},${241},${0.2 + mid * 0.6})`;
         g.lineWidth = 1 + mid * 1.2;
         g.stroke();
       }
       // pointer light pool on the floor
       if (pointer.energy > 0.02 && pointer.y > hy) {
         const pool = g.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 220);
-        pool.addColorStop(0, `rgba(137,178,253,${0.22 * pointer.energy})`);
-        pool.addColorStop(1, "rgba(137,178,253,0)");
+        pool.addColorStop(0, `rgba(110,140,255,${0.28 * pointer.energy})`);
+        pool.addColorStop(1, "rgba(110,140,255,0)");
         g.fillStyle = pool;
         g.fillRect(pointer.x - 220, pointer.y - 220, 440, 440);
       }
       // fade the floor into the page at the bottom
       const fade = g.createLinearGradient(0, h * 0.8, 0, h);
-      fade.addColorStop(0, "rgba(7,8,12,0)");
-      fade.addColorStop(1, "rgba(7,8,12,1)");
+      fade.addColorStop(0, "rgba(247,249,254,0)");
+      fade.addColorStop(1, "rgba(247,249,254,1)");
       g.fillStyle = fade;
       g.fillRect(0, h * 0.8, w, h * 0.2);
     };

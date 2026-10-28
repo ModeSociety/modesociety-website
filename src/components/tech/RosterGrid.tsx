@@ -39,13 +39,13 @@ export default function RosterGrid({ members, sample }: { members: RosterMember[
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search names, games, regions"
             aria-label="Search the roster"
-            className="w-60 rounded-full bg-white/[0.04] px-4 py-2.5 text-[14px] text-white shadow-[inset_0_0_0_1px_rgba(233,236,241,0.14)] outline-none placeholder:text-[#6c7484] focus:shadow-[inset_0_0_0_1px_#89b2fd]"
+            className="w-60 rounded-full bg-tsurface px-4 py-2.5 text-[14px] text-t shadow-[inset_0_0_0_1px_rgba(10,18,56,0.14)] outline-none placeholder:text-t3 focus:shadow-[inset_0_0_0_1px_#89b2fd]"
           />
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as typeof sort)}
             aria-label="Sort"
-            className="rounded-full bg-white/[0.04] px-4 py-2.5 text-[14px] text-white shadow-[inset_0_0_0_1px_rgba(233,236,241,0.14)] outline-none [&>option]:bg-[#0e1118]"
+            className="rounded-full bg-tsurface px-4 py-2.5 text-[14px] text-t shadow-[inset_0_0_0_1px_rgba(10,18,56,0.14)] outline-none [&>option]:bg-white"
           >
             <option value="featured">Our order</option>
             <option value="followers">Most followers</option>
@@ -62,7 +62,7 @@ export default function RosterGrid({ members, sample }: { members: RosterMember[
           ))}
         </ul>
       ) : (
-        <p className="t-panel p-10 text-center text-[#aab2c0]">Nobody matches that yet.</p>
+        <p className="t-panel p-10 text-center text-t2">Nobody matches that yet.</p>
       )}
     </div>
   );

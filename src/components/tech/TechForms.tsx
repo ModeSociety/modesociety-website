@@ -20,9 +20,9 @@ type Kind = "brand" | "creator";
 function Done({ reference, kind }: { reference: string; kind: Kind }) {
   return (
     <div className="t-panel p-8 text-center md:p-12" role="status">
-      <p className="tech-mono text-[11px] uppercase text-[#89b2fd]">Received · {reference}</p>
-      <h2 className="tech-wide mt-4 text-[clamp(34px,4vw,56px)] text-white">Thanks!</h2>
-      <p className="mx-auto mt-4 max-w-md text-[16px] text-[#aab2c0]">
+      <p className="tech-mono text-[11px] uppercase text-taccent">Received · {reference}</p>
+      <h2 className="tech-wide mt-4 text-[clamp(34px,4vw,56px)] text-t">Thanks!</h2>
+      <p className="mx-auto mt-4 max-w-md text-[16px] text-t2">
         {kind === "brand"
           ? "Our team will read your brief and email you to set up a call."
           : "Our team reviews every application and will email you either way."}
@@ -225,7 +225,7 @@ function CreatorForm() {
                       <input className="input" value={c.followers} onChange={(e) => setCh(i, "followers", e.target.value)} placeholder="e.g. 18K" />
                     </Field>
                     {channels.length > 1 ? (
-                      <button type="button" onClick={() => setChannels(channels.filter((_, j) => j !== i))} className="pb-3 text-[13px] text-[#8c95a5] hover:text-white" aria-label="Remove this channel">
+                      <button type="button" onClick={() => setChannels(channels.filter((_, j) => j !== i))} className="pb-3 text-[13px] text-t3 hover:text-t" aria-label="Remove this channel">
                         Remove
                       </button>
                     ) : (
@@ -268,7 +268,7 @@ function CreatorForm() {
                 <Field label="Anything you'd like us to know" optional>
                   <textarea className="input" value={f.notes} onChange={set("notes")} placeholder="Brands you've worked with, what you're looking for…" />
                 </Field>
-                <label className="flex cursor-pointer items-start gap-3 text-[15px] text-[#d2d8e2]">
+                <label className="flex cursor-pointer items-start gap-3 text-[15px] text-t2">
                   <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-1 h-4 w-4 accent-[#4b6ff5]" />
                   I&apos;m 18 or over (for a team: every member is).
                 </label>
@@ -291,7 +291,7 @@ export default function TechForms({ initial = "brand" }: { initial?: Kind }) {
   };
   return (
     <div>
-      <div role="tablist" aria-label="Who are you?" className="mb-10 inline-flex rounded-full bg-white/[0.04] p-1 shadow-[inset_0_0_0_1px_rgba(233,236,241,0.14)]">
+      <div role="tablist" aria-label="Who are you?" className="mb-10 inline-flex rounded-full bg-tsurface p-1 shadow-[inset_0_0_0_1px_rgba(10,18,56,0.14)]">
         {(
           [
             ["brand", "I'm a brand"],
@@ -303,7 +303,7 @@ export default function TechForms({ initial = "brand" }: { initial?: Kind }) {
             role="tab"
             aria-selected={kind === k}
             onClick={() => choose(k)}
-            className={`rounded-full px-5 py-2.5 text-[14px] font-medium transition-colors ${kind === k ? "bg-[linear-gradient(180deg,#a9c6ff,#7a9eff)] text-[#061024]" : "text-[#aab2c0] hover:text-white"}`}
+            className={`rounded-full px-5 py-2.5 text-[14px] font-medium transition-colors ${kind === k ? "bg-[linear-gradient(180deg,#5a7bff,#2f4fe0)] text-white" : "text-t2 hover:text-t"}`}
           >
             {label}
           </button>

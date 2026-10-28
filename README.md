@@ -45,13 +45,13 @@ Style: editorial, like a fashion magazine. A white `#FFFFFF` page with burgundy 
 
 ### ModeSociety Tech: `/tech`
 
-The gaming & tech side of Mode Society, for a different team and audience: streamers, content creators and esports athletes, and the gaming, tech and telco brands that work with them. The wording comes from *Website copy.pdf*; the look is the **Glass** direction from the homepage mocks: near-black, light beams, rounded glass panels, and Asha's pill **m** in blue as the only colour. Type is **Anybody** (condensed and wide caps), **Instrument Sans** and **Martian Mono**.
+The gaming & tech side of Mode Society, for a different team and audience: streamers, content creators and esports athletes, and the gaming, tech and telco brands that work with them. The wording comes from *Website copy.pdf*; the look is **white with blue gradients** (after Asha's *Mode society Tech* Pinterest board): a cool white ground, navy type, soft blue-to-lilac light behind sections, white glass panels, and Asha's pill **m** in glossy blue. Type is **Anybody** (condensed and wide caps), **Instrument Sans** and **Martian Mono**.
 
 A **Talent | Tech** switch in the nav, phone menu and footer of both sides moves between them.
 
 | Page | What it does |
 | --- | --- |
-| **Home** (`/tech`) | "Not just gaming." with the two front doors (*Run a campaign* / *Get signed*) beside a glass m that stands on a horizon and tilts toward the cursor (or the phone's tilt). Then *Who are we?* (words light up as it scrolls in), who we run campaigns for, the brand logos (or *This space is open* until there are any), the featured roster, the formats bento (each with a small animation), the 18+ policy band and the FAQ. Every Tech page ends with *Two ways in.* (except Contact). |
+| **Home** (`/tech`) | "Not just gaming." with the two front doors (*Run a campaign* / *Get signed*) beside a 3D glass m that stands on a pale-blue horizon and tilts toward the cursor (or the phone's tilt). Then *Who are we?* (words light up as it scrolls in), who we run campaigns for, the brand logos (or *This space is open* until there are any), the featured roster, the formats bento (each with a small animation), the 18+ policy band and the FAQ. Every Tech page ends with *Two ways in.* (except Contact). |
 | **For brands** (`/tech/brands`) | *Why brands call us*: key numbers (combined followers from the roster, plus total views and campaigns delivered set in the admin panel; each shows only once it's real), the intro video (Drive folder *Tech Video*), *Our process* (four steps along a beam that fills), formats, categories and brand FAQs. |
 | **For creators** (`/tech/creators`) | What we do for you, creator quotes and examples from the roster, the 18+ policy, a *Get on the roster* call and creator FAQs. |
 | **Our talent** (`/tech/talent`) | The whole roster, with a type filter, search and sort. Each card shows the photo, @, type, niche and region, total followers and every channel (linked). Cards tilt toward the cursor. |
@@ -280,7 +280,7 @@ src/components/services/              The Services page showcase (pinwheel + ani
 src/components/work/, press/          Our work gallery/teaser and Featured in (press logos, feature cards)
 src/components/site/Editorial.tsx     Editorial pieces: section rules, red marker strokes, fit-to-width type
 src/components/admin/                 Admin panel (Schedule, Enquiries, Insights, Pages & text, Featured in, Images, Roster, Animations, Access)
-src/app/tech/, src/components/tech/   ModeSociety Tech (/tech): pages, Glass theme pieces, glass m, roster, forms
+src/app/tech/, src/components/tech/   ModeSociety Tech (/tech): pages, theme pieces, the 3D m, roster, forms
 src/lib/tech.ts         All the ModeSociety Tech wording, roster types and form options
 src/components/site/Tracker.tsx       Anonymous page-view tracking (→ /api/track → Visits tab)
 src/app/(site)/…        Public pages

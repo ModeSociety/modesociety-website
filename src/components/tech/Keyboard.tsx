@@ -47,7 +47,7 @@ export default function Keyboard({ text = "MODESOCIETY TECH" }: { text?: string 
             const d = Math.hypot(px - c.x, py - c.y) / (c.w * 2.6);
             glow = Math.max(0, 1 - d);
           }
-          const hue = 218 + Math.sin(t * 0.001 + i * 0.4) * 14; // blues, drifting
+          const hue = 228 + Math.sin(t * 0.001 + i * 0.4) * 16; // blues to violet, drifting
           k.style.setProperty("--g", glow.toFixed(3));
           k.style.setProperty("--h", hue.toFixed(1));
         });
@@ -85,15 +85,15 @@ export default function Keyboard({ text = "MODESOCIETY TECH" }: { text?: string 
                 onPointerDown={(e) => e.currentTarget.animate([{ translate: "0 0" }, { translate: "0 8%" }, { translate: "0 0" }], { duration: 220, easing: "ease-out" })}
                 className="relative aspect-[0.86] w-[calc((100%-(var(--keys)-1)*1.2vw)/var(--keys))] shrink-0 rounded-[12%] [container-type:inline-size] md:w-auto md:min-w-0 md:flex-1 md:shrink"
                 style={{
-                  background: "linear-gradient(180deg,#1a1f2c,#0f121a)",
+                  background: "linear-gradient(180deg,#ffffff,#e9eefb)",
                   boxShadow:
-                    "inset 0 -6cqw 0 rgba(0,0,0,0.45), inset 0 0 0 1px rgba(233,236,241,0.1), 0 0 calc(var(--g,0) * 22cqw) hsla(var(--h,220),95%,65%,calc(var(--g,0) * 0.9))",
+                    "inset 0 -6cqw 0 rgba(11,20,56,0.1), inset 0 0 0 1px rgba(11,20,56,0.1), 0 8cqw 16cqw -10cqw rgba(11,20,56,0.25), 0 0 calc(var(--g,0) * 24cqw) hsla(var(--h,228),90%,62%,calc(var(--g,0) * 0.75))",
                   translate: "0 calc(var(--g,0) * 3.5%)",
                 }}
               >
                 <span
                   className="tech-display absolute inset-0 grid place-items-center pb-[8cqw] text-[78cqw] leading-none"
-                  style={{ color: "hsl(var(--h,220) 90% calc(78% + var(--g,0) * 18%))", textShadow: "0 0 calc(var(--g,0) * 18cqw) hsla(var(--h,220),100%,70%,0.9)" }}
+                  style={{ color: "hsl(var(--h,228) 85% calc(26% + var(--g,0) * 30%))", textShadow: "0 0 calc(var(--g,0) * 14cqw) hsla(var(--h,228),100%,65%,0.7)" }}
                 >
                   {c}
                 </span>

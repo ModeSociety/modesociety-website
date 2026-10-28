@@ -32,28 +32,27 @@ export async function GET(req: Request) {
     headers: { "Cache-Control": "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=86400" },
   };
 
-  // ModeSociety Tech (/og?theme=tech): near-black, a blue light beam and Asha's m
+  // ModeSociety Tech (/og?theme=tech): white, a blue-to-lilac glow and Asha's m
   if (new URL(req.url).searchParams.get("theme") === "tech") {
     return new ImageResponse(
       (
-        <div style={{ width: "100%", height: "100%", display: "flex", background: "#07080c", color: "#e9ecf1", padding: "56px 64px", position: "relative" }}>
-          <div style={{ position: "absolute", top: -200, left: 690, width: 360, height: 1100, transform: "rotate(14deg)", background: "linear-gradient(180deg, rgba(137,178,253,0), rgba(137,178,253,0.28) 45%, rgba(75,111,245,0))" }} />
+        <div style={{ width: "100%", height: "100%", display: "flex", background: "linear-gradient(115deg, #f7f9fe 42%, #dde6ff 72%, #e8defd 100%)", color: "#0b1438", padding: "56px 64px", position: "relative" }}>
           <div style={{ display: "flex", flexDirection: "column", width: 640 }}>
-            <div style={{ display: "flex", ...mono, color: "#8c95a5" }}>Gaming &amp; tech creators</div>
-            <div style={{ fontFamily: "Anton", fontSize: 150, lineHeight: 0.92, marginTop: "auto", color: "#fff" }}>{title.toUpperCase()}</div>
-            <div style={{ display: "flex", marginTop: 30, ...mono, fontSize: 24, color: "#89b2fd" }}>ModeSociety Tech</div>
+            <div style={{ display: "flex", ...mono, color: "#6a7398" }}>Gaming &amp; tech creators</div>
+            <div style={{ fontFamily: "Anton", fontSize: 150, lineHeight: 0.92, marginTop: "auto", color: "#0b1438" }}>{title.toUpperCase()}</div>
+            <div style={{ display: "flex", marginTop: 30, ...mono, fontSize: 24, color: "#2f55f4" }}>ModeSociety Tech</div>
           </div>
           <svg viewBox="-2 -505 553 507" width="430" height="394" style={{ position: "absolute", right: 70, bottom: 110 }}>
             <defs>
               <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#4B6FF5" />
-                <stop offset="0.6" stopColor="#6A95FB" />
-                <stop offset="1" stopColor="#89B2FD" stopOpacity="0.1" />
+                <stop offset="0" stopColor="#6B88FF" />
+                <stop offset="0.55" stopColor="#3F5AE6" />
+                <stop offset="1" stopColor="#2337A8" />
               </linearGradient>
             </defs>
             <path d={M_PATH} fill="url(#g)" fillRule="evenodd" />
           </svg>
-          <div style={{ position: "absolute", right: 64, bottom: 50, display: "flex", ...mono, fontSize: 18, color: "#8c95a5" }}>modesociety.com.au/tech</div>
+          <div style={{ position: "absolute", right: 64, bottom: 50, display: "flex", ...mono, fontSize: 18, color: "#6a7398" }}>modesociety.com.au/tech</div>
         </div>
       ),
       opts,

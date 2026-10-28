@@ -32,10 +32,10 @@ export default async function TechCreators() {
         <div className="grid gap-3 md:grid-cols-2">
           {TECH_FOR_CREATORS.map((c, i) => (
             <FadeUp key={c.title} delay={(i % 2) * 0.06} className="t-panel t-foil flex min-h-[220px] flex-col justify-between p-8">
-              <span className="tech-mono text-[11px] text-[#89b2fd]">0{i + 1}</span>
+              <span className="tech-mono text-[11px] text-taccent">0{i + 1}</span>
               <div>
-                <h3 className="tech-display text-[clamp(32px,3vw,46px)] text-white">{c.title}</h3>
-                <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-[#aab2c0]">{c.body}</p>
+                <h3 className="tech-display text-[clamp(32px,3vw,46px)] text-t">{c.title}</h3>
+                <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-t2">{c.body}</p>
               </div>
             </FadeUp>
           ))}
@@ -47,7 +47,7 @@ export default async function TechCreators() {
         <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <SectionTitle eyebrow="Creator examples" title="Who we look after." />
           {sample && (
-            <span className="flex items-center gap-2 text-[13px] text-[#8c95a5]">
+            <span className="flex items-center gap-2 text-[13px] text-t3">
               <SampleTag /> Sample cards for layout, not real creators.
             </span>
           )}
@@ -56,8 +56,8 @@ export default async function TechCreators() {
           <div className="mb-10 grid gap-3 md:grid-cols-2">
             {quotes.slice(0, 4).map((m) => (
               <FadeUp key={m.id} className="t-panel p-8">
-                <blockquote className="text-[clamp(19px,1.7vw,24px)] leading-snug text-white">&ldquo;{m.quote}&rdquo;</blockquote>
-                <p className="tech-mono mt-6 text-[11px] uppercase text-[#89b2fd]">
+                <blockquote className="text-[clamp(19px,1.7vw,24px)] leading-snug text-t">&ldquo;{m.quote}&rdquo;</blockquote>
+                <p className="tech-mono mt-6 text-[11px] uppercase text-taccent">
                   {m.name}
                   {m.handle ? ` · @${m.handle}` : ""}
                 </p>
@@ -81,8 +81,8 @@ export default async function TechCreators() {
           <Beams />
           <div className="relative grid gap-10 md:grid-cols-2 md:items-end">
             <div>
-              <h2 className="tech-wide text-[clamp(40px,5.6vw,84px)] text-white">Get on the roster.</h2>
-              <p className="mt-5 max-w-md text-[16px] text-[#aab2c0]">
+              <h2 className="tech-wide text-[clamp(40px,5.6vw,84px)] text-t">Get on the roster.</h2>
+              <p className="mt-5 max-w-md text-[16px] text-t2">
                 Streamers, creators, esports athletes and teams across gaming and tech can apply. Our team reviews every application.
               </p>
             </div>

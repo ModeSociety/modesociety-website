@@ -47,7 +47,7 @@ export default function RosterCard({
       className="t-panel group flex h-full flex-col p-3 transition-transform duration-300 ease-out"
       style={{ transform: "perspective(900px) rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg))" }}
     >
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-[#141824]">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-tsurface2">
         {m.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -58,27 +58,27 @@ export default function RosterCard({
           />
         ) : (
           <div aria-hidden className="grid h-full w-full place-items-center bg-[radial-gradient(80%_70%_at_50%_20%,rgba(75,111,245,0.35),transparent_70%),repeating-linear-gradient(135deg,rgba(255,255,255,0.025)_0_10px,transparent_10px_20px)]">
-            <span className="tech-display -mt-[22%] text-[64px] text-white/25">{m.name.slice(0, 1)}</span>
+            <span className="tech-display -mt-[22%] text-[64px] text-t/25">{m.name.slice(0, 1)}</span>
           </div>
         )}
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#07080c] to-transparent" />
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-tground to-transparent" />
         <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-2">
           <div>
-            <span className="tech-display block text-[clamp(32px,3vw,40px)] text-[#a9c6ff]">{total ? <CountUp value={total} /> : "—"}</span>
-            <span className="tech-mono text-[10px] uppercase text-[#aab2c0]">Total followers</span>
+            <span className="tech-display block text-[clamp(32px,3vw,40px)] text-taccent">{total ? <CountUp value={total} /> : "—"}</span>
+            <span className="tech-mono text-[10px] uppercase text-t2">Total followers</span>
           </div>
           {sample && <SampleTag />}
         </div>
       </div>
 
       <div className="flex flex-1 flex-col px-2 pb-2 pt-4">
-        <p className="tech-mono text-[10px] uppercase text-[#8c95a5]">
+        <p className="tech-mono text-[10px] uppercase text-t3">
           {m.type}
           {m.region ? ` · ${m.region}` : ""}
         </p>
-        <H className="tech-display mt-1 text-[30px] text-white">{m.name}</H>
-        {m.handle && <p className="tech-mono text-[12px] text-[#89b2fd]">@{m.handle}</p>}
-        {m.niche && !compactLayout && <p className="mt-2 text-[14px] text-[#aab2c0]">{m.niche}</p>}
+        <H className="tech-display mt-1 text-[30px] text-t">{m.name}</H>
+        {m.handle && <p className="tech-mono text-[12px] text-taccent">@{m.handle}</p>}
+        {m.niche && !compactLayout && <p className="mt-2 text-[14px] text-t2">{m.niche}</p>}
         {channels.length > 0 && (
           <ul className="mt-4 flex flex-wrap gap-1.5">
             {channels.map((p) => {
@@ -86,15 +86,15 @@ export default function RosterCard({
               const inner = (
                 <>
                   {p.label}
-                  {c.followers && <span className="text-white">{compact(parseFollowers(c.followers))}</span>}
+                  {c.followers && <span className="text-t">{compact(parseFollowers(c.followers))}</span>}
                 </>
               );
               const cls =
-                "tech-mono inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10.5px] uppercase text-[#aab2c0] shadow-[inset_0_0_0_1px_rgba(233,236,241,0.14)]";
+                "tech-mono inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10.5px] uppercase text-t2 shadow-[inset_0_0_0_1px_rgba(10,18,56,0.14)]";
               return (
                 <li key={p.id}>
                   {c.url && !sample ? (
-                    <a href={c.url} target="_blank" rel="noreferrer" className={`${cls} transition-colors hover:text-white hover:shadow-[inset_0_0_0_1px_rgba(137,178,253,0.7)]`} aria-label={`${m.name} on ${p.label}`}>
+                    <a href={c.url} target="_blank" rel="noreferrer" className={`${cls} transition-colors hover:text-t hover:shadow-[inset_0_0_0_1px_rgba(62,94,241,0.6)]`} aria-label={`${m.name} on ${p.label}`}>
                       {inner}
                     </a>
                   ) : (

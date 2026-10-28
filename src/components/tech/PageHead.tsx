@@ -28,14 +28,14 @@ export default function PageHead({ eyebrow, title, lead, ghost, children }: { ey
       )}
       <div className="wrap relative">
         <Eyebrow className="ph-fade">{eyebrow}</Eyebrow>
-        <h1 className="tech-wide mt-4 max-w-5xl text-[clamp(44px,7vw,108px)] text-white">
+        <h1 className="tech-wide mt-4 max-w-5xl text-[clamp(44px,7vw,108px)] text-t">
           {title.split(" ").map((w, i) => (
             <span key={i} className="inline-block overflow-hidden pb-[0.06em] align-bottom">
               <span className="ph-letter inline-block">{w}&nbsp;</span>
             </span>
           ))}
         </h1>
-        {lead && <p className="ph-fade mt-6 max-w-2xl text-[clamp(17px,1.4vw,20px)] leading-relaxed text-[#d2d8e2]">{lead}</p>}
+        {lead && <p className="ph-fade mt-6 max-w-2xl text-[clamp(17px,1.4vw,20px)] leading-relaxed text-t2">{lead}</p>}
         {children && <div className="ph-fade mt-8">{children}</div>}
       </div>
     </section>

@@ -22,8 +22,8 @@ export default async function TechContact({ searchParams }: { searchParams: Prom
         <aside className="lg:col-span-3 lg:col-start-10">
           <div className="t-panel p-6">
             <Eyebrow>Follow us</Eyebrow>
-            <SocialLinks className="mt-4 text-white" />
-            <p className="mt-6 text-[14px] leading-relaxed text-[#aab2c0]">New signings, streams and campaigns, as they happen.</p>
+            <SocialLinks className="mt-4 text-t" />
+            <p className="mt-6 text-[14px] leading-relaxed text-t2">New signings, streams and campaigns, as they happen.</p>
           </div>
         </aside>
       </section>

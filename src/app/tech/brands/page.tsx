@@ -44,15 +44,15 @@ export default async function TechBrands() {
           <div className={`grid gap-3 ${stats.length === 3 ? "md:grid-cols-3" : stats.length === 2 ? "md:grid-cols-2" : ""}`}>
             {stats.map((s) => (
               <FadeUp key={s.label} className="t-panel p-8">
-                <span className="tech-wide block text-[clamp(48px,6vw,88px)] text-[#a9c6ff]">
+                <span className="tech-wide block text-[clamp(48px,6vw,88px)] text-taccent">
                   <CountUp value={s.value} />
                 </span>
-                <span className="tech-mono mt-3 block text-[11px] uppercase text-[#aab2c0]">{s.label}</span>
+                <span className="tech-mono mt-3 block text-[11px] uppercase text-t2">{s.label}</span>
               </FadeUp>
             ))}
           </div>
         ) : (
-          <p className="t-panel p-8 text-[15px] text-[#aab2c0]">Our key numbers (combined followers, views and campaigns delivered) appear here as the roster and first campaigns go live.</p>
+          <p className="t-panel p-8 text-[15px] text-t2">Our key numbers (combined followers, views and campaigns delivered) appear here as the roster and first campaigns go live.</p>
         )}
       </section>
 

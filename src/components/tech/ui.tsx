@@ -3,7 +3,7 @@
 import Decode from "./Decode";
 
 export function Eyebrow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <p className={`tech-mono text-[11px] uppercase text-[#8c95a5] ${className}`}>{children}</p>;
+  return <p className={`tech-mono text-[11px] uppercase text-t3 ${className}`}>{children}</p>;
 }
 
 /** Condensed headline with an optional line of supporting copy, as in the mocks ("WHAT WE RUN."). */
@@ -23,10 +23,10 @@ export function SectionTitle({
   return (
     <div className={className}>
       {eyebrow && <Eyebrow className="mb-4">{eyebrow}</Eyebrow>}
-      <h2 className={`tech-display text-white ${size === "xl" ? "text-[clamp(56px,9vw,150px)]" : "text-[clamp(44px,6.4vw,104px)]"}`}>
+      <h2 className={`tech-display text-t ${size === "xl" ? "text-[clamp(56px,9vw,150px)]" : "text-[clamp(44px,6.4vw,104px)]"}`}>
         {typeof title === "string" ? <Decode text={title} /> : title}
       </h2>
-      {lead && <p className="mt-5 max-w-2xl text-[clamp(16px,1.3vw,19px)] leading-relaxed text-[#aab2c0]">{lead}</p>}
+      {lead && <p className="mt-5 max-w-2xl text-[clamp(16px,1.3vw,19px)] leading-relaxed text-t2">{lead}</p>}
     </div>
   );
 }

@@ -11,8 +11,8 @@ export default function Lede({ text, className = "" }: { text: string; className
       if (prefersReducedMotion()) return;
       gsap.fromTo(
         ref.current!.querySelectorAll(".w"),
-        { color: "#5a6273" },
-        { color: "#e9ecf1", duration: 0.6, stagger: 0.02, ease: "power1.out", scrollTrigger: { trigger: ref.current, start: "top 78%", once: true } },
+        { color: "#c4cbe0" },
+        { color: "#0b1438", duration: 0.6, stagger: 0.02, ease: "power1.out", scrollTrigger: { trigger: ref.current, start: "top 78%", once: true } },
       );
     },
     { scope: ref },

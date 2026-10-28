@@ -32,6 +32,16 @@
   --color-pin: var(--pin);
   --color-red: var(--red);
   --color-espresso: var(--espresso);
+  --color-t: var(--t-text);
+  --color-t2: var(--t-text-2);
+  --color-t3: var(--t-text-3);
+  --color-tblue: var(--t-blue);
+  --color-taccent: var(--t-accent);
+  --color-tline: var(--t-line);
+  --color-tline2: var(--t-line-2);
+  --color-tground: var(--t-ground);
+  --color-tsurface: var(--t-surface);
+  --color-tsurface2: var(--t-surface-2);
   --font-display: var(--font-anton);
   --font-serif: var(--font-instrument);
   --font-sans: var(--font-inter-tight);
@@ -587,39 +597,40 @@ textarea.input {
 }
 
 /* =========================================================================
-   ModeSociety Tech (/tech): the "Glass" direction.
-   Near-black ground, light beams, Asha's blue as the only accent. Everything is
-   scoped to .tech-root, and the shared tokens are re-pointed so the shared form
-   components (fields, chips, buttons) pick up the dark theme by themselves.
+   ModeSociety Tech (/tech): white, with blue gradients.
+   A cool white ground, navy type and Asha's blue, with soft blue-to-lilac light
+   behind sections. Everything is scoped to .tech-root, and the shared tokens are
+   re-pointed so the shared form components (fields, chips, buttons) follow along.
    ========================================================================= */
 html:has(.tech-root),
 html:has(.tech-root) body {
-  background: #07080c;
+  background: #f7f9fe;
 }
 .tech-root {
-  --t-ground: #07080c;
-  --t-surface: #0e1118;
-  --t-surface-2: #141824;
-  --t-text: #e9ecf1;
-  --t-text-2: #aab2c0;
-  --t-text-3: #8c95a5;
-  --t-line: rgba(233, 236, 241, 0.1);
-  --t-line-2: rgba(233, 236, 241, 0.18);
+  --t-ground: #f7f9fe;
+  --t-surface: #ffffff;
+  --t-surface-2: #edf1fb;
+  --t-text: #0b1438;
+  --t-text-2: #48527a;
+  --t-text-3: #6a7398;
+  --t-line: rgba(11, 20, 56, 0.09);
+  --t-line-2: rgba(11, 20, 56, 0.16);
   --t-blue: #3e5ef1;
-  --t-blue-2: #4b6ff5;
+  --t-blue-2: #2f4fe0;
   --t-blue-light: #89b2fd;
-  --t-ice: #d0e0ff;
+  --t-accent: #2f55f4;
+  --t-ice: #dfe8ff;
 
-  /* shared tokens, re-pointed for the dark theme */
+  /* shared tokens, re-pointed for the Tech theme */
   --paper: var(--t-ground);
   --paper-2: var(--t-surface-2);
   --ink: var(--t-text);
   --ink-2: var(--t-text-2);
   --muted: var(--t-text-3);
   --line: var(--t-line-2);
-  --pin: var(--t-blue-light);
-  --red: var(--t-blue-light);
-  --espresso: #e9ecf1;
+  --pin: var(--t-blue);
+  --red: var(--t-blue);
+  --espresso: var(--t-text);
 
   position: relative;
   min-height: 100svh;
@@ -667,11 +678,18 @@ html:has(.tech-root) body {
   font-weight: 700;
   text-transform: uppercase;
 }
+/* a headline's *accent* words: blue gradient type */
+.t-grad {
+  background: linear-gradient(100deg, #2f55f4 10%, #6f8dff 55%, #9b8cff 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
-/* buttons: glass-blue pill, and a hairline ghost */
+/* buttons: a blue gradient pill, and a white ghost */
 .tech-root .btn {
-  --bg: linear-gradient(180deg, #a9c6ff, #7a9eff);
-  --fg: #061024;
+  --bg: linear-gradient(180deg, #5a7bff, #2f4fe0);
+  --fg: #ffffff;
   border: 0;
   border-radius: 999px;
   padding: 0.95em 1.5em;
@@ -683,8 +701,8 @@ html:has(.tech-root) body {
   letter-spacing: 0;
   text-transform: none;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.35) inset,
-    0 10px 30px -10px rgba(75, 111, 245, 0.8);
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+    0 10px 26px -12px rgba(47, 79, 224, 0.75);
   transition:
     transform 0.25s var(--ease-out),
     box-shadow 0.25s var(--ease-out);
@@ -696,22 +714,27 @@ html:has(.tech-root) body {
   color: var(--fg);
   transform: translateY(-1px);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
-    0 14px 40px -10px rgba(75, 111, 245, 1);
+    0 0 0 1px rgba(255, 255, 255, 0.35) inset,
+    0 16px 36px -12px rgba(47, 79, 224, 0.9);
 }
 .tech-root .btn.ghost {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.75);
   color: var(--t-text);
-  box-shadow: 0 0 0 1px var(--t-line-2) inset;
+  box-shadow:
+    0 0 0 1px var(--t-line-2) inset,
+    0 8px 20px -14px rgba(11, 20, 56, 0.35);
 }
 .tech-root .btn.ghost:hover {
-  color: #fff;
-  background: rgba(137, 178, 253, 0.08);
-  box-shadow: 0 0 0 1px rgba(137, 178, 253, 0.6) inset;
+  color: var(--t-accent);
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(62, 94, 241, 0.55) inset,
+    0 10px 24px -14px rgba(47, 79, 224, 0.5);
 }
 .tech-root .chip {
   border-radius: 999px;
   border-color: var(--t-line-2);
+  background: #fff;
   color: var(--t-text);
 }
 .tech-root .chip[aria-pressed="true"] {
@@ -725,13 +748,22 @@ html:has(.tech-root) body {
   border-bottom-color: var(--t-line-2);
 }
 .tech-root .input:focus {
-  border-color: var(--t-blue-light);
+  border-color: var(--t-blue);
 }
 .tech-root .input::placeholder {
-  color: #6c7484;
+  color: #8f97b6;
 }
 .tech-root select.input option {
-  background: var(--t-surface);
+  background: #fff;
+}
+
+/* soft blue-to-lilac light behind a section (positioned by the caller) */
+.t-aura {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(60px);
+  background: radial-gradient(closest-side, rgba(110, 145, 255, 0.4), rgba(170, 150, 255, 0.18) 55%, transparent);
 }
 
 /* glass panel with a pointer-following glow (set --mx/--my from JS) */
@@ -739,11 +771,12 @@ html:has(.tech-root) body {
   position: relative;
   border-radius: 24px;
   background:
-    radial-gradient(600px circle at var(--mx, 50%) var(--my, -20%), rgba(75, 111, 245, 0.16), transparent 40%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+    radial-gradient(600px circle at var(--mx, 50%) var(--my, -20%), rgba(75, 111, 245, 0.09), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.78));
   box-shadow:
     0 0 0 1px var(--t-line) inset,
-    0 30px 60px -40px rgba(0, 0, 0, 0.9);
+    0 24px 50px -36px rgba(47, 79, 224, 0.45);
+  backdrop-filter: blur(10px);
   isolation: isolate;
   overflow: hidden;
 }
@@ -754,7 +787,7 @@ html:has(.tech-root) body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: radial-gradient(400px circle at var(--mx, 50%) var(--my, -30%), rgba(137, 178, 253, 0.55), transparent 45%);
+  background: radial-gradient(400px circle at var(--mx, 50%) var(--my, -30%), rgba(62, 94, 241, 0.6), transparent 45%);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -777,8 +810,8 @@ html:has(.tech-root) body {
   text-transform: uppercase;
   line-height: 0.82;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(137, 178, 253, 0.28);
-  background: linear-gradient(180deg, rgba(75, 111, 245, 0.22), transparent 75%);
+  -webkit-text-stroke: 1px rgba(62, 94, 241, 0.22);
+  background: linear-gradient(180deg, rgba(110, 140, 255, 0.16), transparent 75%);
   -webkit-background-clip: text;
   background-clip: text;
   user-select: none;
@@ -792,12 +825,11 @@ html:has(.tech-root) body {
   max-width: 520px;
   height: 160%;
   top: -30%;
-  background: linear-gradient(180deg, transparent, rgba(137, 178, 253, 0.16) 35%, rgba(75, 111, 245, 0.07) 60%, transparent);
-  filter: blur(28px);
+  background: linear-gradient(180deg, transparent, rgba(110, 145, 255, 0.22) 35%, rgba(160, 140, 255, 0.1) 60%, transparent);
+  filter: blur(40px);
   transform: rotate(var(--r, 18deg));
   pointer-events: none;
   animation: t-beam-drift 14s ease-in-out infinite alternate;
-  mix-blend-mode: screen;
 }
 @keyframes t-beam-drift {
   from {
@@ -871,11 +903,10 @@ html:has(.tech-root) body {
   inset: 0;
   border-radius: inherit;
   background:
-    radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.1), transparent 45%),
-    linear-gradient(115deg, transparent 20%, rgba(120, 200, 255, 0.14) 35%, rgba(190, 140, 255, 0.14) 48%, rgba(120, 255, 210, 0.12) 60%, transparent 75%);
+    radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.5), transparent 45%),
+    linear-gradient(115deg, transparent 20%, rgba(120, 190, 255, 0.16) 35%, rgba(180, 150, 255, 0.16) 48%, rgba(120, 230, 220, 0.14) 60%, transparent 75%);
   background-size: 100% 100%, 220% 220%;
   background-position: 0 0, var(--fx, 50%) 50%;
-  mix-blend-mode: screen;
   opacity: 0;
   transition: opacity 0.4s;
   pointer-events: none;

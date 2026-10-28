@@ -12,7 +12,7 @@ import GridFloor from "./GridFloor";
 
 /** Corner brackets, like a game HUD frame. */
 function Brackets() {
-  const c = "absolute h-5 w-5 border-[#89b2fd]/50";
+  const c = "absolute h-5 w-5 border-tblue/40";
   return (
     <div aria-hidden className="pointer-events-none absolute inset-4 md:inset-6">
       <span className={`${c} left-0 top-0 border-l border-t`} />
@@ -81,9 +81,9 @@ export default function TechHero() {
           <GlassM className="h-m absolute bottom-[38%] left-1/2 w-[56%] -translate-x-1/2 sm:w-[40%] lg:left-auto lg:right-[11%] lg:w-[min(30vw,460px)] lg:translate-x-0" />
           <Brackets />
           {/* HUD readouts */}
-          <div aria-hidden className="tech-mono pointer-events-none absolute right-7 top-[88px] hidden text-right text-[10.5px] uppercase leading-[1.9] text-[#8c95a5] lg:block">
+          <div aria-hidden className="tech-mono pointer-events-none absolute right-7 top-[88px] hidden text-right text-[10.5px] uppercase leading-[1.9] text-t3 lg:block">
             <div>
-              <span className="t-live mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#89b2fd]" />
+              <span className="t-live mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-tblue" />
               Status · signing creators
             </div>
             <div>Region · AU → worldwide</div>
@@ -93,15 +93,15 @@ export default function TechHero() {
 
         <div className="wrap pointer-events-none relative z-10 order-1 pt-24 md:pt-32">
           <div className="pointer-events-auto lg:max-w-[50%]">
-            <p className="h-fade tech-mono text-[11px] uppercase text-[#8c95a5]">
+            <p className="h-fade tech-mono text-[11px] uppercase text-t3">
               <Decode text="Gaming and tech creators" immediate delay={0.3} />
             </p>
-            <h1 className="tech-wide mt-4 text-[clamp(42px,6.1vw,100px)] text-white [text-shadow:0_0_40px_rgba(75,111,245,0.35)]">
+            <h1 className="tech-wide mt-4 text-[clamp(42px,6.1vw,100px)] text-t">
               <span className="sr-only">ModeSociety Tech: </span>
               {line("Not just")}
               {line("gaming.")}
             </h1>
-            <p className="h-fade mt-6 max-w-xl text-[clamp(17px,1.45vw,21px)] leading-relaxed text-[#d2d8e2]">
+            <p className="h-fade mt-6 max-w-xl text-[clamp(17px,1.45vw,21px)] leading-relaxed text-t2">
               We sign streamers, content creators and esports athletes across gaming and wider tech, and build brand campaigns around them.
             </p>
           </div>
@@ -111,27 +111,27 @@ export default function TechHero() {
         <div className="wrap pointer-events-none relative z-10 order-3 pb-10 lg:pb-24">
           <div className="pointer-events-auto grid gap-3 sm:grid-cols-2 lg:max-w-[640px]">
             <div className="h-fade t-panel p-6 backdrop-blur-md">
-              <p className="tech-mono text-[11px] uppercase text-[#8c95a5]">Player 1 · For brands</p>
-              <h2 className="tech-display mt-3 text-[34px] text-white">Run a campaign.</h2>
-              <p className="mt-2 text-[14px] leading-relaxed text-[#aab2c0]">Creator campaigns, UGC, streams and event guest lists, built around your brand.</p>
+              <p className="tech-mono text-[11px] uppercase text-t3">Player 1 · For brands</p>
+              <h2 className="tech-display mt-3 text-[34px] text-t">Run a campaign.</h2>
+              <p className="mt-2 text-[14px] leading-relaxed text-t2">Creator campaigns, UGC, streams and event guest lists, built around your brand.</p>
               <div className="mt-5 flex flex-wrap items-center gap-4">
                 <Link href="/tech/contact?as=brand" className="btn !py-2.5">
                   Brand enquiry <span className="arrow">→</span>
                 </Link>
-                <Link href="/tech/brands" className="link-underline text-[13px] text-[#89b2fd]">
+                <Link href="/tech/brands" className="link-underline text-[13px] text-taccent">
                   How a campaign runs
                 </Link>
               </div>
             </div>
             <div className="h-fade t-panel p-6 backdrop-blur-md">
-              <p className="tech-mono text-[11px] uppercase text-[#8c95a5]">Player 2 · For creators</p>
-              <h2 className="tech-display mt-3 text-[34px] text-white">Get signed.</h2>
-              <p className="mt-2 text-[14px] leading-relaxed text-[#aab2c0]">Management for streamers, creators, players and teams. Adults only, by application.</p>
+              <p className="tech-mono text-[11px] uppercase text-t3">Player 2 · For creators</p>
+              <h2 className="tech-display mt-3 text-[34px] text-t">Get signed.</h2>
+              <p className="mt-2 text-[14px] leading-relaxed text-t2">Management for streamers, creators, players and teams. Adults only, by application.</p>
               <div className="mt-5 flex flex-wrap items-center gap-4">
                 <Link href="/tech/contact?as=creator" className="btn !py-2.5">
                   Apply to sign <span className="arrow">→</span>
                 </Link>
-                <Link href="/tech/creators" className="link-underline text-[13px] text-[#89b2fd]">
+                <Link href="/tech/creators" className="link-underline text-[13px] text-taccent">
                   What management includes
                 </Link>
               </div>
@@ -141,16 +141,16 @@ export default function TechHero() {
       </div>
 
       {/* broadcast ticker */}
-      <div className="relative border-y border-white/[0.08] bg-[#0b0e16]/80 py-3 backdrop-blur">
+      <div className="relative border-y border-tline bg-white/80 py-3 backdrop-blur">
         <Marquee speed={42}>
           {ticker.map((t, i) => (
-            <span key={`${t}-${i}`} className="tech-mono mx-5 inline-flex items-center gap-3 whitespace-nowrap text-[11.5px] uppercase text-[#aab2c0]">
+            <span key={`${t}-${i}`} className="tech-mono mx-5 inline-flex items-center gap-3 whitespace-nowrap text-[11.5px] uppercase text-t2">
               {i === 0 ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3e5ef1] px-2 py-0.5 text-[10px] text-white">
                   <span className="t-live h-1.5 w-1.5 rounded-full bg-white" /> Live
                 </span>
               ) : (
-                <span className="text-[#3e5ef1]">◆</span>
+                <span className="text-tblue">◆</span>
               )}
               {t}
             </span>

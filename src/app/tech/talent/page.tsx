@@ -19,13 +19,13 @@ export default async function TechTalent() {
     <>
       <JsonLd data={breadcrumbJsonLd("techTalent")} />
       <PageHead eyebrow="Our talent" title="The roster." ghost="Talent." lead="Streamers, content creators, esports athletes and teams, with their channels and how many people follow them.">
-        <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#aab2c0]">
+        <div className="flex flex-wrap items-center gap-6 text-[14px] text-t2">
           <span>
-            <span className="tech-display text-[28px] text-white">{members.length}</span> {members.length === 1 ? "creator" : "creators"}
+            <span className="tech-display text-[28px] text-t">{members.length}</span> {members.length === 1 ? "creator" : "creators"}
           </span>
           {total > 0 && (
             <span>
-              <span className="tech-display text-[28px] text-white">{compact(total)}</span> combined followers
+              <span className="tech-display text-[28px] text-t">{compact(total)}</span> combined followers
             </span>
           )}
           {sample && (
@@ -37,8 +37,8 @@ export default async function TechTalent() {
       </PageHead>
       <section className="wrap pb-24 md:pb-32">
         <RosterGrid members={members} sample={sample} />
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.08] pt-8">
-          <p className="text-[15px] text-[#aab2c0]">Want one of them on your campaign, or want to join them?</p>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-tline pt-8">
+          <p className="text-[15px] text-t2">Want one of them on your campaign, or want to join them?</p>
           <div className="flex flex-wrap gap-3">
             <Link href="/tech/contact?as=brand" className="btn">
               Brand enquiry

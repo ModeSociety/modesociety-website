@@ -25,11 +25,11 @@ export default async function TechHome() {
       {/* Who are we? */}
       <section className="wrap py-20 md:py-28">
         <div className="grid gap-10 lg:grid-cols-12">
-          <p className="tech-mono text-[11px] uppercase text-[#8c95a5] lg:col-span-3">Who are we?</p>
+          <p className="tech-mono text-[11px] uppercase text-t3 lg:col-span-3">Who are we?</p>
           <div className="lg:col-span-9">
             <Lede text={TECH_WHO.lead} className="text-[clamp(26px,3.1vw,46px)] font-medium leading-[1.18] tracking-[-0.01em]" />
             <FadeUp className="mt-8 max-w-2xl">
-              <p className="text-[clamp(16px,1.3vw,19px)] leading-relaxed text-[#aab2c0]">{TECH_WHO.body}</p>
+              <p className="text-[clamp(16px,1.3vw,19px)] leading-relaxed text-t2">{TECH_WHO.body}</p>
             </FadeUp>
           </div>
         </div>
@@ -47,7 +47,7 @@ export default async function TechHome() {
           <SectionTitle eyebrow="Our talent" title="Choose your creator." lead="Streamers, content creators and esports athletes across gaming and tech. Quality over volume." />
           <div className="flex items-center gap-4">
             {sample && (
-              <span className="flex items-center gap-2 text-[13px] text-[#8c95a5]">
+              <span className="flex items-center gap-2 text-[13px] text-t3">
                 <SampleTag /> Sample cards for layout, not real creators.
               </span>
             )}

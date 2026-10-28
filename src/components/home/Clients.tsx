@@ -31,7 +31,7 @@ function Row({ logos, reverse }: { logos: SiteImage[]; reverse?: boolean }) {
 }
 
 /** "Brands our creators have worked with": a two-row slideshow, the rows sliding in opposite directions. */
-export default function Clients({ logos, index }: { logos: SiteImage[]; index?: string }) {
+export default function Clients({ logos, index, copy }: { logos: SiteImage[]; index?: string; copy: { label: string; heading: string; subheading: string } }) {
   if (!logos.length) return null;
   const top = logos.filter((_, i) => i % 2 === 0);
   const bottom = logos.length > 1 ? logos.filter((_, i) => i % 2 === 1) : logos;
@@ -39,10 +39,10 @@ export default function Clients({ logos, index }: { logos: SiteImage[]; index?: 
   return (
     <section className="overflow-hidden py-20 md:py-28" aria-label="Brands our creators have worked with">
       <div className="wrap">
-        <SectionHead index={index} label="Clients" meta={`${logos.length} brands & counting`} />
+        <SectionHead index={index} label={copy.label} meta={`${logos.length} brands & counting`} />
         <div className="mt-8 flex flex-wrap items-end gap-x-6 gap-y-2">
-          <h2 className="font-display text-[clamp(80px,15vw,250px)] leading-[0.82] text-ink">Brands</h2>
-          <p className="font-serif pb-[0.4em] text-[clamp(22px,2.6vw,40px)] italic leading-none text-ink">our creators have worked with</p>
+          <h2 className="font-display text-[clamp(80px,15vw,250px)] leading-[0.82] text-ink">{copy.heading}</h2>
+          {copy.subheading && <p className="font-serif pb-[0.4em] text-[clamp(22px,2.6vw,40px)] italic leading-none text-ink">{copy.subheading}</p>}
         </div>
       </div>
       <div className="mt-10 border-y border-espresso/10 md:mt-14">

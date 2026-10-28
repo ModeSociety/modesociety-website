@@ -16,6 +16,8 @@
 
 var TABS = {
   settings: { name: 'Settings', headers: ['Key', 'Value', 'Updated At', 'Updated By'] },
+  // the website's wording, one row per section edited in the admin panel (Pages & text); Value is JSON
+  content: { name: 'Content', headers: ['Section', 'Value', 'Updated At', 'Updated By'] },
   images: { name: 'Images', headers: ['Slot', 'Order', 'File ID', 'Alt Text', 'File Link', 'Updated At', 'Updated By'] },
   admins: { name: 'Admins', headers: ['Email', 'Added By', 'Added At'] },
   talent: {
@@ -241,6 +243,7 @@ var ACTIONS = {
       settings: readSettings_(), images: images, folders: folders, logoSvg: logoSvg || findLogoSvg_(folders['Home Page 1']),
       roster: readRoster_().filter(function (m) { return m.visible; }),
       press: readPress_().filter(function (a) { return a.visible; }),
+      content: readContent_(),
     };
   },
 
@@ -479,6 +482,36 @@ var ACTIONS = {
         if (pos[id]) sheet.getRange(i + 1, 2).setValue(pos[id]);
       }
       return { ok: true };
+    });
+  },
+
+  // ---- website wording (admin panel → Pages & text) ----
+
+  /** Saves one section's text (`value` is the section as an object). */
+  setContent: function (p) {
+    var key = String(p.key || '');
+    if (!/^[a-z]+\.[A-Za-z]+$/.test(key)) throw new Error('Unknown section');
+    var json = JSON.stringify(p.value || {});
+    if (json.length > 45000) throw new Error('That section is too long to save. Shorten it a little.');
+    return withLock_(function () {
+      var sheet = sheet_('content');
+      var values = sheet.getDataRange().getValues();
+      var row = -1;
+      for (var i = 1; i < values.length; i++) if (values[i][0] === key) row = i + 1;
+      var cells = [key, json, new Date(), p.by || ''];
+      if (row > 0) sheet.getRange(row, 1, 1, cells.length).setValues([cells]);
+      else sheet.appendRow(cells);
+      return { content: readContent_() };
+    });
+  },
+
+  /** Puts a section back to the website's original wording. */
+  resetContent: function (p) {
+    return withLock_(function () {
+      var sheet = sheet_('content');
+      var values = sheet.getDataRange().getValues();
+      for (var i = values.length - 1; i >= 1; i--) if (values[i][0] === p.key) sheet.deleteRow(i + 1);
+      return { content: readContent_() };
     });
   },
 
@@ -776,6 +809,18 @@ function readRoster_() {
       return o;
     })
     .sort(function (a, b) { return a.order - b.order; });
+}
+
+/** Section → its saved text. A cell that isn't valid JSON (e.g. edited by hand) is skipped. */
+function readContent_() {
+  var sheet = sheet_('content');
+  var out = {};
+  if (!sheet || sheet.getLastRow() < 2) return out;
+  sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues().forEach(function (r) {
+    if (!r[0]) return;
+    try { out[r[0]] = JSON.parse(String(r[1])); } catch (e) { /* ignore */ }
+  });
+  return out;
 }
 
 function readPress_() {

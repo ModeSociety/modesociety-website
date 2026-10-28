@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Accent from "@/components/site/Accent";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp } from "@/components/site/Reveal";
 import { responsive } from "@/lib/img";
@@ -83,13 +84,13 @@ export function PressGrid({ items }: { items: PressItem[] }) {
 }
 
 /** Home page: the publication logos and the three latest features, each with "Read more". Hidden until there's press. */
-export function FeaturedStrip({ logos, items, index }: { logos: SiteImage[]; items: PressItem[]; index: string }) {
+export function FeaturedStrip({ logos, items, index, copy }: { logos: SiteImage[]; items: PressItem[]; index: string; copy: { label: string; heading: string } }) {
   if (!logos.length && !items.length) return null;
   return (
     <section className="wrap py-20 md:py-28" aria-label="Featured in">
-      <SectionHead index={index} label="Featured in" meta={<Link href="/featured-in" className="link-underline text-ink">All press ↗</Link>} />
+      <SectionHead index={index} label={copy.label} meta={<Link href="/featured-in" className="link-underline text-ink">All press ↗</Link>} />
       <h2 className="font-display mt-8 text-[clamp(56px,9vw,150px)] text-ink">
-        As <span className="font-serif italic">seen in.</span>
+        <Accent text={copy.heading} />
       </h2>
       {logos.length > 0 && (
         <div className="mt-10">

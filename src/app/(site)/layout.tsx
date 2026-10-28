@@ -6,13 +6,13 @@ import { getSiteContent } from "@/lib/backend";
 import { organizationJsonLd } from "@/lib/seo";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const { settings, logoSvg } = await getSiteContent();
+  const { settings, logoSvg, copy } = await getSiteContent();
   return (
     <SiteShell settings={settings} logoSvg={logoSvg}>
       <JsonLd data={organizationJsonLd()} />
       <Nav />
       <main>{children}</main>
-      <Footer style={settings.footerStyle} />
+      <Footer style={settings.footerStyle} copy={copy["site.footer"]} />
     </SiteShell>
   );
 }

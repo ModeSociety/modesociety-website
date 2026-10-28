@@ -8,9 +8,9 @@ import Infographic from "@/components/home/Infographic";
 import VideoOrbit from "@/components/home/VideoOrbit";
 import { FeaturedStrip } from "@/components/press/Press";
 import WorkTeaser from "@/components/work/WorkTeaser";
+import Accent from "@/components/site/Accent";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp } from "@/components/site/Reveal";
-import { AGENCY_INTRO, AGENCY_LEAD, SERVICE_COPY } from "@/lib/content";
 import { getSiteContent } from "@/lib/backend";
 import { pageMetadata } from "@/lib/seo";
 
@@ -24,50 +24,63 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const { images, settings, press } = await getSiteContent();
+  const { images, settings, press, copy } = await getSiteContent();
   const wall = images["home.wall"];
   const logos = images["press.logos"] ?? [];
-  const hasPress = logos.length > 0 || press.length > 0;
-  // section numbers run on, skipping "Featured in" until there's press to show
-  const n = (k: number) => String(k + (hasPress && k >= 5 ? 1 : 0)).padStart(2, "0");
+  const agency = copy["home.agency"];
+
+  // section numbers run on through whatever is showing
+  const shown = {
+    agency: !agency.hidden,
+    services: true,
+    work: !copy["home.work"].hidden && (images["work.gallery"]?.length ?? 0) > 0,
+    clients: !copy["site.clients"].hidden && (images["home.clients"]?.length ?? 0) > 0,
+    press: !copy["home.press"].hidden && (logos.length > 0 || press.length > 0),
+    cta: !copy["site.cta"].hidden,
+    numbers: !copy["site.numbers"].hidden,
+  };
+  let k = 0;
+  const n = Object.fromEntries(Object.entries(shown).map(([key, on]) => [key, on ? String(++k).padStart(2, "0") : ""])) as Record<keyof typeof shown, string>;
 
   return (
     <>
-      <Hero images={wall} settings={settings} />
+      <Hero images={wall} settings={settings} text={copy["home.hero"]} />
 
-      <section className="wrap py-20 md:py-28">
-        <SectionHead index={n(1)} label="The agency" meta="Boutique · female-led · Melbourne" />
-        <div className="mt-10 grid items-center gap-10 md:grid-cols-12">
-          <FadeUp className="md:col-span-7">
-            <h2 className="font-display text-[clamp(52px,7.6vw,124px)] text-ink">
-              Think of us as your{" "}
-              <span className="font-serif italic">external</span>{" "}
-              PR team.
-            </h2>
-            <p className="mt-8 max-w-xl text-[clamp(17px,1.4vw,20px)] leading-[1.6] text-ink-2">
-              {AGENCY_INTRO.replace(AGENCY_LEAD, "").trim()}
-            </p>
-            <Link href="/about" className="btn mt-9">
-              Get to know us <span className="arrow">→</span>
-            </Link>
-          </FadeUp>
-          <div className="md:col-span-5">
-            <VideoOrbit items={images["home.videos"]} />
+      {shown.agency && (
+        <section className="wrap py-20 md:py-28">
+          <SectionHead index={n.agency} label={agency.label} meta={agency.meta} />
+          <div className="mt-10 grid items-center gap-10 md:grid-cols-12">
+            <FadeUp className="md:col-span-7">
+              <h2 className="font-display text-[clamp(52px,7.6vw,124px)] text-ink">
+                <Accent text={agency.heading} />
+              </h2>
+              {agency.body && <p className="mt-8 max-w-xl text-[clamp(17px,1.4vw,20px)] leading-[1.6] text-ink-2">{agency.body}</p>}
+              {agency.button && (
+                <Link href="/about" className="btn mt-9">
+                  {agency.button} <span className="arrow">→</span>
+                </Link>
+              )}
+            </FadeUp>
+            <div className="md:col-span-5">
+              <VideoOrbit items={images["home.videos"]} />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <Services services={SERVICE_COPY} />
+      <Services copy={copy["site.services"]} quote={copy["site.quote"].quote} index={n.services} />
 
-      <WorkTeaser items={images["work.gallery"] ?? []} index={n(3)} />
+      {shown.work && <WorkTeaser items={images["work.gallery"] ?? []} index={n.work} copy={copy["home.work"]} />}
 
-      <Clients logos={images["home.clients"]} index={n(4)} />
+      {shown.clients && <Clients logos={images["home.clients"]} index={n.clients} copy={copy["site.clients"]} />}
 
-      <FeaturedStrip logos={logos} items={press} index="05" />
+      {shown.press && <FeaturedStrip logos={logos} items={press} index={n.press} copy={copy["home.press"]} />}
 
-      <DualCta style={settings.ctaStyle} brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} index={n(5)} />
+      {shown.cta && (
+        <DualCta style={settings.ctaStyle} brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} index={n.cta} copy={copy["site.cta"]} />
+      )}
 
-      <Infographic index={n(6)} />
+      {shown.numbers && <Infographic index={n.numbers} copy={copy["site.numbers"]} />}
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PARTNERSHIPS, SUCCESS_MESSAGE } from "@/lib/forms";
-import { FORM_INTROS, INSTAGRAM_URL } from "@/lib/content";
+import { INSTAGRAM_URL } from "@/lib/content";
 import { postJson } from "@/lib/upload";
 import StepForm, { Chips, Field, isEmail } from "./StepForm";
 import { SuccessBoard } from "./Uploads";
@@ -10,7 +10,7 @@ import { SuccessBoard } from "./Uploads";
 type Partnership = (typeof PARTNERSHIPS)[number];
 
 /** Brand partnerships (B2B): referrals, co-marketing, cross-promotion. Not for paid bookings. */
-export default function PartnerForm({ showIntro = true, typeHint = "" }: { showIntro?: boolean; typeHint?: string }) {
+export default function PartnerForm({ intro = "", typeHint = "" }: { intro?: string; typeHint?: string }) {
   const [f, setF] = useState({ business: "", type: typeHint, website: "", name: "", email: "", idea: "" });
   const [partnership, setPartnership] = useState<Partnership[]>([]);
   const [honey, setHoney] = useState("");
@@ -46,7 +46,7 @@ export default function PartnerForm({ showIntro = true, typeHint = "" }: { showI
 
   return (
     <>
-      {showIntro && <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{FORM_INTROS.partner}&rdquo;</p>}
+      {intro && <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{intro}&rdquo;</p>}
       <input className="honeypot" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} aria-hidden />
       <StepForm
         submitting={submitting}

@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { resolveCopy, isSectionId } from "./copy";
 import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
 import {
@@ -62,6 +63,8 @@ type RawSite = {
   logoSvg?: string;
   roster?: RosterMember[];
   press?: (Omit<PressItem, "photos"> & { photos: string[] })[];
+  /** section id → its saved wording (admin panel → Pages & text) */
+  content?: Record<string, unknown>;
 };
 
 function fromFolder(files: FolderFile[] = [], accept: SlotDef["accept"], alt: string): SiteImage[] {
@@ -118,6 +121,8 @@ export function buildContent(raw: RawSite | null): SiteContent {
     images,
     roster: (raw?.roster ?? []).map((m) => ({ ...m, photo: m.photo ? mediaUrl(m.photo) : "" })),
     press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) })),
+    copy: resolveCopy(raw?.content),
+    copyEdited: Object.keys(raw?.content ?? {}).filter(isSectionId),
     techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },
     logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),
     connected: Boolean(raw),

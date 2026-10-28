@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { NICHES, PLATFORMS, ROLES, SIGNED, SUCCESS_MESSAGE } from "@/lib/forms";
-import { FORM_INTROS, INSTAGRAM_URL } from "@/lib/content";
+import { INSTAGRAM_URL } from "@/lib/content";
 import { postJson } from "@/lib/upload";
 import StepForm, { Chips, Field, isEmail } from "./StepForm";
 import { PolaroidUploads, SuccessBoard, type UploadItem } from "./Uploads";
@@ -19,7 +19,7 @@ const HANDLE_HINT: Record<Platform, string> = {
   Twitch: "twitch.tv/yourname",
 };
 
-export default function TalentForm({ showIntro = true }: { showIntro?: boolean }) {
+export default function TalentForm({ intro = "" }: { intro?: string }) {
   const [f, setF] = useState({ name: "", email: "", wants: "" });
   const [roles, setRoles] = useState<Role[]>([]);
   const [niches, setNiches] = useState<Niche[]>([]);
@@ -89,7 +89,7 @@ export default function TalentForm({ showIntro = true }: { showIntro?: boolean }
 
   return (
     <>
-      {showIntro && <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{FORM_INTROS.talent}&rdquo;</p>}
+      {intro && <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{intro}&rdquo;</p>}
       <input className="honeypot" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} aria-hidden />
       <StepForm
         submitting={submitting}

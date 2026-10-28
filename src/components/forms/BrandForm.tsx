@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BUDGETS, SERVICES, SUCCESS_MESSAGE, TIMELINES } from "@/lib/forms";
-import { FORM_INTROS, INSTAGRAM_URL } from "@/lib/content";
+import { INSTAGRAM_URL } from "@/lib/content";
 import { postJson } from "@/lib/upload";
 import StepForm, { Chips, Field, isEmail } from "./StepForm";
 import { SuccessBoard } from "./Uploads";
@@ -10,7 +10,7 @@ import { SuccessBoard } from "./Uploads";
 type Service = (typeof SERVICES)[number];
 
 /** "Book a call": the brand enquiry form. */
-export default function BrandForm({ showIntro = true }: { showIntro?: boolean }) {
+export default function BrandForm({ intro = "" }: { intro?: string }) {
   const [f, setF] = useState({ brand: "", website: "", name: "", email: "", project: "", budget: "", timeline: "" });
   const [services, setServices] = useState<Service[]>([]);
   const [honey, setHoney] = useState("");
@@ -53,7 +53,7 @@ export default function BrandForm({ showIntro = true }: { showIntro?: boolean })
 
   return (
     <>
-      {showIntro && <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{FORM_INTROS.brands}&rdquo;</p>}
+      {intro && <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{intro}&rdquo;</p>}
       <input className="honeypot" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} aria-hidden />
       <StepForm
         submitting={submitting}

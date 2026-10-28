@@ -110,7 +110,7 @@ const actions = {
         : "";
     const roster = [...(db.roster || [])].filter((m) => m.visible).sort((a, b) => a.order - b.order);
     const press = [...(db.press || [])].filter((a) => a.visible !== false).sort((a, b) => a.order - b.order);
-    return { settings: db.settings, images: db.images, folders, logoSvg, roster, press };
+    return { settings: db.settings, images: db.images, folders, logoSvg, roster, press, content: db.content || {} };
   },
   getInfo: () => ({
     spreadsheetUrl: "https://docs.google.com/spreadsheets/d/mock",
@@ -220,6 +220,15 @@ const actions = {
       if (m) m.order = i + 1;
     });
     return { ok: true };
+  },
+  setContent: (db, p) => {
+    if (!/^[a-z]+\.[A-Za-z]+$/.test(String(p.key))) throw new Error("Unknown section");
+    (db.content ||= {})[p.key] = p.value || {};
+    return { content: db.content };
+  },
+  resetContent: (db, p) => {
+    delete (db.content ||= {})[p.key];
+    return { content: db.content };
   },
   listPress: (db) => ({ items: [...(db.press || [])].sort((a, b) => a.order - b.order) }),
   savePressItem: (db, p) => {

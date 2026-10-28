@@ -81,9 +81,11 @@ function Stepper({ service, play }: { service: ServiceDetail; play: boolean }) {
       </ol>
 
       <div className={`mt-10 flex flex-wrap gap-3 transition-all duration-700 ${phase > n ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"}`}>
-        <Link href={service.cta.href} className="btn">
-          {service.cta.label} <span className="arrow">→</span>
-        </Link>
+        {service.cta.label && (
+          <Link href={service.cta.href} className="btn">
+            {service.cta.label} <span className="arrow">→</span>
+          </Link>
+        )}
         {service.more && (
           <a href={service.more.href} target="_blank" rel="noreferrer" className="btn ghost">
             {service.more.label}

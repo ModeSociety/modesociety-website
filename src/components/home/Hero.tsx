@@ -7,6 +7,8 @@ import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { introDone } from "@/lib/intro";
 import { responsive } from "@/lib/img";
 import { FitText, Mark } from "@/components/site/Editorial";
+import { accent } from "@/components/site/Accent";
+import type { SectionCopy } from "@/lib/copy";
 import { ENGINES, staticLayout, type EngineCtx } from "./wall/engines";
 
 const LAST_KEY = "ms-hero-last";
@@ -34,7 +36,25 @@ async function heroReady(root: HTMLElement) {
   await Promise.race([Promise.all(imgs.map((img) => img.decode().catch(() => {}))), wait(1800)]);
 }
 
-export default function Hero({ images, settings }: { images: SiteImage[]; settings: SiteSettings }) {
+/** The tagline, with the circled word (if it's in there) drawn round in red marker. */
+function Tagline({ text, circled }: { text: string; circled: string }) {
+  const word = circled.trim();
+  // the first time it appears as a whole word
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const at = word ? text.search(new RegExp(`(?<![\\w*])${escaped}(?!\\w)`)) : -1;
+  if (at < 0) return <>{accent(text, "italic")}</>;
+  return (
+    <>
+      {accent(text.slice(0, at), "italic")}
+      <Mark kind="circle" delay={1.2} className="mx-[0.14em]">
+        {word}
+      </Mark>
+      {accent(text.slice(at + word.length), "italic")}
+    </>
+  );
+}
+
+export default function Hero({ images, settings, text }: { images: SiteImage[]; settings: SiteSettings; text: SectionCopy<"home.hero"> }) {
   const wall = useRef<HTMLDivElement>(null);
   const copy = useRef<HTMLElement>(null);
   // Visitors can't change the mode; it comes from the admin panel.
@@ -195,34 +215,27 @@ export default function Hero({ images, settings }: { images: SiteImage[]; settin
           <div className="wrap flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:pb-8">
             <div className="pointer-events-auto max-w-lg">
               <p className="hero-fade font-serif text-[23px] leading-[1.12] text-ink md:text-[30px]">
-                <em>Models, influencers, UGC creators &amp; streamers,</em> cast for{" "}
-                <Mark kind="circle" delay={1.2} className="mx-[0.14em]">
-                  fit
-                </Mark>
-                , not follower count.
+                <Tagline text={text.tagline} circled={text.circled} />
               </p>
               <div className="hero-fade mt-5 flex flex-wrap gap-2">
-                <Link href="/work-with-us" className="btn">
-                  For brands <span className="arrow">→</span>
-                </Link>
-                <Link href="/apply-to-be-a-creator" className="btn ghost bg-paper/70 backdrop-blur">
-                  For talent <span className="arrow">→</span>
-                </Link>
+                {text.brandsButton && (
+                  <Link href="/work-with-us" className="btn">
+                    {text.brandsButton} <span className="arrow">→</span>
+                  </Link>
+                )}
+                {text.talentButton && (
+                  <Link href="/apply-to-be-a-creator" className="btn ghost bg-paper/70 backdrop-blur">
+                    {text.talentButton} <span className="arrow">→</span>
+                  </Link>
+                )}
               </div>
             </div>
             <ol className="hero-fade hidden font-mono text-[11px] font-medium uppercase leading-[1.9] tracking-[0.04em] text-muted md:block md:text-right">
-              <li>
-                Influencer campaigns <span className="text-ink">/01</span>
-              </li>
-              <li>
-                UGC content <span className="text-ink">/02</span>
-              </li>
-              <li>
-                Event guest lists <span className="text-ink">/03</span>
-              </li>
-              <li>
-                Funding <span className="text-ink">/04</span>
-              </li>
+              {text.list.map((l, i) => (
+                <li key={`${l}-${i}`}>
+                  {l} <span className="text-ink">/{String(i + 1).padStart(2, "0")}</span>
+                </li>
+              ))}
             </ol>
           </div>
         </div>

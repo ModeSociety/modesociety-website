@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Accent from "@/components/site/Accent";
 import { SectionHead } from "@/components/site/Editorial";
 import { INFOGRAPHIC } from "@/lib/content";
+import type { SectionCopy } from "@/lib/copy";
+
+type Row = { label: string; mode: string; inHouse: string };
+/** "$5.2" → 5.2, "1000+" → 1000, "2 weeks" → 2: the bar length comes from the first number in the text. */
+const num = (v: string) => parseFloat(String(v).replace(/,/g, "").match(/-?\d+(\.\d+)?/)?.[0] ?? "0") || 0;
 
 /* Two series, validated against the white panel: Mode Society vs an in-house marketer. */
 const MODE = "#A3242B";
@@ -134,12 +140,12 @@ function SalesLine({ on }: { on: boolean }) {
 }
 
 /** One pair of bars per metric; each metric keeps its own scale (no shared/dual axis). */
-function MetricBars({ on }: { on: boolean }) {
+function MetricBars({ on, rows }: { on: boolean; rows: Row[] }) {
   const [tip, setTip] = useState<string | null>(null);
   return (
     <div className="grid gap-6">
-      {INFOGRAPHIC.roi.map((m) => {
-        const max = Math.max(m.mode, m.inHouse);
+      {rows.map((m) => {
+        const max = Math.max(num(m.mode), num(m.inHouse)) || 1;
         return (
           <div key={m.label}>
             <div className="mb-2 text-sm font-medium text-ink">{m.label}</div>
@@ -154,20 +160,20 @@ function MetricBars({ on }: { on: boolean }) {
                     onPointerEnter={() => setTip(id)}
                     onPointerLeave={() => setTip(null)}
                     tabIndex={0}
-                    aria-label={`${s.label}: ${m.format(v)}`}
+                    aria-label={`${s.label}: ${v}`}
                   >
                     <div className="h-[14px] flex-1">
                       <div
                         className="h-full rounded-r-[4px]"
                         style={{
-                          width: on ? `${Math.max((v / max) * 100, 2)}%` : "0%",
+                          width: on ? `${Math.max((num(v) / max) * 100, 2)}%` : "0%",
                           background: s.color,
                           opacity: tip && tip !== id ? 0.45 : 1,
                           transition: `width 1.2s cubic-bezier(.16,1,.3,1) ${k * 0.12}s, opacity .2s`,
                         }}
                       />
                     </div>
-                    <span className="w-14 text-right text-sm tabular-nums text-ink-2">{m.format(v)}</span>
+                    <span className="w-14 text-right text-sm tabular-nums text-ink-2">{v}</span>
                   </div>
                 );
               })}
@@ -216,43 +222,38 @@ function SpendRing({ series, on }: { series: (typeof SERIES)[number]; on: boolea
 }
 
 /** "How sourcing the right people boosts sales and ROI vs. an in-house marketer." */
-export default function Infographic({ index }: { index?: string }) {
+export default function Infographic({ index, copy }: { index?: string; copy: SectionCopy<"site.numbers"> }) {
   const [ref, on] = useInView<HTMLElement>();
-  const { salesLift, roi } = INFOGRAPHIC;
+  const { salesLift } = INFOGRAPHIC;
+  const roi = copy.rows.filter((r) => r.label.trim());
   return (
     <section ref={ref} className="py-20 md:py-28">
       <div className="wrap">
-        <SectionHead index={index} label="The numbers" meta="Mode Society vs an in-house marketer" className="mb-8" />
+        <SectionHead index={index} label={copy.label} meta={copy.meta} className="mb-8" />
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <h2 className="font-display text-[clamp(52px,7.4vw,120px)] text-ink">
-              The right creators, <span className="font-serif italic">better returns.</span>
+              <Accent text={copy.heading} />
             </h2>
-            <p className="mt-3 max-w-xl text-ink-2">
-              Sourcing the right people for each campaign beats carrying an in-house marketer: more reach, faster launches and more
-              of your spend landing where it sells.
-            </p>
+            {copy.intro && <p className="mt-3 max-w-xl text-ink-2">{copy.intro}</p>}
           </div>
           <Legend />
         </div>
 
         <div className="mt-10 grid gap-5 lg:grid-cols-12">
           <div className="border border-espresso/15 bg-white p-6 lg:col-span-7">
-            <h3 className="font-medium text-ink">Sales index over a six-month campaign</h3>
-            <p className="mb-4 text-sm text-muted">Indexed to 100 at launch · hover to compare</p>
+            <h3 className="font-medium text-ink">{copy.chartTitle}</h3>
+            <p className="mb-4 text-sm text-muted">{copy.chartNote}</p>
             <SalesLine on={on} />
           </div>
           <div className="border border-espresso/15 bg-white p-6 lg:col-span-5">
-            <h3 className="mb-5 font-medium text-ink">Mode Society vs in-house</h3>
-            <MetricBars on={on} />
+            <h3 className="mb-5 font-medium text-ink">{copy.barsTitle}</h3>
+            <MetricBars on={on} rows={roi} />
           </div>
           <div className="grid grid-cols-2 gap-6 border border-espresso/15 bg-white p-6 lg:col-span-12 lg:grid-cols-[1fr_auto_auto] lg:items-center">
             <div className="col-span-2 lg:col-span-1">
-              <h3 className="font-medium text-ink">Where the money goes</h3>
-              <p className="mt-2 max-w-md text-sm text-ink-2">
-                In house, most of the budget is salary, overheads and tools. With us, it&apos;s creators and content: the part your
-                customers actually see.
-              </p>
+              <h3 className="font-medium text-ink">{copy.moneyTitle}</h3>
+              <p className="mt-2 max-w-md text-sm text-ink-2">{copy.moneyText}</p>
             </div>
             {SERIES.map((s) => (
               <SpendRing key={s.key} series={s} on={on} />
@@ -271,11 +272,11 @@ export default function Infographic({ index }: { index?: string }) {
               </tr>
             </thead>
             <tbody>
-              {roi.map((m) => (
-                <tr key={m.label} className="border-b border-line/60">
+              {roi.map((m, i) => (
+                <tr key={`${m.label}-${i}`} className="border-b border-line/60">
                   <td className="py-2 pr-4">{m.label}</td>
-                  <td className="py-2 pr-4 tabular-nums">{m.format(m.mode)}</td>
-                  <td className="py-2 tabular-nums">{m.format(m.inHouse)}</td>
+                  <td className="py-2 pr-4 tabular-nums">{m.mode}</td>
+                  <td className="py-2 tabular-nums">{m.inHouse}</td>
                 </tr>
               ))}
               <tr className="border-b border-line/60">
@@ -286,7 +287,7 @@ export default function Infographic({ index }: { index?: string }) {
             </tbody>
           </table>
         </details>
-        {INFOGRAPHIC.illustrative && <p className="mt-4 text-xs text-muted">Illustrative figures.</p>}
+        {copy.note && <p className="mt-4 text-xs text-muted">{copy.note}</p>}
       </div>
     </section>
   );

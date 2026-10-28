@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { COMPANY, MENU } from "@/lib/content";
+import type { SectionCopy } from "@/lib/copy";
 import type { FooterStyle } from "@/lib/slots";
 import { SectionHead } from "./Editorial";
 import Halftone from "./Halftone";
@@ -7,7 +8,7 @@ import SideSwitch from "./SideSwitch";
 import SocialLinks from "./SocialLinks";
 import Wordmark from "./Wordmark";
 
-export default function Footer({ style }: { style: FooterStyle }) {
+export default function Footer({ style, copy }: { style: FooterStyle; copy: SectionCopy<"site.footer"> }) {
   return (
     <footer className="relative overflow-hidden text-white">
       {/* dots growing out of the page into the solid burgundy footer */}
@@ -16,14 +17,18 @@ export default function Footer({ style }: { style: FooterStyle }) {
       </div>
       <div className="bg-ink">
         <div className="wrap pt-14 md:pt-20">
-          <SectionHead tone="dark" index="✶" label="Let's connect" meta="Melbourne → worldwide" />
+          <SectionHead tone="dark" index="✶" label={copy.label} meta={copy.meta} />
         </div>
         <div className="wrap grid gap-14 pb-10 pt-10 md:grid-cols-12 md:pt-14">
           <div className="md:col-span-7">
             <h2 className="font-display text-[clamp(60px,7.4vw,136px)]">
-              Tell us your vision.
-              <br />
-              <span className="font-serif text-[0.62em] italic">We&apos;ll bring it to life.</span>
+              {copy.heading}
+              {copy.subheading && (
+                <>
+                  <br />
+                  <span className="font-serif text-[0.62em] italic">{copy.subheading}</span>
+                </>
+              )}
             </h2>
             <div className="mt-10 flex flex-wrap gap-3">
               <Link href="/work-with-us" className="btn light">
@@ -39,12 +44,10 @@ export default function Footer({ style }: { style: FooterStyle }) {
           </div>
           <div className="grid content-end gap-8 text-sm md:col-span-4 md:col-start-9">
             <div>
-              <span className="eyebrow !text-white/70">Enquiries</span>
-              <p className="mt-2 text-lg leading-snug text-white/90">
-                Tell us a little about you and we&apos;ll get back to you.
-              </p>
+              <span className="eyebrow !text-white/70">{copy.enquiryLabel}</span>
+              <p className="mt-2 text-lg leading-snug text-white/90">{copy.enquiryText}</p>
               <Link href="/get-in-touch" className="btn light mt-4">
-                Make an enquiry <span className="arrow">→</span>
+                {copy.enquiryButton || "Get in touch"} <span className="arrow">→</span>
               </Link>
             </div>
             <SocialLinks />
@@ -66,9 +69,7 @@ export default function Footer({ style }: { style: FooterStyle }) {
             <span>
               © {new Date().getFullYear()} {COMPANY}
             </span>
-            <span>
-              Influencer campaigns · UGC · Event guest lists · Funding
-            </span>
+            <span>{copy.strapline}</span>
           </div>
         </div>
       </div>

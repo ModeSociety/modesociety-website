@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import Dither from "@/components/site/Dither";
 import { SectionHead } from "@/components/site/Editorial";
-import { EXPECT, INSTAGRAM_URL, QUOTE } from "@/lib/content";
+import { INSTAGRAM_URL } from "@/lib/content";
+import type { SectionCopy } from "@/lib/copy";
+import Accent from "@/components/site/Accent";
 import type { SiteImage } from "@/lib/slots";
 import { InstagramIcon } from "@/components/site/Icons";
 import { useDragScroll } from "@/lib/useDragScroll";
@@ -58,16 +60,17 @@ export function Accordion({
 }
 
 /** The big pull quote. */
-export function Quote({ className = "" }: { className?: string }) {
+export function Quote({ text, className = "" }: { text: string; className?: string }) {
+  if (!text.trim()) return null;
   return (
     <blockquote className={`font-serif text-[clamp(30px,4.6vw,70px)] leading-[1.08] text-ink ${className}`}>
-      &ldquo;{QUOTE}&rdquo;
+      &ldquo;{text}&rdquo;
     </blockquote>
   );
 }
 
 /** "What you can expect from us": swipe-through cards on the burgundy dithered background. */
-export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch?form=brands" } }: { cta?: { label: string; href: string } }) {
+export function ExpectCards({ copy, href = "/get-in-touch?form=brands" }: { copy: SectionCopy<"site.expect">; href?: string }) {
   const track = useRef<HTMLDivElement>(null);
   useDragScroll(track);
   const scrollBy = (dir: number) => {
@@ -80,25 +83,25 @@ export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch
     <section className="dither-bg relative isolate overflow-hidden py-24 text-white md:py-32">
       <Dither />
       <div className="wrap">
-        <SectionHead tone="dark" index="✶" label="How we work" meta={`${EXPECT.cards.length} things you can count on`} className="mb-8" />
+        <SectionHead tone="dark" index="✶" label={copy.label} meta={`${copy.cards.length} things you can count on`} className="mb-8" />
       </div>
       <div className="wrap grid gap-10 md:grid-cols-12">
         <div className="md:col-span-7">
           <h2 className="font-display text-[clamp(56px,7.6vw,124px)]">
-            What you can expect <span className="font-serif italic">from us.</span>
+            <Accent text={copy.heading} />
           </h2>
         </div>
         <div className="md:col-span-4 md:col-start-9 md:self-end">
-          <p className="text-lg text-white/85">{EXPECT.intro}</p>
+          <p className="text-lg text-white/85">{copy.intro}</p>
         </div>
       </div>
       <div
         ref={track}
         className="mt-12 flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-6 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {EXPECT.cards.map((c, i) => (
+        {copy.cards.map((c, i) => (
           <article
-            key={c.title}
+            key={`${c.title}-${i}`}
             data-card
             className="flex aspect-[4/5] w-[72vw] shrink-0 snap-start flex-col justify-between bg-white p-6 text-ink shadow-[0_30px_60px_-30px_rgba(0,0,0,.5)] sm:w-[300px]"
           >
@@ -115,9 +118,13 @@ export function ExpectCards({ cta = { label: "Book a call", href: "/get-in-touch
         <div className="w-[var(--gutter)] shrink-0" aria-hidden />
       </div>
       <div className="wrap mt-6 flex flex-wrap items-center justify-between gap-4">
-        <Link href={cta.href} className="btn light">
-          {cta.label} <span className="arrow">→</span>
-        </Link>
+        {copy.button ? (
+          <Link href={href} className="btn light">
+            {copy.button} <span className="arrow">→</span>
+          </Link>
+        ) : (
+          <span />
+        )}
         <div className="flex gap-2">
           <button onClick={() => scrollBy(-1)} className="social-icon !rounded-none" aria-label="Previous card">
             ←
@@ -165,7 +172,7 @@ export function Steps({ steps }: { steps: { title: string; body: string }[] }) {
   return (
     <ol className="grid gap-px overflow-hidden border border-espresso/15 bg-espresso/15 sm:grid-cols-2 lg:grid-cols-4">
       {steps.map((s, i) => (
-        <li key={s.title} className="flex flex-col justify-between gap-8 bg-white p-6">
+        <li key={`${s.title}-${i}`} className="flex flex-col justify-between gap-8 bg-white p-6">
           <div>
             <h3 className="font-display text-[clamp(34px,3vw,44px)] text-ink">{s.title}</h3>
             <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{s.body}</p>

@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
+import CopyTab from "./CopyTab";
 import EnquiriesTab from "./EnquiriesTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
@@ -117,18 +118,20 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "schedule" | "enquiries" | "insights" | "press" | "images" | "roster" | "animations" | "access";
+type Tab = "schedule" | "enquiries" | "insights" | "copy" | "press" | "images" | "roster" | "animations" | "access";
+type Group = "Day to day" | "Website" | "Team";
 
-/** Which tabs each side uses: the roster is Tech only, the animations are the talent site's. */
-const TABS: { id: Tab; sides: SideFilter[] }[] = [
-  { id: "schedule", sides: ["all", "talent", "tech"] },
-  { id: "enquiries", sides: ["all", "talent", "tech"] },
-  { id: "insights", sides: ["all", "talent", "tech"] },
-  { id: "press", sides: ["all", "talent"] },
-  { id: "images", sides: ["all", "talent", "tech"] },
-  { id: "roster", sides: ["all", "tech"] },
-  { id: "animations", sides: ["all", "talent"] },
-  { id: "access", sides: ["all", "talent", "tech"] },
+/** Which tabs each side uses: the roster is Tech only, Featured in and the animations are the talent site's. */
+const TABS: { id: Tab; label: string; group: Group; sides: SideFilter[]; about: string }[] = [
+  { id: "schedule", label: "Schedule", group: "Day to day", sides: ["all", "talent", "tech"], about: "The team calendar: calls, meetings, shoots, events and deadlines." },
+  { id: "enquiries", label: "Enquiries", group: "Day to day", sides: ["all", "talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to pr@modesociety.com.au." },
+  { id: "insights", label: "Insights", group: "Day to day", sides: ["all", "talent", "tech"], about: "Who's visiting the site, where from, and how many enquiries it brings in." },
+  { id: "copy", label: "Pages & text", group: "Website", sides: ["all", "talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
+  { id: "press", label: "Featured in", group: "Website", sides: ["all", "talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
+  { id: "images", label: "Images & video", group: "Website", sides: ["all", "talent", "tech"], about: "Every photo, logo and video on the site, and the Drive folder each one reads from." },
+  { id: "roster", label: "Roster", group: "Website", sides: ["all", "tech"], about: "The creators on ModeSociety Tech, with their channels and follower counts." },
+  { id: "animations", label: "Animations", group: "Website", sides: ["all", "talent"], about: "How the home page hero, the intro and the footer logo move." },
+  { id: "access", label: "Access", group: "Team", sides: ["all", "talent", "tech"], about: "The Google accounts that can sign in to this panel." },
 ];
 const SIDE_KEY = "ms-admin-side";
 
@@ -219,11 +222,23 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
             <button onClick={onLogout} className="btn ghost !px-4 !py-2">Sign out</button>
           </div>
         </div>
-        <nav className="wrap flex gap-6 overflow-x-auto text-[12px] uppercase tracking-[0.16em]">
-          {TABS.filter((t) => t.sides.includes(side)).map(({ id: t }) => (
-            <button key={t} onClick={() => setTab(t)} className={`border-b-2 pb-3 ${tab === t ? "border-ink" : "border-transparent text-muted"}`}>
-              {t}
-            </button>
+        <nav className="wrap flex gap-8 overflow-x-auto" aria-label="Admin sections">
+          {(["Day to day", "Website", "Team"] as Group[]).map((g) => (
+            <div key={g} className="shrink-0">
+              <p className="hidden pb-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted/70 md:block">{g}</p>
+              <div className="flex gap-5">
+                {TABS.filter((t) => t.group === g && t.sides.includes(side)).map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTab(t.id)}
+                    aria-current={tab === t.id ? "page" : undefined}
+                    className={`whitespace-nowrap border-b-2 pb-3 text-[14px] ${tab === t.id ? "border-ink font-medium text-ink" : "border-transparent text-muted hover:text-ink"}`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
       </header>
@@ -244,6 +259,11 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           </div>
         )}
 
+        <div className="mb-8">
+          <h1 className="font-display text-4xl md:text-5xl">{TABS.find((t) => t.id === tab)?.label}</h1>
+          <p className="mt-2 max-w-2xl text-ink-2">{TABS.find((t) => t.id === tab)?.about}</p>
+        </div>
+
         {tab === "schedule" && (
           <ScheduleTab
             me={me.session!.email}
@@ -256,6 +276,8 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         {tab === "enquiries" && <EnquiriesTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}
+        {tab === "copy" && content && <CopyTab content={content} side={side} reload={loadContent} notify={notify} />}
+        {tab === "copy" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading the site&apos;s wording…</p>}
         {tab === "press" && <PressTab disabled={!me.backendConfigured} notify={notify} />}
         {tab === "roster" && <RosterTab disabled={!me.backendConfigured} techStats={content?.techStats} notify={notify} />}
         {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}

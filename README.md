@@ -66,6 +66,7 @@ Sign in with Google. Only approved accounts get in.
 The panel is shared, so everyone can see everything, but **All · Talent · Tech** at the top narrows it to one side, and each browser remembers its choice. On *Tech*, Enquiries shows only Tech brands and Tech creators, Schedule only Tech appointments, Insights only `/tech` traffic and Tech enquiries, and Images only the Tech slots. The Roster tab is Tech-only; Animations is talent-only.
 
 - **Schedule:** the team calendar for calls, meetings, shoots, events and deadlines, stored in the *Schedule* tab of the Google Sheet. It has a month view with appointments colour-coded by type, and a *Coming up* list for the next 30 days (or a chosen day). Add an appointment with **+ New appointment**, or double-click a day. Each one can hold a time (or all day), client/brand, talent, location or meeting link, notes, status (Scheduled / Done / Cancelled), who it's assigned to, and which side it belongs to (Mode Society or ModeSociety Tech). **All / Mine** filters to your own, and **Add to Google Calendar** copies an appointment into anyone's calendar.
+- **Pages & text:** the wording of every section on the site, page by page (*Shared sections* holds the ones that appear on several pages: the services cards, the pull quote, the footer, the form introductions…). Open a section, change it and **Save**; it's live within a few seconds. In headings, each line is a line of the heading and words in `*stars*` get the accent style (the italic serif). Lists (FAQs, cards, steps, services) can be added to, reordered and deleted; most sections can be switched off with *Show this section on the site*; **Reset to original** brings back the first wording. Saved in the *Content* tab of the Sheet; everything not edited keeps the wording in `src/lib/copy.ts`.
 - **Featured in (Talent):** add, edit, reorder or hide press features. Each has the publication, headline, date, a short teaser (for the home page and the list), the full article, a link to the original and photos (the first is the cover). The article is plain text: a blank line starts a new paragraph, `## ` a subheading, `> ` a pull quote, `- ` a bullet, plus `**bold**`, `*italic*` and `[link](https://…)`; **Preview** shows it as it will look. The top three show on the home page. Stored in the *Featured In* tab of the Sheet; photos go into *Website Images/press.photos* in Drive.
 - **Roster (Tech):** add, edit, reorder, feature or hide the creators on ModeSociety Tech, with a photo, @, type, niche, region, each channel's link and follower count (e.g. `84K`) and an optional quote. Below the list are the *For brands* key numbers (combined total views, campaigns delivered). Stored in the *Tech Roster* tab, which can be edited in the Sheet too.
 - **Enquiries:** every talent application, brand call booking, partnership enquiry and Tech brand/creator enquiry, read straight from the Google Sheet, newest first, with search, a status filter and a *new* count for each type. Open one to read every answer, see a talent's engagement screenshots (shown only to signed-in admins; the files stay private in Drive), email them, or change its status (New / Reviewing / Contacted / Signed / Booked / Declined), which is saved back to the Sheet.
@@ -107,6 +108,7 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | **Visits** | One row per page view (time, page, source, referring site, campaign, anonymous session/visitor ids, device, country). Rows older than ~13 months are removed automatically. |
 | **Tech Brand Enquiries** | ModeSociety Tech brand enquiries: category, formats, the campaign, budget and timeline, with a **Status** dropdown. Blue header and tab. |
 | **Tech Creator Applications** | ModeSociety Tech creator applications: handle, what they're applying as, channels with follower counts, niche, region and the 18+ confirmation. |
+| **Content** | The wording edited in the admin panel (Pages & text): one row per edited section, its text as JSON. Delete a row to put that section back to the original wording. |
 | **Featured In** | The press features (admin panel → Featured in): publication, headline, date, teaser, article, link, photo file IDs and whether it's shown. Keep the *ID* column. |
 | **Tech Roster** | The ModeSociety Tech roster (admin panel → Roster). One row per creator, with a link and follower column pair per platform. Keep the *ID* column. |
 | **Images**, **Settings**, **Admins** | Written by the admin panel. |
@@ -268,7 +270,8 @@ Google has disabled the sign-in Client ID, usually as part of the same account r
 ```
 google-apps-script/     Backend: paste into script.google.com
 scripts/mock-backend.mjs  Local stand-in for the backend
-src/lib/content.ts      All the wording (services, about, talent, form intros, infographic figures)
+src/lib/copy.ts         Every editable section (fields, labels, original wording). Add a section here and it appears under Pages & text.
+src/lib/content.ts      The original wording copy.ts starts from (services, about, talent, FAQs, form intros, infographic)
 src/lib/slots.ts        Every image slot (and its Drive folder) and animation option. Add a slot here and it appears in the admin panel.
 src/lib/backend.ts      Calls Apps Script; caches site content (refreshed instantly on admin save)
 src/lib/auth.ts         Google ID-token verification, allowlist, session cookie
@@ -276,7 +279,7 @@ src/components/home/wall/engines.ts   The four hero modes
 src/components/services/              The Services page showcase (pinwheel + animated steps)
 src/components/work/, press/          Our work gallery/teaser and Featured in (press logos, feature cards)
 src/components/site/Editorial.tsx     Editorial pieces: section rules, red marker strokes, fit-to-width type
-src/components/admin/                 Admin panel (Schedule, Enquiries, Insights, Images, Roster, Animations, Access)
+src/components/admin/                 Admin panel (Schedule, Enquiries, Insights, Pages & text, Featured in, Images, Roster, Animations, Access)
 src/app/tech/, src/components/tech/   ModeSociety Tech (/tech): pages, Glass theme pieces, glass m, roster, forms
 src/lib/tech.ts         All the ModeSociety Tech wording, roster types and form options
 src/components/site/Tracker.tsx       Anonymous page-view tracking (→ /api/track → Visits tab)

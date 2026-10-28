@@ -1,20 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { SectionCopy } from "@/lib/copy";
 import BrandForm from "./BrandForm";
 import PartnerForm from "./PartnerForm";
 import TalentForm from "./TalentForm";
 
 export type FormKey = "talent" | "brands" | "partner";
 
-const CARDS: { key: FormKey; eyebrow: string; title: string; body: string; cta: string }[] = [
-  { key: "talent", eyebrow: "For talent", title: "Want us to represent you?", body: "Models, influencers, UGC creators and streamers.", cta: "Apply now" },
-  { key: "brands", eyebrow: "For brands", title: "Looking for an external PR team?", body: "Influencer campaigns, UGC, guest lists and funding.", cta: "Book a call" },
-  { key: "partner", eyebrow: "Partner with us", title: "Want to work together?", body: "Referrals, affiliates, co-marketing and cross-promotion.", cta: "Send" },
-];
+const KEYS: FormKey[] = ["talent", "brands", "partner"];
 
 /** Three cards; picking one opens its form underneath (only one at a time). */
-export default function GetInTouch({ initial, partnerTypeHint = "" }: { initial: FormKey | null; partnerTypeHint?: string }) {
+export default function GetInTouch({
+  initial,
+  partnerTypeHint = "",
+  cards: copy,
+  intros,
+}: {
+  initial: FormKey | null;
+  partnerTypeHint?: string;
+  cards: SectionCopy<"contact.cards">;
+  intros: SectionCopy<"site.forms">;
+}) {
+  // the cards are edited in the admin panel in the order talent, brands, partners
+  const CARDS = KEYS.map((key, i) => ({ key, ...(copy.cards[i] ?? { eyebrow: "", title: key, body: "", cta: "" }) }));
   const [active, setActive] = useState<FormKey | null>(initial);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -62,9 +71,9 @@ export default function GetInTouch({ initial, partnerTypeHint = "" }: { initial:
         {active && (
           <div key={active} className="mt-12 grid gap-10 md:grid-cols-12" role="tabpanel">
             <div className="md:col-span-8 md:col-start-3">
-              {active === "talent" && <TalentForm />}
-              {active === "brands" && <BrandForm />}
-              {active === "partner" && <PartnerForm typeHint={partnerTypeHint} />}
+              {active === "talent" && <TalentForm intro={intros.talent} />}
+              {active === "brands" && <BrandForm intro={intros.brands} />}
+              {active === "partner" && <PartnerForm intro={intros.partner} typeHint={partnerTypeHint} />}
             </div>
           </div>
         )}

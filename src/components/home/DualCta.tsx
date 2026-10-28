@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { SectionHead } from "@/components/site/Editorial";
 import { responsive } from "@/lib/img";
+import type { SectionCopy } from "@/lib/copy";
 import type { CtaStyle, SiteImage } from "@/lib/slots";
 
 type Panel = { href: string; eyebrow: string; title: string; img?: SiteImage; cta: string };
 
-function panels(brands?: SiteImage, talent?: SiteImage): Panel[] {
+function panels(c: SectionCopy<"site.cta">, brands?: SiteImage, talent?: SiteImage): Panel[] {
   return [
-    { href: "/work-with-us", eyebrow: "For brands", title: "Cast your next campaign", img: brands, cta: "Work with us" },
-    { href: "/apply-to-be-a-creator", eyebrow: "For talent", title: "Thinking of signing?", img: talent, cta: "Apply now" },
+    { href: "/work-with-us", eyebrow: c.brandsEyebrow, title: c.brandsTitle, img: brands, cta: c.brandsButton },
+    { href: "/apply-to-be-a-creator", eyebrow: c.talentEyebrow, title: c.talentTitle, img: talent, cta: c.talentButton },
   ];
 }
 
@@ -20,15 +21,17 @@ export default function DualCta({
   talent,
   style = "split",
   index,
+  copy,
 }: {
   brands?: SiteImage;
   talent?: SiteImage;
   style?: CtaStyle;
   index?: string;
+  copy: SectionCopy<"site.cta">;
 }) {
-  const list = panels(brands, talent);
-  if (style === "reveal") return <Reveal panels={list} index={index} />;
-  if (style === "tilt") return <Tilt panels={list} index={index} />;
+  const list = panels(copy, brands, talent);
+  if (style === "reveal") return <Reveal panels={list} index={index} label={copy.label} />;
+  if (style === "tilt") return <Tilt panels={list} index={index} label={copy.label} />;
   if (style === "blinds") return <Blinds panels={list} />;
   return <Split panels={list} />;
 }
@@ -68,11 +71,11 @@ function Split({ panels }: { panels: Panel[] }) {
 }
 
 /** Big typographic rows that slide across on hover. */
-function Reveal({ panels, index }: { panels: Panel[]; index?: string }) {
+function Reveal({ panels, index, label }: { panels: Panel[]; index?: string; label: string }) {
   return (
     <section className="relative overflow-hidden bg-paper py-20 md:py-28">
       <div className="wrap">
-        <SectionHead index={index} label="Let's work together" meta="Brands · talent" className="mb-4" />
+        <SectionHead index={index} label={label} meta="Brands · talent" className="mb-4" />
         {panels.map((p, i) => (
           <Link
             key={p.href}
@@ -99,7 +102,7 @@ function Reveal({ panels, index }: { panels: Panel[]; index?: string }) {
 }
 
 /** Two pinned polaroids that tilt toward the cursor with a moving glare. */
-function Tilt({ panels, index }: { panels: Panel[]; index?: string }) {
+function Tilt({ panels, index, label }: { panels: Panel[]; index?: string; label: string }) {
   const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
     const el = e.currentTarget;
     const r = el.getBoundingClientRect();
@@ -117,7 +120,7 @@ function Tilt({ panels, index }: { panels: Panel[]; index?: string }) {
   return (
     <section className="py-20 md:py-28">
       <div className="wrap">
-        <SectionHead index={index} label="Let's work together" meta="Brands · talent" className="mb-12" />
+        <SectionHead index={index} label={label} meta="Brands · talent" className="mb-12" />
         <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-2 md:gap-20" style={{ perspective: "1200px" }}>
           {panels.map((p, i) => (
             <Link

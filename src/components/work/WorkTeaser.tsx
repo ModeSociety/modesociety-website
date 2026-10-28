@@ -1,26 +1,28 @@
 import Link from "next/link";
+import Accent from "@/components/site/Accent";
+import type { SectionCopy } from "@/lib/copy";
 import { SectionHead } from "@/components/site/Editorial";
 import type { SiteImage } from "@/lib/slots";
 import WorkMedia, { workNo } from "./WorkMedia";
 
 /** Home page: a strip of recent work under a big headline, linking to the archive. */
-export default function WorkTeaser({ items, index = "03" }: { items: SiteImage[]; index?: string }) {
+export default function WorkTeaser({ items, index, copy }: { items: SiteImage[]; index?: string; copy: SectionCopy<"home.work"> }) {
   const picks = items.slice(0, 4);
   if (!picks.length) return null;
   return (
     <section className="wrap py-20 md:py-28" aria-label="Our work">
-      <SectionHead index={index} label="Our work" meta="Selected campaigns" />
+      <SectionHead index={index} label={copy.label} meta={copy.meta} />
       <div className="mt-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <h2 className="font-display text-[clamp(64px,11vw,180px)] text-ink">
-          Selected <span className="font-serif italic">work.</span>
+          <Accent text={copy.heading} />
         </h2>
         <div className="max-w-sm md:pb-3">
-          <p className="text-[16px] leading-relaxed text-ink-2">
-            Influencer campaigns, UGC and event guest lists for brands from fashion and beauty to gaming and food.
-          </p>
-          <Link href="/our-work" className="btn mt-5">
-            See all work <span className="arrow">↗</span>
-          </Link>
+          {copy.body && <p className="text-[16px] leading-relaxed text-ink-2">{copy.body}</p>}
+          {copy.button && (
+            <Link href="/our-work" className="btn mt-5">
+              {copy.button} <span className="arrow">↗</span>
+            </Link>
+          )}
         </div>
       </div>
       <div className="mt-10 grid grid-cols-2 gap-2 md:mt-14 md:grid-cols-4 md:gap-3">

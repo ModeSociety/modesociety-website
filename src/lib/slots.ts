@@ -1,3 +1,4 @@
+import type { SectionId, SiteCopy } from "./copy";
 import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
 
@@ -281,6 +282,10 @@ export type SiteContent = {
   roster: RosterMember[];
   /** Featured in: visible features, in display order */
   press: PressItem[];
+  /** every section's wording: what's saved in the admin panel over the defaults in copy.ts */
+  copy: SiteCopy;
+  /** sections whose wording has been changed in the admin panel */
+  copyEdited: SectionId[];
   /** ModeSociety Tech key numbers set in the admin panel ("" = not set) */
   techStats: { views: string; campaigns: string };
   /** sanitised logo SVG markup (fills set to currentColor), or "" for the text wordmark */

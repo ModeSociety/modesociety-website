@@ -149,6 +149,12 @@ export async function getSiteContent(): Promise<SiteContent> {
   }
 }
 
+/** Every feature including drafts, uncached: what an admin sees in preview. */
+export async function getAllPressFresh(): Promise<PressItem[]> {
+  const { items } = await callBackend<{ items: (Omit<PressItem, "photos"> & { photos: string[] })[] }>("listPress");
+  return items.map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) }));
+}
+
 /** Uncached read for the admin panel. */
 export async function getSiteContentFresh(): Promise<SiteContent> {
   return buildContent(await callBackend<RawSite>("getSite"));

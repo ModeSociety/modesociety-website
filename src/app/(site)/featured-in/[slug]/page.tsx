@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/site/JsonLd";
 import RichText from "@/components/site/RichText";
 import { PressCard } from "@/components/press/Press";
 import { SectionHead } from "@/components/site/Editorial";
 import { FadeUp } from "@/components/site/Reveal";
-import { getSiteContent } from "@/lib/backend";
+import { getAllPressFresh, getSiteContent } from "@/lib/backend";
 import { responsive } from "@/lib/img";
 import { pressDate, pressTeaser } from "@/lib/press";
 import { ogImageUrl, PAGES, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
+/** A published feature; in an admin's preview (the panel's View link) drafts too. */
 async function find(slug: string) {
   const { press } = await getSiteContent();
   const i = press.findIndex((a) => a.slug === slug);
-  return { item: i >= 0 ? press[i] : null, others: press.filter((_, j) => j !== i) };
+  if (i >= 0) return { item: press[i], others: press.filter((_, j) => j !== i) };
+  if ((await draftMode()).isEnabled) {
+    const draft = (await getAllPressFresh().catch(() => [])).find((a) => a.slug === slug);
+    if (draft) return { item: draft, others: press };
+  }
+  return { item: null, others: press };
 }
 
 export async function generateStaticParams() {
@@ -78,6 +85,16 @@ export default async function Feature({ params }: Props) {
       />
 
       <article>
+        {!item.visible && (
+          <div className="fixed inset-x-0 bottom-0 z-[150] flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-ink px-4 py-2.5 text-center text-[13px] text-white">
+            <span>
+              <strong>Draft.</strong> Only signed-in admins can see this page. Tick <em>Show on the site</em> in the admin panel to publish it.
+            </span>
+            <Link href={`/api/admin/preview?off&to=/featured-in`} prefetch={false} className="underline underline-offset-4">
+              Exit preview
+            </Link>
+          </div>
+        )}
         <header className="wrap pt-28 md:pt-36">
           <SectionHead
             index="Press"
@@ -100,10 +117,9 @@ export default async function Feature({ params }: Props) {
 
         {cover && (
           <div className="wrap mt-12 md:mt-16">
-            <div className="grain overflow-hidden bg-paper-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img {...responsive(cover.src, "(max-width: 1440px) 100vw, 1440px")} alt={item.title} fetchPriority="high" className="max-h-[86svh] w-full object-cover" />
-            </div>
+            {/* the whole photo, never cropped: as wide as fits, no taller than the screen */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img {...responsive(cover.src, "(max-width: 1440px) 100vw, 1440px")} alt={item.title} fetchPriority="high" className="mx-auto h-auto max-h-[88svh] w-auto max-w-full" />
           </div>
         )}
 
@@ -113,9 +129,9 @@ export default async function Feature({ params }: Props) {
             {gallery.length > 0 && (
               <div className="mt-14 grid gap-4 sm:grid-cols-2">
                 {gallery.map((p, i) => (
-                  <div key={p.fileId} className={`grain overflow-hidden bg-paper-2 ${gallery.length % 2 === 1 && i === 0 ? "sm:col-span-2" : ""}`}>
+                  <div key={p.fileId} className={gallery.length % 2 === 1 && i === 0 ? "sm:col-span-2" : ""}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img {...responsive(p.src, "(max-width: 639px) 100vw, 40vw", 1200)} alt="" loading="lazy" className="w-full object-cover" />
+                    <img {...responsive(p.src, "(max-width: 639px) 100vw, 40vw", 1200)} alt="" loading="lazy" className="h-auto w-full" />
                   </div>
                 ))}
               </div>

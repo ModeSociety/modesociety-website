@@ -26,14 +26,15 @@ export function PressCard({ item, index, large = false, sizes }: { item: PressIt
   const cover = item.photos[0];
   return (
     <article className={`group relative ${large ? "grid gap-6 md:grid-cols-12 md:items-end md:gap-10" : ""}`}>
-      <div className={`grain relative overflow-hidden bg-paper-2 ${large ? "aspect-[4/3] md:col-span-7" : "aspect-[4/5]"}`}>
+      {/* the whole photo at its own shape, never cropped */}
+      <div className={`relative overflow-hidden ${large ? "md:col-span-7" : ""} ${cover ? "" : "aspect-[4/5] bg-paper-2"}`}>
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             {...responsive(cover.src, sizes, large ? 1920 : 1080)}
             alt=""
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-[1.03]"
+            className={`h-auto transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-[1.02] ${large ? "max-h-[80svh] w-auto max-w-full" : "w-full"}`}
           />
         ) : (
           <span className="font-display absolute inset-0 grid place-items-center p-6 text-center text-[clamp(36px,4vw,64px)] text-ink/20">{item.outlet}</span>

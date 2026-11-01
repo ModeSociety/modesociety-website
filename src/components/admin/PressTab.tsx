@@ -154,7 +154,7 @@ function Editor({ initial, onClose, onSaved }: { initial: PressItem; onClose: ()
                 <figure key={p.fileId}>
                   <div className={`relative aspect-[4/5] overflow-hidden bg-paper-2 ${i === 0 ? "ring-2 ring-ink" : ""}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.src} alt="" className="h-full w-full object-cover" />
+                    <img src={p.src} alt="" className="h-full w-full object-contain" />
                     {i === 0 && <span className="absolute left-1 top-1 bg-ink px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white">Cover</span>}
                   </div>
                   <div className="mt-1 flex justify-between text-xs">
@@ -187,7 +187,7 @@ function Editor({ initial, onClose, onSaved }: { initial: PressItem; onClose: ()
           {a.slug && (
             <p className="text-sm text-ink-2">
               Page:{" "}
-              <a href={`/featured-in/${a.slug}`} target="_blank" className="underline underline-offset-4">
+              <a href={a.visible ? `/featured-in/${a.slug}` : `/api/admin/preview?to=/featured-in/${a.slug}`} target="_blank" className="underline underline-offset-4">
                 /featured-in/{a.slug} ↗
               </a>
             </p>
@@ -299,8 +299,13 @@ export default function PressTab({ disabled, notify }: { disabled: boolean; noti
               </button>
               {onHome.has(a.id) && <span className="chip hidden !px-2 !py-0.5 !text-[11px] sm:inline-flex">On home page</span>}
               {!a.visible && <span className="chip !px-2 !py-0.5 !text-[11px] opacity-60">Draft</span>}
-              <a href={`/featured-in/${a.slug}`} target="_blank" className="text-sm text-ink-2 underline underline-offset-4">
-                View ↗
+              <a
+                href={a.visible ? `/featured-in/${a.slug}` : `/api/admin/preview?to=/featured-in/${a.slug}`}
+                target="_blank"
+                className="text-sm text-ink-2 underline underline-offset-4"
+                title={a.visible ? undefined : "Drafts open in preview: only signed-in admins can see them"}
+              >
+                {a.visible ? "View ↗" : "Preview ↗"}
               </a>
             </li>
           ))}

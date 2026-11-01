@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import NavProgress from "@/components/site/NavProgress";
 import Tracker from "@/components/site/Tracker";
 import TechBoot from "./TechBoot";
 
@@ -51,6 +52,9 @@ export default function TechShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <Suspense>
+        <NavProgress className="bg-[linear-gradient(90deg,var(--t-blue),#9b8cff)]" />
+      </Suspense>
       <TechBoot />
       <Tracker />
       {children}

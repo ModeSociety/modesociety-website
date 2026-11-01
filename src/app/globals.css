@@ -202,6 +202,21 @@ img {
 .social-icon:hover svg {
   color: var(--ink);
 }
+/* pressed: buttons sink a little and links dim the moment they're clicked */
+.btn:active,
+.tech-root .btn:active {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 0.05s;
+}
+a:active,
+button:active {
+  opacity: 0.72;
+}
+/* while a page is on its way */
+html.is-navigating,
+html.is-navigating * {
+  cursor: progress !important;
+}
 .btn[disabled] {
   opacity: 0.45;
   pointer-events: none;

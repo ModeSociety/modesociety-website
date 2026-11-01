@@ -291,13 +291,17 @@ src/lib/tech.ts         All the ModeSociety Tech wording, roster types and form 
 src/components/site/Tracker.tsx       Anonymous page-view tracking (→ /api/track → Visits tab)
 src/app/(site)/…        Public pages
 src/app/admin/          Admin panel
-src/app/media/[id]      Serves Drive images through the site (nothing in Drive is made public)
+src/app/media/[id]      Serves a Drive image through the site (used until uploads are link-viewable, and for drafts in preview)
 ```
 
 ## Notes & limits
 
 - Uploaded images are resized in the browser (max 2400 px) to keep uploads fast and under the host's 4.5 MB request limit. Transparent PNGs, such as logos, stay transparent.
-- Site content is cached for 10 minutes and refreshed immediately whenever an admin saves.
+- **Speed.** Visitors never wait on the Google backend, which takes several seconds to answer:
+  - Pages are served from Vercel's cache (functions run in Sydney, `vercel.json`). Site content is cached for 10 minutes; an admin save marks it stale, and the main pages are requested straight after the save so they rebuild in the background (`src/lib/refresh.ts`). Visitors are served the previous version until the new one is ready, a few seconds later.
+  - The backend keeps its answer to `getSite` for 5 minutes (Apps Script CacheService), cleared by any save, so a rebuild takes about a second. Files dropped into the Drive media folders show within about 5–15 minutes.
+  - Photos uploaded in the admin panel are made viewable by link (they're on the public site anyway) and load straight from Google's image servers, resized by Next.js. Talent application screenshots stay private. If an organisation policy blocks link sharing, the site keeps serving uploads through `/media`.
+  - A thin bar runs along the top the moment a link is clicked, and buttons sink slightly when pressed.
 - Built-in images come from *MS Edits/Website Assets* (optimised into `public/assets`), and the logo is vectorised from `Logo.PNG` (`public/brand/logo.svg`). Anything put in the Drive folders replaces them. Videos over ~7 MB weren't bundled; add them to Drive *Home Page 2* instead.
 - Still to supply (marked `TODO` in `src/lib/content.ts` and `src/lib/forms.ts`): the LinkedIn URL (the icon stays hidden until it's set), real infographic figures, the final budget and timeline options, the full AI "Where we draw the line" text, and the talent-agreement wording for *Flexible representation*. For ModeSociety Tech, see the placeholders note under *ModeSociety Tech*.
 - Forms have a hidden honeypot field and basic rate limiting against spam.

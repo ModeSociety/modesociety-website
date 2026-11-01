@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import type { SiteSettings } from "@/lib/slots";
 import Intro from "./Intro";
+import NavProgress from "./NavProgress";
 import { LogoProvider } from "./Logo";
 import Tracker from "./Tracker";
 
@@ -45,6 +46,9 @@ export default function SiteShell({
 
   return (
     <LogoProvider svg={logoSvg}>
+      <Suspense>
+        <NavProgress />
+      </Suspense>
       <Intro style={settings.introStyle} />
       <Tracker />
       {children}

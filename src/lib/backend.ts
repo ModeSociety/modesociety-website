@@ -63,6 +63,8 @@ type RawSite = {
   /** media folder path → files, e.g. "Home Page 2" → videos */
   folders?: Record<string, FolderFile[]>;
   logoSvg?: string;
+  /** the backend has made every admin upload link-viewable (Code.gs publishUploads) */
+  uploadsPublic?: boolean;
   roster?: RosterMember[];
   press?: (Omit<PressItem, "photos"> & { photos: string[] })[];
   /** section id → its saved wording (admin panel → Pages & text) */
@@ -90,6 +92,11 @@ function fromFolder(files: FolderFile[] = [], accept: SlotDef["accept"], alt: st
     }));
 }
 
+/** A link-viewable Drive image straight from Google's image servers: fast, and resized by Google. */
+export function driveImage(fileId: string) {
+  return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w2400`;
+}
+
 export function mediaUrl(fileId: string) {
   return `/media/${encodeURIComponent(fileId)}`;
 }
@@ -108,13 +115,16 @@ function parseSettings(raw: Record<string, string> = {}): SiteSettings {
 }
 
 export function buildContent(raw: RawSite | null): SiteContent {
+  // uploads come straight from Google once the backend has made them link-viewable; until then through /media
+  const photo = raw?.uploadsPublic ? driveImage : mediaUrl;
   const images: Record<string, SiteImage[]> = {};
   for (const slot of SLOTS) {
     // Priority: uploaded through the admin panel → files in the slot's Drive folder → built-in defaults.
     const uploaded: SiteImage[] = (raw?.images ?? [])
       .filter((r) => r.slot === slot.id)
       .sort((a, b) => a.order - b.order)
-      .map((r) => ({ src: mediaUrl(r.fileId), alt: r.alt || slot.label, fileId: r.fileId, type: "image", source: "upload" }));
+      // the logo slot holds an SVG, which Google's image servers don't serve
+      .map((r) => ({ src: slot.accept === "svg" ? mediaUrl(r.fileId) : photo(r.fileId), alt: r.alt || slot.label, fileId: r.fileId, type: "image", source: "upload" }));
     const folder = slot.folder ? fromFolder(raw?.folders?.[slot.folder], slot.accept, slot.label) : [];
     const base = folder.length ? folder : slot.defaults.map((d) => ({ type: "image" as const, ...d, source: "default" as const }));
     const list = slot.additive ? [...base, ...uploaded] : uploaded.length ? uploaded : base;
@@ -123,12 +133,12 @@ export function buildContent(raw: RawSite | null): SiteContent {
   return {
     settings: parseSettings(raw?.settings),
     images,
-    roster: (raw?.roster ?? []).map((m) => ({ ...m, photo: m.photo ? mediaUrl(m.photo) : "" })),
-    press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) })),
+    roster: (raw?.roster ?? []).map((m) => ({ ...m, photo: m.photo ? photo(m.photo) : "" })),
+    press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: photo(fileId) })) })),
     copy: resolveCopy(raw?.content),
     copyEdited: Object.keys(raw?.content ?? {}).filter(isSectionId),
     blocks: Object.fromEntries(
-      Object.entries(readBlocks(raw?.content)).map(([page, list]) => [page, list.map((b) => ({ ...b, photos: b.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) }))]),
+      Object.entries(readBlocks(raw?.content)).map(([page, list]) => [page, list.map((b) => ({ ...b, photos: b.photos.map((fileId) => ({ fileId, src: photo(fileId) })) }))]),
     ) as SiteContent["blocks"],
     techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },
     logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),

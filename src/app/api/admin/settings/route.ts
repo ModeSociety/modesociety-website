@@ -1,7 +1,7 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
 import { assertSameOrigin } from "@/lib/api";
-import { callBackend, SITE_TAG } from "@/lib/backend";
+import { callBackend } from "@/lib/backend";
+import { refreshSite } from "@/lib/refresh";
 import { CTA_STYLES, FOOTER_STYLES, HERO_MODES, INTRO_STYLES } from "@/lib/slots";
 import { THEME_FIELDS, validThemeValue } from "@/lib/theme";
 
@@ -35,8 +35,7 @@ export async function POST(req: Request) {
       clean[k] = s;
     }
     await callBackend("setSettings", { values: clean, by: session.email });
-    revalidateTag(SITE_TAG, { expire: 0 });
-    revalidatePath("/", "layout");
+    refreshSite(req);
     return Response.json({ ok: true });
   } catch (err) {
     return errorResponse(err, { expose: true });

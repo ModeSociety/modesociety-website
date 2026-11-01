@@ -1,18 +1,12 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds } from "@/lib/api";
-import { callBackend, mediaUrl, SITE_TAG } from "@/lib/backend";
+import { callBackend, mediaUrl } from "@/lib/backend";
+import { refreshSite } from "@/lib/refresh";
 import { slugify } from "@/lib/press";
 
 const ID_RE = /^[\w-]{1,20}$/;
 
 type Row = { id: string; slug: string; photos: string[] };
-
-function refresh() {
-  revalidateTag(SITE_TAG, { expire: 0 });
-  revalidatePath("/featured-in", "layout");
-  revalidatePath("/");
-}
 
 /** Every feature, including hidden ones, with photo URLs for the panel. */
 export async function GET() {
@@ -58,7 +52,7 @@ export async function POST(req: Request) {
       visible: raw?.visible !== false,
     };
     const data = await callBackend<{ item: Row }>("savePressItem", { item, by: session.email });
-    refresh();
+    refreshSite(req);
     return Response.json({ ok: true, item: data.item });
   } catch (err) {
     return errorResponse(err, { expose: true });
@@ -73,7 +67,7 @@ export async function PUT(req: Request) {
     const { ids } = await req.json();
     const list = (Array.isArray(ids) ? ids : []).filter((x): x is string => typeof x === "string" && ID_RE.test(x)).slice(0, 300);
     await callBackend("setPressOrder", { ids: list });
-    refresh();
+    refreshSite(req);
     return Response.json({ ok: true });
   } catch (err) {
     return errorResponse(err, { expose: true });
@@ -87,7 +81,7 @@ export async function DELETE(req: Request) {
     const { id } = await req.json();
     if (typeof id !== "string" || !ID_RE.test(id)) throw new HttpError(400, "Unknown feature");
     await callBackend("deletePressItem", { id });
-    refresh();
+    refreshSite(req);
     return Response.json({ ok: true });
   } catch (err) {
     return errorResponse(err, { expose: true });

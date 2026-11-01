@@ -191,7 +191,37 @@ function setup() {
   });
   if (!hasCleanup) ScriptApp.newTrigger('cleanupIncoming').timeBased().everyDays(1).atHour(3).create();
 
+  publishUploads();
+  siteCacheClear_();
   Logger.log('Setup complete. Folder: ' + root.getUrl() + ' · Spreadsheet: ' + ss.getUrl());
+}
+
+/**
+ * Makes every website image uploaded in the admin panel ("Website Images" and its slot folders)
+ * viewable by link, as they're shown on the public site anyway, so the site can load them from
+ * Google's image servers instead of through the backend. Talent applications are never touched.
+ * Run by setup(); safe to run again.
+ */
+function publishUploads() {
+  var ok = true;
+  var walk = function (folder) {
+    var files = folder.getFiles();
+    while (files.hasNext()) {
+      var f = files.next();
+      try {
+        if (f.getSharingAccess() !== DriveApp.Access.ANYONE_WITH_LINK) f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch (e) {
+        ok = false;
+      }
+    }
+    var subs = folder.getFolders();
+    while (subs.hasNext()) walk(subs.next());
+  };
+  walk(folder_('images'));
+  var props = PropertiesService.getScriptProperties();
+  if (ok) props.setProperty('UPLOADS_PUBLIC', '1');
+  else props.deleteProperty('UPLOADS_PUBLIC');
+  Logger.log(ok ? 'Website uploads are viewable by link.' : 'Some uploads could not be shared by link (organisation policy?); the site keeps serving them itself.');
 }
 
 /** Daily: bins uploads from forms that were started but never submitted, and prunes old visit rows. */
@@ -222,6 +252,10 @@ function doGet() {
   return json_({ ok: true, service: 'mode-society-backend' });
 }
 
+/** Actions that change what getSite returns: each one clears its cache. */
+var SITE_WRITES = ['setSettings', 'setSlot', 'saveRosterMember', 'deleteRosterMember', 'setRosterOrder', 'savePressItem',
+  'deletePressItem', 'setPressOrder', 'setContent', 'resetContent'];
+
 function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents || '{}');
@@ -229,10 +263,58 @@ function doPost(e) {
     if (!secret || body.secret !== secret) return json_({ ok: false, error: 'unauthorised' });
     var handler = ACTIONS[body.action];
     if (!handler) return json_({ ok: false, error: 'unknown action: ' + body.action });
-    return json_({ ok: true, data: handler(body.payload || {}) });
+    if (body.action === 'getSite') {
+      // building the site's content reads every tab and media folder (several seconds), so it's kept for a few minutes
+      var cached = siteCacheGet_();
+      if (cached) return ContentService.createTextOutput('{"ok":true,"data":' + cached + '}').setMimeType(ContentService.MimeType.JSON);
+      var site = ACTIONS.getSite();
+      siteCachePut_(JSON.stringify(site));
+      return json_({ ok: true, data: site });
+    }
+    var data = handler(body.payload || {});
+    if (SITE_WRITES.indexOf(body.action) >= 0) siteCacheClear_();
+    return json_({ ok: true, data: data });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message ? err.message : err) });
   }
+}
+
+// getSite's cache: CacheService holds 100 KB per value, so the JSON is stored in pieces.
+var SITE_CACHE_SECONDS = 300; // files dropped into the Drive media folders show within 5 minutes
+var SITE_CACHE_PIECE = 45000;
+
+function siteCacheGet_() {
+  try {
+    var cache = CacheService.getScriptCache();
+    var n = Number(cache.get('site:n'));
+    if (!n) return '';
+    var keys = [];
+    for (var i = 0; i < n; i++) keys.push('site:' + i);
+    var parts = cache.getAll(keys);
+    var out = '';
+    for (var j = 0; j < n; j++) {
+      if (parts['site:' + j] == null) return '';
+      out += parts['site:' + j];
+    }
+    return out;
+  } catch (e) {
+    return '';
+  }
+}
+
+function siteCachePut_(json) {
+  try {
+    var values = {};
+    var n = Math.ceil(json.length / SITE_CACHE_PIECE);
+    if (n > 20) return; // too big to keep; it's simply rebuilt each time
+    for (var i = 0; i < n; i++) values['site:' + i] = json.slice(i * SITE_CACHE_PIECE, (i + 1) * SITE_CACHE_PIECE);
+    values['site:n'] = String(n);
+    CacheService.getScriptCache().putAll(values, SITE_CACHE_SECONDS);
+  } catch (e) { /* the cache is only a speed-up */ }
+}
+
+function siteCacheClear_() {
+  try { CacheService.getScriptCache().remove('site:n'); } catch (e) { /* ignore */ }
 }
 
 var ACTIONS = {
@@ -248,6 +330,8 @@ var ACTIONS = {
       roster: readRoster_().filter(function (m) { return m.visible; }),
       press: readPress_().filter(function (a) { return a.visible; }),
       content: readContent_(),
+      // every admin upload is link-viewable, so the site can load them straight from Google
+      uploadsPublic: PropertiesService.getScriptProperties().getProperty('UPLOADS_PUBLIC') === '1',
     };
   },
 
@@ -312,6 +396,12 @@ var ACTIONS = {
     var blob = Utilities.newBlob(Utilities.base64Decode(p.data), p.mimeType, name);
     var file = folder.createFile(blob);
     file.setDescription('Uploaded via Mode Society admin by ' + (p.by || 'unknown'));
+    // it's going on the public website: link-viewable lets the site load it straight from Google's image servers
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (e) {
+      PropertiesService.getScriptProperties().deleteProperty('UPLOADS_PUBLIC'); // org policy forbids it: keep serving through the site
+    }
     return { fileId: file.getId() };
   },
 
@@ -1036,10 +1126,13 @@ function withLock_(fn) {
   try { return fn(); } finally { lock.releaseLock(); }
 }
 
+var SPREADSHEET_ = null;
 function spreadsheet_() {
+  if (SPREADSHEET_) return SPREADSHEET_;
   var id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   if (!id) throw new Error('Backend not set up — run setup() in the Apps Script editor.');
-  return SpreadsheetApp.openById(id);
+  SPREADSHEET_ = SpreadsheetApp.openById(id);
+  return SPREADSHEET_;
 }
 
 function sheet_(key) {

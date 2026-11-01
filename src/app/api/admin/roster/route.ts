@@ -1,14 +1,13 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanList } from "@/lib/api";
-import { callBackend, mediaUrl, SITE_TAG } from "@/lib/backend";
+import { callBackend, mediaUrl } from "@/lib/backend";
+import { refreshSite } from "@/lib/refresh";
 import { PLATFORMS, ROSTER_TYPES, type RosterMember } from "@/lib/tech";
 
 const ID_RE = /^[\w-]{1,20}$/;
 
-function refresh() {
-  revalidateTag(SITE_TAG, { expire: 0 });
-  revalidatePath("/tech", "layout");
+function refresh(req: Request) {
+  refreshSite(req, ["/tech/talent", "/tech/creators"]);
 }
 
 /** The whole roster, including hidden members, with a photo URL for the panel. */
@@ -52,7 +51,7 @@ export async function POST(req: Request) {
     };
     if (!item.name) throw new HttpError(400, "Give them a name");
     const data = await callBackend<{ item: RosterMember }>("saveRosterMember", { item, by: session.email });
-    refresh();
+    refresh(req);
     return Response.json({ ok: true, item: data.item });
   } catch (err) {
     return errorResponse(err, { expose: true });
@@ -67,7 +66,7 @@ export async function PUT(req: Request) {
     const { ids } = await req.json();
     const list = (Array.isArray(ids) ? ids : []).filter((x): x is string => typeof x === "string" && ID_RE.test(x)).slice(0, 300);
     await callBackend("setRosterOrder", { ids: list });
-    refresh();
+    refresh(req);
     return Response.json({ ok: true });
   } catch (err) {
     return errorResponse(err, { expose: true });
@@ -81,7 +80,7 @@ export async function DELETE(req: Request) {
     const { id } = await req.json();
     if (typeof id !== "string" || !ID_RE.test(id)) throw new HttpError(400, "Unknown roster member");
     await callBackend("deleteRosterMember", { id });
-    refresh();
+    refresh(req);
     return Response.json({ ok: true });
   } catch (err) {
     return errorResponse(err, { expose: true });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Infographic from "@/components/home/Infographic";
@@ -13,7 +14,7 @@ import { responsive } from "@/lib/img";
 export const metadata: Metadata = pageMetadata("about");
 
 export default async function About() {
-  const { images, copy } = await getSiteContent();
+  const { images, copy, blocks } = await getSiteContent();
   const team = images["about.team"]?.[0];
   const hero = copy["about.hero"];
   const story = copy["about.story"];
@@ -94,6 +95,7 @@ export default async function About() {
           </FadeUp>
         </div>
       </section>
+      <BlockSlot blocks={blocks.about} spot="hero" />
 
       {!what.hidden && (
         <section className="wrap py-20 md:py-28">
@@ -113,10 +115,13 @@ export default async function About() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.about} spot="services" />
 
       {!copy["site.numbers"].hidden && <Infographic index={what.hidden ? "01" : "02"} copy={copy["site.numbers"]} />}
+      <BlockSlot blocks={blocks.about} spot="numbers" />
 
       {!copy["site.expect"].hidden && <ExpectCards copy={copy["site.expect"]} />}
+      <BlockSlot blocks={blocks.about} spot="end" />
     </>
   );
 }

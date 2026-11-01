@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import Services from "@/components/home/Services";
@@ -26,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const { images, settings, press, copy } = await getSiteContent();
+  const { images, settings, press, copy, blocks } = await getSiteContent();
   const wall = images["home.wall"];
   const logos = images["press.logos"] ?? [];
   const agency = copy["home.agency"];
@@ -50,6 +51,7 @@ export default async function Home() {
   return (
     <>
       <Hero images={wall} settings={settings} text={copy["home.hero"]} />
+      <BlockSlot blocks={blocks.home} spot="hero" />
 
       {shown.intro && (
         <section className="wrap pt-20 md:pt-28" aria-label="Intro film">
@@ -65,6 +67,7 @@ export default async function Home() {
           </FadeUp>
         </section>
       )}
+      <BlockSlot blocks={blocks.home} spot="intro" />
 
       {shown.agency && (
         <section className="wrap py-20 md:py-28">
@@ -87,20 +90,27 @@ export default async function Home() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.home} spot="agency" />
 
       <Services copy={copy["site.services"]} quote={copy["site.quote"].quote} index={n.services} />
+      <BlockSlot blocks={blocks.home} spot="services" />
 
       {shown.work && <WorkTeaser items={images["work.gallery"] ?? []} index={n.work} copy={copy["home.work"]} />}
+      <BlockSlot blocks={blocks.home} spot="work" />
 
       {shown.clients && <Clients logos={images["home.clients"]} index={n.clients} copy={copy["site.clients"]} />}
+      <BlockSlot blocks={blocks.home} spot="clients" />
 
       {shown.press && <FeaturedStrip logos={logos} items={press} index={n.press} copy={copy["home.press"]} />}
+      <BlockSlot blocks={blocks.home} spot="press" />
 
       {shown.cta && (
         <DualCta style={settings.ctaStyle} brands={images["contact.brands"]?.[0]} talent={images["contact.talent"]?.[0]} index={n.cta} copy={copy["site.cta"]} />
       )}
+      <BlockSlot blocks={blocks.home} spot="cta" />
 
       {shown.numbers && <Infographic index={n.numbers} copy={copy["site.numbers"]} />}
+      <BlockSlot blocks={blocks.home} spot="end" />
     </>
   );
 }

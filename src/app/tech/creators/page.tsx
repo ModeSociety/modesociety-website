@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import JsonLd from "@/components/site/JsonLd";
@@ -17,7 +18,7 @@ export const metadata: Metadata = pageMetadata("techCreators");
 export default async function TechCreators() {
   // not public until ModeSociety Tech is launched (admins can preview it)
   if ((await techMode()).landing) redirect("/tech");
-  const { roster, copy } = await getSiteContent();
+  const { roster, copy, blocks } = await getSiteContent();
   const hero = copy["techCreators.hero"];
   const forYou = copy["techCreators.forYou"];
   const ex = copy["techCreators.examples"];
@@ -37,6 +38,7 @@ export default async function TechCreators() {
           </Link>
         )}
       </PageHead>
+      <BlockSlot blocks={blocks.techCreators} spot="hero" side="tech" />
 
       {!forYou.hidden && (
         <section className="wrap pb-20 md:pb-28">
@@ -56,6 +58,7 @@ export default async function TechCreators() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.techCreators} spot="forYou" side="tech" />
 
       {/* creator examples / testimonials */}
       {!ex.hidden && (
@@ -90,6 +93,7 @@ export default async function TechCreators() {
           </ul>
         </section>
       )}
+      <BlockSlot blocks={blocks.techCreators} spot="examples" side="tech" />
 
       <Policy copy={copy["tech.policy"]} />
 
@@ -120,6 +124,7 @@ export default async function TechCreators() {
       )}
 
       {!faq.hidden && <TechFaq heading={faq.heading} lead={faq.lead} groups={[{ label: "For creators", items: faq.creators }]} />}
+      <BlockSlot blocks={blocks.techCreators} spot="end" side="tech" />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import Link from "next/link";
 import Lede from "@/components/tech/Lede";
 import CharacterSelect from "@/components/tech/CharacterSelect";
@@ -22,7 +23,7 @@ export const metadata: Metadata = pageMetadata("techHome");
  * no links to the pages still being built. After launch it adds the logos and the roster.
  */
 export default async function TechHome() {
-  const { images, roster, copy } = await getSiteContent();
+  const { images, roster, copy, blocks } = await getSiteContent();
   const { landing } = await techMode();
   const { members, sample } = rosterFor(roster);
   // featured first, topped up with the rest so the select screen has a full grid
@@ -39,6 +40,7 @@ export default async function TechHome() {
   return (
     <>
       <TechHero landing={landing} text={copy["techHome.hero"]} />
+      <BlockSlot blocks={blocks.techHome} spot="hero" side="tech" />
 
       {showFilm && (
         <section className="wrap pt-20 md:pt-28" aria-label="Intro film">
@@ -48,6 +50,7 @@ export default async function TechHome() {
           </FadeUp>
         </section>
       )}
+      <BlockSlot blocks={blocks.techHome} spot="intro" side="tech" />
 
       {!who.hidden && (
         <section className="wrap py-20 md:py-28">
@@ -68,6 +71,7 @@ export default async function TechHome() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.techHome} spot="who" side="tech" />
 
       {!landing && !copy["tech.logos"].hidden && <TechLogos logos={images["tech.clients"] ?? []} copy={copy["tech.logos"]} />}
 
@@ -91,6 +95,7 @@ export default async function TechHome() {
           <CharacterSelect members={featured} sample={sample} />
         </section>
       )}
+      <BlockSlot blocks={blocks.techHome} spot="talent" side="tech" />
 
       {!run.hidden && (
         <section className="wrap pb-20 md:pb-28">
@@ -98,8 +103,10 @@ export default async function TechHome() {
           <Formats items={copy["tech.formats"].items} />
         </section>
       )}
+      <BlockSlot blocks={blocks.techHome} spot="run" side="tech" />
 
       <Policy copy={copy["tech.policy"]} />
+      <BlockSlot blocks={blocks.techHome} spot="policy" side="tech" />
 
       {/* before launch, both enquiry forms live here */}
       {landing && (
@@ -128,6 +135,7 @@ export default async function TechHome() {
           ]}
         />
       )}
+      <BlockSlot blocks={blocks.techHome} spot="end" side="tech" />
     </>
   );
 }

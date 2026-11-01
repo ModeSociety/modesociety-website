@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { resolveCopy, isSectionId } from "./copy";
 import { parseTheme } from "./theme";
+import { readBlocks } from "./blocks";
 import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
 import {
@@ -126,6 +127,9 @@ export function buildContent(raw: RawSite | null): SiteContent {
     press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) })),
     copy: resolveCopy(raw?.content),
     copyEdited: Object.keys(raw?.content ?? {}).filter(isSectionId),
+    blocks: Object.fromEntries(
+      Object.entries(readBlocks(raw?.content)).map(([page, list]) => [page, list.map((b) => ({ ...b, photos: b.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) }))]),
+    ) as SiteContent["blocks"],
     techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },
     logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),
     connected: Boolean(raw),

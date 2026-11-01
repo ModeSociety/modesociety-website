@@ -1,3 +1,4 @@
+import type { BlockPage, ShownBlock } from "./blocks";
 import type { SectionId, SiteCopy } from "./copy";
 import type { PressItem } from "./press";
 import type { Theme } from "./theme";
@@ -209,6 +210,17 @@ export const SLOTS: SlotDef[] = [
     defaults: [],
   },
   {
+    id: "blocks.photos",
+    label: "Blocks — photos",
+    page: "Everywhere",
+    hint: "Managed from Pages & text, with each block.",
+    kind: "collection",
+    max: 1000,
+    accept: "image",
+    hidden: true,
+    defaults: [],
+  },
+  {
     id: "press.photos",
     label: "Featured in — photos",
     page: "Featured in",
@@ -303,6 +315,8 @@ export type SiteContent = {
   copy: SiteCopy;
   /** sections whose wording has been changed in the admin panel */
   copyEdited: SectionId[];
+  /** blocks added in the admin panel, per page (hidden ones too; pages show the visible ones) */
+  blocks: Record<BlockPage, ShownBlock[]>;
   /** ModeSociety Tech key numbers set in the admin panel ("" = not set) */
   techStats: { views: string; campaigns: string };
   /** sanitised logo SVG markup (fills set to currentColor), or "" for the text wordmark */

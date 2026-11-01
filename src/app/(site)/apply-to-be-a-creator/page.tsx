@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
@@ -15,7 +16,7 @@ import { getSiteContent } from "@/lib/backend";
 export const metadata: Metadata = pageMetadata("talent");
 
 export default async function ForTalent() {
-  const { images, copy } = await getSiteContent();
+  const { images, copy, blocks } = await getSiteContent();
   const hero = copy["talent.hero"];
   const why = copy["talent.why"];
   const expect = copy["talent.expect"];
@@ -45,6 +46,7 @@ export default async function ForTalent() {
           )}
         </FadeUp>
       </section>
+      <BlockSlot blocks={blocks.talent} spot="hero" />
 
       {!why.hidden && (
         <section className="wrap py-20 md:py-28">
@@ -58,6 +60,7 @@ export default async function ForTalent() {
           <StrikeList items={why.list} />
         </section>
       )}
+      <BlockSlot blocks={blocks.talent} spot="why" />
 
       {!expect.hidden && (
         <section className="wrap py-20 md:py-28">
@@ -74,6 +77,7 @@ export default async function ForTalent() {
           )}
         </section>
       )}
+      <BlockSlot blocks={blocks.talent} spot="expect" />
 
       {!forYou.hidden && (
         <section className="wrap py-20 md:py-28">
@@ -93,6 +97,7 @@ export default async function ForTalent() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.talent} spot="forYou" />
 
       {!flexible.hidden && (
         <section className="wrap py-20 md:py-28">
@@ -110,10 +115,13 @@ export default async function ForTalent() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.talent} spot="flexible" />
 
       {!copy["site.clients"].hidden && <Clients logos={images["home.clients"]} copy={copy["site.clients"]} />}
+      <BlockSlot blocks={blocks.talent} spot="clients" />
 
       {!copy["talent.faq"].hidden && <Faq copy={copy["talent.faq"]} />}
+      <BlockSlot blocks={blocks.talent} spot="faq" />
 
       <section id="apply" className="wrap scroll-mt-24 py-20 md:py-28">
         <SectionHead index="Apply now" label={form.label} className="mb-10" />
@@ -128,6 +136,7 @@ export default async function ForTalent() {
           </div>
         </div>
       </section>
+      <BlockSlot blocks={blocks.talent} spot="end" />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
@@ -15,7 +16,7 @@ export const metadata: Metadata = pageMetadata("work");
 const SHAPES = ["aspect-[4/5]", "aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[2/3]", "aspect-[4/5]"];
 
 export default async function OurWork() {
-  const { images, copy } = await getSiteContent();
+  const { images, copy, blocks } = await getSiteContent();
   const hero = copy["work.hero"];
   const gallery = copy["work.gallery"];
   const next = copy["work.next"];
@@ -60,6 +61,7 @@ export default async function OurWork() {
           </p>
         </FadeUp>
       </section>
+      <BlockSlot blocks={blocks.work} spot="hero" />
 
       <section className="wrap grid gap-12 pb-24 md:grid-cols-12 md:gap-8 md:pb-32">
         {/* brand index, like the contents page of a lookbook */}
@@ -109,6 +111,7 @@ export default async function OurWork() {
           </div>
         </div>
       </section>
+      <BlockSlot blocks={blocks.work} spot="gallery" />
 
       {!next.hidden && (
         <section className="bg-ink py-20 text-white md:py-28">
@@ -134,6 +137,7 @@ export default async function OurWork() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.work} spot="end" />
     </>
   );
 }

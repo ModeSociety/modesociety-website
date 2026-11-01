@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import JsonLd from "@/components/site/JsonLd";
@@ -20,7 +21,7 @@ export const metadata: Metadata = pageMetadata("techBrands");
 export default async function TechBrands() {
   // not public until ModeSociety Tech is launched (admins can preview it)
   if ((await techMode()).landing) redirect("/tech");
-  const { images, roster, techStats, copy } = await getSiteContent();
+  const { images, roster, techStats, copy, blocks } = await getSiteContent();
   const followers = roster.reduce((s, m) => s + totalFollowers(m), 0);
   // only real numbers: roster followers, and what the team enters in the admin panel
   const stats = [
@@ -45,6 +46,7 @@ export default async function TechBrands() {
           </Link>
         )}
       </PageHead>
+      <BlockSlot blocks={blocks.techBrands} spot="hero" side="tech" />
 
       {/* key numbers */}
       <section className="wrap pb-16 md:pb-24">
@@ -78,6 +80,7 @@ export default async function TechBrands() {
           <Process steps={process.steps.filter((s) => s.title.trim())} />
         </section>
       )}
+      <BlockSlot blocks={blocks.techBrands} spot="process" side="tech" />
 
       {!run.hidden && (
         <section className="wrap py-20 md:py-28">
@@ -89,8 +92,10 @@ export default async function TechBrands() {
           </div>
         </section>
       )}
+      <BlockSlot blocks={blocks.techBrands} spot="run" side="tech" />
 
       {!faq.hidden && <TechFaq heading={faq.heading} lead={faq.lead} groups={[{ label: "For brands", items: faq.brands }]} />}
+      <BlockSlot blocks={blocks.techBrands} spot="end" side="tech" />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import { redirect } from "next/navigation";
 import JsonLd from "@/components/site/JsonLd";
 import SocialLinks from "@/components/site/SocialLinks";
@@ -15,7 +16,8 @@ export default async function TechContact({ searchParams }: { searchParams: Prom
   const as = (await searchParams).as === "creator" ? "creator" : "brand";
   // before launch the forms are on the landing page
   if ((await techMode()).landing) redirect(as === "creator" ? "/tech#apply" : "/tech#enquire");
-  const hero = (await getSiteContent()).copy["techContact.hero"];
+  const { copy, blocks } = await getSiteContent();
+  const hero = copy["techContact.hero"];
   return (
     <>
       <JsonLd data={breadcrumbJsonLd("techContact")} />
@@ -32,6 +34,7 @@ export default async function TechContact({ searchParams }: { searchParams: Prom
           </div>
         </aside>
       </section>
+      <BlockSlot blocks={blocks.techContact} spot="end" side="tech" />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import JsonLd from "@/components/site/JsonLd";
@@ -15,7 +16,7 @@ export const metadata: Metadata = pageMetadata("techTalent");
 export default async function TechTalent() {
   // not public until ModeSociety Tech is launched (admins can preview it)
   if ((await techMode()).landing) redirect("/tech");
-  const { roster, copy } = await getSiteContent();
+  const { roster, copy, blocks } = await getSiteContent();
   const hero = copy["techTalent.hero"];
   const { members, sample } = rosterFor(roster);
   const total = members.reduce((s, m) => s + totalFollowers(m), 0);
@@ -40,6 +41,7 @@ export default async function TechTalent() {
           )}
         </div>
       </PageHead>
+      <BlockSlot blocks={blocks.techTalent} spot="hero" side="tech" />
       <section className="wrap pb-24 md:pb-32">
         <RosterGrid members={members} sample={sample} />
         <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-tline pt-8">
@@ -54,6 +56,7 @@ export default async function TechTalent() {
           </div>
         </div>
       </section>
+      <BlockSlot blocks={blocks.techTalent} spot="end" side="tech" />
     </>
   );
 }

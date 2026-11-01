@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import GetInTouch, { type FormKey } from "@/components/forms/GetInTouch";
@@ -16,7 +17,7 @@ export default async function GetInTouchPage({ searchParams }: { searchParams: P
   const q = await searchParams;
   const form = KEYS.find((k) => k === q.form) ?? null;
   const tech = q.for === "tech";
-  const { copy } = await getSiteContent();
+  const { copy, blocks } = await getSiteContent();
   const hero = copy["contact.hero"];
   return (
     <>
@@ -34,6 +35,7 @@ export default async function GetInTouchPage({ searchParams }: { searchParams: P
           {hero.line && <p className="font-serif mt-8 max-w-3xl text-[clamp(22px,2.6vw,38px)] italic leading-snug">{hero.line}</p>}
         </FadeUp>
       </section>
+      <BlockSlot blocks={blocks.contact} spot="hero" />
 
       <GetInTouch initial={form} partnerTypeHint={tech ? "Tech company" : ""} cards={copy["contact.cards"]} intros={copy["site.forms"]} />
 
@@ -43,6 +45,7 @@ export default async function GetInTouchPage({ searchParams }: { searchParams: P
           <SocialLinks className="text-ink" />
         </div>
       </section>
+      <BlockSlot blocks={blocks.contact} spot="end" />
     </>
   );
 }

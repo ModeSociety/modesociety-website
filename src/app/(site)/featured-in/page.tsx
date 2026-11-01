@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
@@ -17,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FeaturedIn() {
-  const { images, press, copy } = await getSiteContent();
+  const { images, press, copy, blocks } = await getSiteContent();
   const hero = copy["press.hero"];
   const logos = images["press.logos"] ?? [];
   const empty = !logos.length && !press.length;
@@ -44,6 +45,7 @@ export default async function FeaturedIn() {
           />
         </div>
       </section>
+      <BlockSlot blocks={blocks.press} spot="hero" />
 
       {logos.length > 0 && (
         <section className="wrap pb-16 md:pb-24">
@@ -76,6 +78,7 @@ export default async function FeaturedIn() {
       )}
 
       {!copy["site.clients"].hidden && <Clients logos={images["home.clients"]} copy={copy["site.clients"]} />}
+      <BlockSlot blocks={blocks.press} spot="end" />
     </>
   );
 }

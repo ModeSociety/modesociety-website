@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import ServicesShowcase from "@/components/services/ServicesShowcase";
@@ -12,7 +13,7 @@ import { slugify } from "@/lib/press";
 export const metadata: Metadata = pageMetadata("services");
 
 export default async function ServicesPage() {
-  const { images, copy } = await getSiteContent();
+  const { images, copy, blocks } = await getSiteContent();
   const hero = copy["services.hero"];
   const [first = "", ...rest] = hero.heading.split("\n").map((l) => l.trim()).filter(Boolean);
   const services: ServiceDetail[] = copy["services.list"].items
@@ -46,7 +47,9 @@ export default async function ServicesPage() {
           ]}
         />
       </section>
+      <BlockSlot blocks={blocks.services} spot="hero" />
       {services.length > 0 && <ServicesShowcase services={services} media={images["services.orbit"]} />}
+      <BlockSlot blocks={blocks.services} spot="end" />
     </>
   );
 }

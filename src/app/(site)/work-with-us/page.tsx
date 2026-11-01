@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlockSlot from "@/components/blocks/BlockSlot";
 import JsonLd from "@/components/site/JsonLd";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import Link from "next/link";
@@ -16,7 +17,7 @@ import { getSiteContent } from "@/lib/backend";
 export const metadata: Metadata = pageMetadata("brands");
 
 export default async function ForBrands() {
-  const { images, copy } = await getSiteContent();
+  const { images, copy, blocks } = await getSiteContent();
   const hero = copy["brands.hero"];
   const approach = copy["brands.approach"];
   const form = copy["brands.form"];
@@ -42,8 +43,10 @@ export default async function ForBrands() {
           <InstagramGrid posts={images["brands.instagram"]} />
         </FadeUp>
       </section>
+      <BlockSlot blocks={blocks.brands} spot="hero" />
 
       <Services copy={copy["site.services"]} />
+      <BlockSlot blocks={blocks.brands} spot="services" />
 
       {!approach.hidden && copy["site.quote"].quote.trim() && (
         <section className="wrap py-20 md:py-28">
@@ -53,14 +56,19 @@ export default async function ForBrands() {
           </FadeUp>
         </section>
       )}
+      <BlockSlot blocks={blocks.brands} spot="approach" />
 
       {!copy["site.expect"].hidden && <ExpectCards copy={copy["site.expect"]} href="#book" />}
+      <BlockSlot blocks={blocks.brands} spot="expect" />
 
       {!copy["site.numbers"].hidden && <Infographic copy={copy["site.numbers"]} />}
+      <BlockSlot blocks={blocks.brands} spot="numbers" />
 
       {!copy["site.clients"].hidden && <Clients logos={images["home.clients"]} copy={copy["site.clients"]} />}
+      <BlockSlot blocks={blocks.brands} spot="clients" />
 
       {!copy["brands.faq"].hidden && <Faq copy={copy["brands.faq"]} />}
+      <BlockSlot blocks={blocks.brands} spot="faq" />
 
       <section id="book" className="wrap scroll-mt-24 py-20 md:py-28">
         <SectionHead index="Book a call" label={form.label} meta={form.meta} className="mb-10" />
@@ -75,6 +83,7 @@ export default async function ForBrands() {
           </div>
         </div>
       </section>
+      <BlockSlot blocks={blocks.brands} spot="end" />
     </>
   );
 }

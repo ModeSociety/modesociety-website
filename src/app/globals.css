@@ -187,16 +187,6 @@ img {
   border-color: var(--white);
 }
 
-/* ---------- burgundy dithered background (footer, menu, feature panels) ---------- */
-.dither-bg {
-  background-color: var(--ink);
-  background-image: url("/brand/dither-footer.png");
-  /* the gradient isn't tileable, so stretch it; pixelated keeps the dither crisp */
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  image-rendering: pixelated;
-}
-
 .social-icon {
   display: grid;
   place-items: center;

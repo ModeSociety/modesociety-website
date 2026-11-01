@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import Dither from "@/components/site/Dither";
 import { SectionHead } from "@/components/site/Editorial";
 import { INSTAGRAM_URL } from "@/lib/content";
 import type { SectionCopy } from "@/lib/copy";
@@ -69,7 +68,7 @@ export function Quote({ text, className = "" }: { text: string; className?: stri
   );
 }
 
-/** "What you can expect from us": swipe-through cards on the burgundy dithered background. */
+/** "What you can expect from us": swipe-through cards on solid burgundy, like the services. */
 export function ExpectCards({ copy, href = "/get-in-touch?form=brands" }: { copy: SectionCopy<"site.expect">; href?: string }) {
   const track = useRef<HTMLDivElement>(null);
   useDragScroll(track);
@@ -80,8 +79,7 @@ export function ExpectCards({ copy, href = "/get-in-touch?form=brands" }: { copy
     el.scrollBy({ left: dir * ((card?.offsetWidth ?? 280) + 16), behavior: "smooth" });
   };
   return (
-    <section className="dither-bg relative isolate overflow-hidden py-24 text-white md:py-32">
-      <Dither />
+    <section className="relative isolate overflow-hidden bg-ink py-24 text-white md:py-32">
       <div className="wrap">
         <SectionHead tone="dark" index="✶" label={copy.label} meta={`${copy.cards.length} things you can count on`} className="mb-8" />
       </div>

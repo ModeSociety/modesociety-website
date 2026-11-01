@@ -319,7 +319,7 @@ export default function TechForms({ initial = "brand", onPage = false }: { initi
             role="tab"
             aria-selected={kind === k}
             onClick={() => choose(k)}
-            className={`rounded-full px-5 py-2.5 text-[14px] font-medium transition-colors ${kind === k ? "bg-[linear-gradient(180deg,#5a7bff,#2f4fe0)] text-white" : "text-t2 hover:text-t"}`}
+            className={`rounded-full px-5 py-2.5 text-[14px] font-medium transition-colors ${kind === k ? "bg-[linear-gradient(180deg,color-mix(in_oklab,var(--t-blue)_82%,#fff),var(--t-blue-2))] text-white" : "text-t2 hover:text-t"}`}
           >
             {label}
           </button>

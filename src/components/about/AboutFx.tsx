@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { inkCss } from "@/lib/ink";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /** The industry frustrations get struck through one by one as you scroll. */
@@ -15,7 +16,7 @@ export function StrikeList({ items }: { items: string[] }) {
         gsap
           .timeline({ scrollTrigger: { trigger: li, start: "top 82%", once: true } })
           .fromTo(txt, { backgroundSize: "0% 0.08em" }, { backgroundSize: "100% 0.08em", duration: 0.7, ease: "power2.inOut" })
-          .fromTo(txt, { color: "rgba(127,9,13,1)" }, { color: "rgba(127,9,13,0.3)", duration: 0.5, ease: "none" }, "-=0.3");
+          .fromTo(txt, { color: inkCss(1) }, { color: inkCss(0.3), duration: 0.5, ease: "none" }, "-=0.3");
       });
     },
     { scope: ref },

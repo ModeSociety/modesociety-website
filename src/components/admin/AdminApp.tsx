@@ -8,6 +8,7 @@ import EnquiriesTab from "./EnquiriesTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
 import TechLaunch from "./TechLaunch";
+import ThemeTab from "./ThemeTab";
 import type { SideFilter } from "@/lib/side";
 import InsightsTab from "./InsightsTab";
 import ScheduleTab from "./ScheduleTab";
@@ -119,7 +120,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "schedule" | "enquiries" | "insights" | "copy" | "press" | "images" | "roster" | "animations" | "access";
+type Tab = "schedule" | "enquiries" | "insights" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses: the roster is Tech only, Featured in and the animations are the talent site's. */
@@ -130,6 +131,7 @@ const TABS: { id: Tab; label: string; group: Group; sides: SideFilter[]; about: 
   { id: "copy", label: "Pages & text", group: "Website", sides: ["all", "talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
   { id: "press", label: "Featured in", group: "Website", sides: ["all", "talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
   { id: "images", label: "Images & video", group: "Website", sides: ["all", "talent", "tech"], about: "Every photo, logo and video on the site, and the Drive folder each one reads from." },
+  { id: "theme", label: "Colours & fonts", group: "Website", sides: ["all", "talent", "tech"], about: "The brand colours and the fonts, for each side. Nothing changes until you save, and each one can go back to the original." },
   { id: "roster", label: "Roster", group: "Website", sides: ["all", "tech"], about: "The creators on ModeSociety Tech, with their channels and follower counts." },
   { id: "animations", label: "Animations", group: "Website", sides: ["all", "talent"], about: "How the home page hero, the intro and the footer logo move." },
   { id: "access", label: "Access", group: "Team", sides: ["all", "talent", "tech"], about: "The Google accounts that can sign in to this panel." },
@@ -283,6 +285,9 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}
         {tab === "copy" && content && <CopyTab content={content} side={side} reload={loadContent} notify={notify} />}
         {tab === "copy" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading the site&apos;s wording…</p>}
+        {tab === "theme" && content && (
+          <ThemeTab key={JSON.stringify(content.settings.theme)} saved={content.settings.theme} side={side} reload={loadContent} notify={notify} />
+        )}
         {tab === "press" && <PressTab disabled={!me.backendConfigured} notify={notify} />}
         {tab === "roster" && <RosterTab disabled={!me.backendConfigured} techStats={content?.techStats} notify={notify} />}
         {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}
@@ -571,7 +576,13 @@ function AnimationsTab({
     setError("");
     try {
       await postJson("/api/admin/settings", {
-        values: { ...draft, heroAutoCycle: String(draft.heroAutoCycle) },
+        values: {
+          heroMode: draft.heroMode,
+          heroAutoCycle: String(draft.heroAutoCycle),
+          introStyle: draft.introStyle,
+          ctaStyle: draft.ctaStyle,
+          footerStyle: draft.footerStyle,
+        },
       });
       await reload();
       notify("Animations updated. Refresh the site to see them.");

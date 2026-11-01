@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { inkCss, inkIsOriginal } from "@/lib/ink";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /** Words ink in one after another when the paragraph scrolls into view (once); they start in the muted tone, which is still readable. */
@@ -11,9 +12,9 @@ export function ScrubText({ text, className = "" }: { text: string; className?: 
       if (prefersReducedMotion()) return;
       gsap.fromTo(
         ref.current!.querySelectorAll(".w"),
-        { color: "#8f5f61" },
+        { color: inkIsOriginal() ? "#8f5f61" : inkCss(0.7) },
         {
-          color: "#7f090d",
+          color: inkCss(),
           duration: 0.6,
           stagger: 0.025,
           ease: "power1.out",

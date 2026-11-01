@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { resolveCopy, isSectionId } from "./copy";
+import { parseTheme } from "./theme";
 import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
 import {
@@ -98,6 +99,7 @@ function parseSettings(raw: Record<string, string> = {}): SiteSettings {
     heroMode: pick(HERO_MODES, raw.heroMode, d.heroMode),
     heroAutoCycle: raw.heroAutoCycle === "true",
     techLaunched: raw.techLaunched === "true",
+    theme: parseTheme(raw),
     introStyle: pick(INTRO_STYLES, raw.introStyle, d.introStyle),
     ctaStyle: pick(CTA_STYLES, raw.ctaStyle, d.ctaStyle),
     footerStyle: pick(FOOTER_STYLES, raw.footerStyle, d.footerStyle),

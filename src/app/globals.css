@@ -670,7 +670,7 @@ html:has(.tech-root) body {
 }
 /* a headline's *accent* words: blue gradient type */
 .t-grad {
-  background: linear-gradient(100deg, #2f55f4 10%, #6f8dff 55%, #9b8cff 95%);
+  background: linear-gradient(100deg, var(--t-accent) 10%, color-mix(in oklab, var(--t-blue) 65%, #fff) 55%, #9b8cff 95%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -678,7 +678,7 @@ html:has(.tech-root) body {
 
 /* buttons: a blue gradient pill, and a white ghost */
 .tech-root .btn {
-  --bg: linear-gradient(180deg, #5a7bff, #2f4fe0);
+  --bg: linear-gradient(180deg, color-mix(in oklab, var(--t-blue) 82%, #fff), var(--t-blue-2));
   --fg: #ffffff;
   border: 0;
   border-radius: 999px;

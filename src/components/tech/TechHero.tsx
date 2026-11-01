@@ -28,17 +28,9 @@ function Brackets() {
  * thick glass m standing on the horizon, a decoding headline, HUD readouts, the two
  * front doors, and a broadcast ticker along the bottom.
  */
-/** Blue → periwinkle → lilac, for the letters of a headline's *accent* words. */
-const GRAD = [
-  [47, 85, 244],
-  [111, 141, 255],
-  [155, 140, 255],
-];
+/** The main colour → lilac, for the letters of a headline's *accent* words (follows Colours & fonts). */
 function gradAt(t: number) {
-  const seg = Math.min(GRAD.length - 2, Math.floor(t * (GRAD.length - 1)));
-  const f = t * (GRAD.length - 1) - seg;
-  const [a, b] = [GRAD[seg], GRAD[seg + 1]];
-  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * f)).join(",")})`;
+  return `color-mix(in oklab, var(--t-accent) ${Math.round((1 - t) * 100)}%, #9b8cff)`;
 }
 
 export default function TechHero({ landing = false, text }: { landing?: boolean; text: SectionCopy<"techHome.hero"> }) {

@@ -8,6 +8,7 @@ import JsonLd from "@/components/site/JsonLd";
 import { getSiteContent } from "@/lib/backend";
 import { techOrganizationJsonLd } from "@/lib/seo";
 import { techMode } from "@/lib/techMode";
+import { techThemeCss } from "@/lib/theme";
 
 /* ModeSociety Tech type, loaded only on /tech pages */
 const anybody = Anybody({ subsets: ["latin"], weight: "variable", axes: ["wdth"], variable: "--font-anybody", display: "swap" });
@@ -21,9 +22,13 @@ export const metadata: Metadata = {
 
 export default async function TechLayout({ children }: { children: React.ReactNode }) {
   const { launched, preview, landing } = await techMode();
-  const { copy } = await getSiteContent();
+  const { copy, settings } = await getSiteContent();
+  const theme = techThemeCss(settings.theme);
   return (
     <div className={`tech-root ${anybody.variable} ${instrumentSans.variable} ${martianMono.variable}`}>
+      {/* colours and fonts changed in the admin panel */}
+      {theme.href && <link rel="stylesheet" href={theme.href} precedence="theme" />}
+      {theme.css && <style>{theme.css}</style>}
       <JsonLd data={techOrganizationJsonLd()} />
       <TechShell>
         {preview && !launched && (

@@ -1,5 +1,6 @@
 import type { SectionId, SiteCopy } from "./copy";
 import type { PressItem } from "./press";
+import type { Theme } from "./theme";
 import type { RosterMember } from "./tech";
 
 /**
@@ -261,6 +262,8 @@ export type SiteSettings = {
   heroAutoCycle: boolean;
   /** ModeSociety Tech is open to the public (false: /tech is a single landing page; admins can preview the rest) */
   techLaunched: boolean;
+  /** colours and fonts changed in the admin panel (only the changed ones; see theme.ts) */
+  theme: Theme;
   introStyle: IntroStyle;
   ctaStyle: CtaStyle;
   footerStyle: FooterStyle;
@@ -270,6 +273,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   heroMode: "gravity",
   heroAutoCycle: false,
   techLaunched: false,
+  theme: {},
   introStyle: "curtain",
   ctaStyle: "reveal",
   footerStyle: "magnetic",

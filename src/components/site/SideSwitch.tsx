@@ -15,10 +15,10 @@ export default function SideSwitch({ current, tone = "light", className = "" }: 
       ? "bg-white shadow-[inset_0_0_0_1px_rgba(11,20,56,0.14)]"
       : tone === "dark"
         ? "bg-white/[0.06] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.3)]"
-        : "bg-paper shadow-[inset_0_0_0_1px_rgba(127,9,13,0.25)]";
+        : "bg-paper shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_25%,transparent)]";
   const on = (id: Side) =>
     tone === "tech"
-      ? "bg-[linear-gradient(180deg,#5a7bff,#2f4fe0)] text-white"
+      ? "bg-[linear-gradient(180deg,color-mix(in_oklab,var(--t-blue,#3e5ef1)_82%,#fff),var(--t-blue-2,#2f4fe0))] text-white"
       : tone === "dark"
         ? id === current ? "bg-white text-ink" : ""
         : "bg-ink text-white";

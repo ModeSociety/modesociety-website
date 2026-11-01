@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { inkCss } from "@/lib/ink";
 
-const INK = "#7f090d"; // same as the solid footer below, so the two meet without a seam
 const SPACING = 17; // px between dot centres
 
 /**
@@ -28,9 +28,10 @@ export default function Halftone({ className = "" }: { className?: string }) {
       c.width = Math.round(w * dpr);
       c.height = Math.round(h * dpr);
       const g = c.getContext("2d")!;
+      const ink = inkCss(); // the footer's colour, so the two meet without a seam
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, w, h);
-      g.fillStyle = INK;
+      g.fillStyle = ink;
 
       const rowStep = SPACING * 0.866; // offset rows sit closer, like a hex grid
       const max = SPACING * 0.62; // past ~0.58·spacing neighbouring dots merge into solid colour

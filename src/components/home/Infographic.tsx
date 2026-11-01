@@ -11,7 +11,8 @@ type Row = { label: string; mode: string; inHouse: string };
 const num = (v: string) => parseFloat(String(v).replace(/,/g, "").match(/-?\d+(\.\d+)?/)?.[0] ?? "0") || 0;
 
 /* Two series, validated against the white panel: Mode Society vs an in-house marketer. */
-const MODE = "#A3242B";
+// follows the site's main colour once it's changed in the admin panel (theme.ts sets --chart-mode)
+const MODE = "var(--chart-mode, #A3242B)";
 const IN_HOUSE = "#A9822F";
 const SERIES = [
   { key: "mode" as const, label: "With Mode Society", color: MODE },
@@ -92,11 +93,10 @@ function SalesLine({ on }: { on: boolean }) {
               <path
                 d={path(vals)}
                 fill="none"
-                stroke={s.color}
                 strokeWidth={2}
                 strokeLinecap="round"
                 pathLength={1}
-                style={{ strokeDasharray: 1, strokeDashoffset: on ? 0 : 1, transition: "stroke-dashoffset 1.8s cubic-bezier(.65,0,.35,1)" }}
+                style={{ stroke: s.color, strokeDasharray: 1, strokeDashoffset: on ? 0 : 1, transition: "stroke-dashoffset 1.8s cubic-bezier(.65,0,.35,1)" }}
               />
               {/* direct label at the line end */}
               <text
@@ -116,7 +116,7 @@ function SalesLine({ on }: { on: boolean }) {
             <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H - pad.b} stroke="#5e1a1c" strokeOpacity={0.35} strokeWidth={1} />
             {SERIES.map((s) => {
               const v = (s.key === "mode" ? mode : inHouse)[hover];
-              return <circle key={s.key} cx={x(hover)} cy={y(v)} r={5} fill={s.color} stroke="#fff" strokeWidth={2} />;
+              return <circle key={s.key} cx={x(hover)} cy={y(v)} r={5} style={{ fill: s.color }} stroke="#fff" strokeWidth={2} />;
             })}
           </g>
         )}
@@ -200,15 +200,14 @@ function SpendRing({ series, on }: { series: (typeof SERIES)[number]; on: boolea
           cy="70"
           r={R}
           fill="none"
-          stroke={series.color}
+          style={{ stroke: series.color, transition: "stroke-dashoffset 1.6s cubic-bezier(.16,1,.3,1)" }}
           strokeWidth="14"
           strokeLinecap="round"
           strokeDasharray={C}
           strokeDashoffset={on ? C * (1 - toCreators / 100) : C}
           transform="rotate(-90 70 70)"
-          style={{ transition: "stroke-dashoffset 1.6s cubic-bezier(.16,1,.3,1)" }}
         />
-        <text x="70" y="76" textAnchor="middle" fontSize="26" fontWeight="700" fill="#7f090d">
+        <text x="70" y="76" textAnchor="middle" fontSize="26" fontWeight="700" style={{ fill: "var(--ink)" }}>
           {toCreators}%
         </text>
       </svg>

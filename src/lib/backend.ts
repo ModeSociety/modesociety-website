@@ -141,6 +141,7 @@ export function buildContent(raw: RawSite | null): SiteContent {
       Object.entries(readBlocks(raw?.content)).map(([page, list]) => [page, list.map((b) => ({ ...b, photos: b.photos.map((fileId) => ({ fileId, src: photo(fileId) })) }))]),
     ) as SiteContent["blocks"],
     techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },
+    uploadsPublic: Boolean(raw?.uploadsPublic),
     logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),
     connected: Boolean(raw),
   };
@@ -167,8 +168,12 @@ export async function getSiteContent(): Promise<SiteContent> {
 
 /** Every feature including drafts, uncached: what an admin sees in preview. */
 export async function getAllPressFresh(): Promise<PressItem[]> {
-  const { items } = await callBackend<{ items: (Omit<PressItem, "photos"> & { photos: string[] })[] }>("listPress");
-  return items.map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) }));
+  const [{ items }, { uploadsPublic }] = await Promise.all([
+    callBackend<{ items: (Omit<PressItem, "photos"> & { photos: string[] })[] }>("listPress"),
+    getSiteContent(),
+  ]);
+  const photo = uploadsPublic ? driveImage : mediaUrl;
+  return items.map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: photo(fileId) })) }));
 }
 
 /** Uncached read for the admin panel. */

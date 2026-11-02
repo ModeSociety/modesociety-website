@@ -5,8 +5,8 @@
  */
 const WIDTHS = [256, 384, 640, 828, 1080, 1200, 1920]; // all in Next's default image/device sizes
 
-const optimisable = (src: string) =>
-  !/\.svg($|\?)/i.test(src) && (src.startsWith("/assets/") || src.startsWith("/media/") || src.startsWith("https://lh3.googleusercontent.com/"));
+// not /media/: those come through the Google backend, which can outlast the optimiser's ~7 s wait
+const optimisable = (src: string) => !/\.svg($|\?)/i.test(src) && (src.startsWith("/assets/") || src.startsWith("https://lh3.googleusercontent.com/"));
 
 const url = (src: string, w: number) => `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=75`;
 

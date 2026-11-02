@@ -13,6 +13,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       headers: {
         "Content-Type": file.mimeType,
         "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
+        // Vercel's CDN keeps it too, so only the very first request waits on the backend
+        "CDN-Cache-Control": "public, max-age=31536000, immutable",
+        "Vercel-CDN-Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch {

@@ -319,6 +319,8 @@ export type SiteContent = {
   blocks: Record<BlockPage, ShownBlock[]>;
   /** ModeSociety Tech key numbers set in the admin panel ("" = not set) */
   techStats: { views: string; campaigns: string };
+  /** uploads are link-viewable, so they load straight from Google (see Code.gs publishUploads) */
+  uploadsPublic: boolean;
   /** sanitised logo SVG markup (fills set to currentColor), or "" for the text wordmark */
   logoSvg: string;
   connected: boolean;

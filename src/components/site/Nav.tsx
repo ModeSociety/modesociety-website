@@ -95,7 +95,6 @@ export default function Nav() {
               >
                 <span className="menu-link flex items-baseline justify-between gap-4" style={{ animationDelay: `${i * 45}ms` }}>
                   <span className="font-display leading-[1.05] transition-transform duration-500 group-hover:translate-x-2">{l.label}</span>
-                  <span className="font-mono text-[11px] text-white/60">({String(i + 1).padStart(2, "0")})</span>
                 </span>
               </Link>
             ))}

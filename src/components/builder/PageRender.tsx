@@ -1,4 +1,4 @@
-import { DEFS, fontById, PAGES, takesNumber, type PageId } from "@/lib/builder";
+import { DEFS, fontById, PAGES, type PageId } from "@/lib/builder";
 import { fontHref } from "@/lib/theme";
 import type { SiteContent } from "@/lib/slots";
 import Frame, { wantsLightText } from "./Frame";
@@ -11,8 +11,7 @@ const FEATURES = { ...TALENT, ...TECH };
 
 /**
  * One page, drawn from its blocks (admin panel → Pages): the page as designed until the team changes
- * it. An admin previewing sees the unpublished draft. Each designed section is drawn as it was; the
- * section numbers (01, 02…) run on through whatever is showing.
+ * it. An admin previewing sees the unpublished draft. Each designed section is drawn as it was.
  */
 export default function PageRender({
   page,
@@ -41,7 +40,6 @@ export default function PageRender({
   const types = new Set(shown.map((b) => b.type));
   ctx.has = (type) => types.has(type);
 
-  let k = 0;
   const fonts = new Set<string>();
   for (const b of shown) for (const id of [b.style.headingFont, b.style.bodyFont]) if (id) fonts.add(id);
   const href = fontHref([...fonts].map(fontById));
@@ -59,10 +57,9 @@ export default function PageRender({
             </Frame>
           );
         }
-        const n = takesNumber(b.type, page) ? String(++k).padStart(2, "0") : "";
         return (
           <Frame key={b.id} id={b.id} style={b.style} side={side} dark={def.dark} uploadsPublic={c.uploadsPublic}>
-            {FEATURES[b.type].render(ctx, n)}
+            {FEATURES[b.type].render(ctx)}
           </Frame>
         );
       })}

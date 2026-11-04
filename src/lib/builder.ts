@@ -124,10 +124,6 @@ type FeatureDef = {
   slots?: string[];
   /** it paints its own brand-colour background (its Background option recolours that) */
   dark?: boolean;
-  /** takes a section number (01, 02…) on the pages that number their sections */
-  numbered?: boolean;
-  /** …except on these pages */
-  unnumberedOn?: PageId[];
   /** only one of it per page makes sense (forms with anchors) */
   page?: PageId;
 };
@@ -156,27 +152,27 @@ export const DEFS: Record<string, BlockDef> = {
 
   // ---- Mode Society's designed sections ----
   "t.homeHero": f("talent", "Polaroid hero", "The big logo with the falling polaroids, tagline and buttons", ["home.hero"], { slots: ["home.wall"] }),
-  "t.intro": f("talent", "Intro film", "A landscape film with a heading", ["home.intro"], { slots: ["home.intro"], numbered: true }),
-  "t.agency": f("talent", "The agency", "Heading, text and button beside the video carousel", ["home.agency"], { slots: ["home.videos"], numbered: true }),
-  "t.services": f("talent", "Services cards", "The flip cards on burgundy", ["site.services", "site.quote"], { dark: true, numbered: true }),
-  "t.work": f("talent", "Selected work", "Four pieces from Our work", ["home.work"], { slots: ["work.gallery"], numbered: true }),
-  "t.clients": f("talent", "Brand logos slideshow", "The two rows of brand logos", ["site.clients"], { slots: ["home.clients"], numbered: true, unnumberedOn: ["talent"] }),
-  "t.press": f("talent", "Featured in strip", "Publication logos and the three latest features", ["home.press"], { slots: ["press.logos"], numbered: true }),
-  "t.cta": f("talent", "Let's work together", "For brands / For talent (its style is set under Animations)", ["site.cta"], { slots: ["contact.brands", "contact.talent"], numbered: true }),
-  "t.numbers": f("talent", "The numbers", "The charts comparing Mode Society with an in-house marketer", ["site.numbers"], { numbered: true }),
+  "t.intro": f("talent", "Intro film", "A landscape film with a heading", ["home.intro"], { slots: ["home.intro"] }),
+  "t.agency": f("talent", "The agency", "Heading, text and button beside the video carousel", ["home.agency"], { slots: ["home.videos"] }),
+  "t.services": f("talent", "Services cards", "The flip cards on burgundy", ["site.services", "site.quote"], { dark: true }),
+  "t.work": f("talent", "Selected work", "Four pieces from Our work", ["home.work"], { slots: ["work.gallery"] }),
+  "t.clients": f("talent", "Brand logos slideshow", "The two rows of brand logos", ["site.clients"], { slots: ["home.clients"] }),
+  "t.press": f("talent", "Featured in strip", "Publication logos and the three latest features", ["home.press"], { slots: ["press.logos"] }),
+  "t.cta": f("talent", "Let's work together", "For brands / For talent (its style is set under Animations)", ["site.cta"], { slots: ["contact.brands", "contact.talent"] }),
+  "t.numbers": f("talent", "The numbers", "The charts comparing Mode Society with an in-house marketer", ["site.numbers"]),
   "t.aboutHero": f("talent", "About: page title", "About us, big", ["about.hero"]),
   "t.aboutStory": f("talent", "About: our story", "The quote, the story and team photo", ["about.story", "site.quote"], { slots: ["about.team"] }),
-  "t.aboutServices": f("talent", "About: what we do", "The services as dropdowns beside the video carousel", ["about.services", "site.services"], { slots: ["home.videos"], numbered: true }),
+  "t.aboutServices": f("talent", "About: what we do", "The services as dropdowns beside the video carousel", ["about.services", "site.services"], { slots: ["home.videos"] }),
   "t.expect": f("talent", "What you can expect", "Swipe-through cards on burgundy", ["site.expect"], { dark: true }),
   "t.brandsHero": f("talent", "For brands: page title", "Let's work together, with the Instagram grid", ["brands.hero"], { slots: ["brands.instagram"] }),
   "t.approach": f("talent", "Our approach", "The pull quote", ["brands.approach", "site.quote"]),
   "t.brandsFaq": f("talent", "Questions brands ask", "FAQ dropdowns", ["brands.faq"]),
   "t.brandsForm": f("talent", "Brand enquiry form", "Tell us about your brand + the form", ["brands.form", "site.forms"], { page: "brands" }),
   "t.talentHero": f("talent", "For talent: page title", "Thinking of signing?", ["talent.hero"]),
-  "t.why": f("talent", "Why we started", "The struck-through list", ["talent.why"], { numbered: true }),
-  "t.talentExpect": f("talent", "What you can expect (talent)", "Big text and the four steps", ["talent.expect"], { numbered: true }),
-  "t.forYou": f("talent", "What we do for you", "The ticked list", ["talent.forYou"], { numbered: true }),
-  "t.flexible": f("talent", "Flexible representation", "Three cards", ["talent.flexible"], { numbered: true }),
+  "t.why": f("talent", "Why we started", "The struck-through list", ["talent.why"]),
+  "t.talentExpect": f("talent", "What you can expect (talent)", "Big text and the four steps", ["talent.expect"]),
+  "t.forYou": f("talent", "What we do for you", "The ticked list", ["talent.forYou"]),
+  "t.flexible": f("talent", "Flexible representation", "Three cards", ["talent.flexible"]),
   "t.talentFaq": f("talent", "Questions creators ask", "FAQ dropdowns", ["talent.faq"]),
   "t.talentForm": f("talent", "Talent application form", "Want Mode to represent you? + the form", ["talent.form", "site.forms"], { page: "talent" }),
   "t.servicesHero": f("talent", "Services: page title", "Four ways we work with brands", ["services.hero"]),
@@ -237,8 +233,6 @@ const DEFAULTS: Record<PageId, [string, string?][]> = {
   techContact: [["x.contactHead"], ["x.contactForms"]],
 };
 
-/** Pages whose designed sections are numbered (01, 02…). */
-export const NUMBERED_PAGES: PageId[] = ["home", "about", "talent"];
 
 /** Old "Blocks on this page" blocks, as general blocks. */
 function fromLegacy(b: LegacyBlock): LayoutBlock {
@@ -363,12 +357,6 @@ export function savedLayout(page: PageId, content: Record<string, unknown> = {},
 export function addable(page: PageId) {
   const side = BLOCK_PAGES[page].side;
   return Object.entries(DEFS).filter(([, d]) => d.kind === "generic" || (d.side === side && (!d.page || d.page === page)));
-}
-
-/** Whether a designed section takes a number on this page. */
-export function takesNumber(type: string, page: PageId) {
-  const def = DEFS[type];
-  return def?.kind === "feature" && Boolean(def.numbered) && NUMBERED_PAGES.includes(page) && !def.unnumberedOn?.includes(page);
 }
 
 /** Every page's live layout and any unpublished drafts. */

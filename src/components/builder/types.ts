@@ -14,8 +14,7 @@ export type Ctx = {
 };
 
 export type Feature = {
-  /** whether it has anything to show (so the section numbers run on through what's showing) */
+  /** whether it has anything to show */
   shows?: (x: Ctx) => boolean;
-  /** n: its section number ("01") on pages that number their sections, otherwise "" */
-  render: (x: Ctx, n: string) => React.ReactNode;
+  render: (x: Ctx) => React.ReactNode;
 };

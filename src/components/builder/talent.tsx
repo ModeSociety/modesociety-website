@@ -55,11 +55,11 @@ export const TALENT: Record<string, Feature> = {
 
   "t.intro": {
     shows: ({ c }) => !c.copy["home.intro"].hidden && Boolean(embedFor(c.copy["home.intro"].videoUrl) || c.images["home.intro"]?.[0]),
-    render: ({ c }, n) => {
+    render: ({ c }) => {
       const intro = c.copy["home.intro"];
       return (
         <section className="wrap pt-20 md:pt-28" aria-label="Intro film">
-          <SectionHead index={n} label={intro.label} meta={intro.meta} />
+          <SectionHead label={intro.label} meta={intro.meta} />
           <div className="mt-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <h2 className="font-display text-[clamp(52px,7.6vw,124px)] text-ink">
               <Accent text={intro.heading} />
@@ -82,11 +82,11 @@ export const TALENT: Record<string, Feature> = {
 
   "t.agency": {
     shows: ({ c }) => !c.copy["home.agency"].hidden,
-    render: ({ c }, n) => {
+    render: ({ c }) => {
       const agency = c.copy["home.agency"];
       return (
         <section className="wrap py-20 md:py-28">
-          <SectionHead index={n} label={agency.label} meta={agency.meta} />
+          <SectionHead label={agency.label} meta={agency.meta} />
           <div className="mt-10 grid items-center gap-10 md:grid-cols-12">
             <FadeUp className="md:col-span-7">
               <h2 className="font-display text-[clamp(52px,7.6vw,124px)] text-ink">
@@ -109,33 +109,33 @@ export const TALENT: Record<string, Feature> = {
   },
 
   // the pull quote sits inside the services only on the home page
-  "t.services": { render: ({ c, page }, n) => <Services copy={c.copy["site.services"]} quote={page === "home" ? c.copy["site.quote"].quote : undefined} index={n || undefined} /> },
+  "t.services": { render: ({ c, page }) => <Services copy={c.copy["site.services"]} quote={page === "home" ? c.copy["site.quote"].quote : undefined} /> },
 
   "t.work": {
     shows: ({ c }) => !c.copy["home.work"].hidden && (c.images["work.gallery"]?.length ?? 0) > 0,
-    render: ({ c }, n) => <WorkTeaser items={c.images["work.gallery"] ?? []} index={n || undefined} copy={c.copy["home.work"]} />,
+    render: ({ c }) => <WorkTeaser items={c.images["work.gallery"] ?? []} copy={c.copy["home.work"]} />,
   },
 
   "t.clients": {
     shows: ({ c }) => !c.copy["site.clients"].hidden && (c.images["home.clients"]?.length ?? 0) > 0,
-    render: ({ c }, n) => <Clients logos={c.images["home.clients"]} index={n || undefined} copy={c.copy["site.clients"]} />,
+    render: ({ c }) => <Clients logos={c.images["home.clients"]} copy={c.copy["site.clients"]} />,
   },
 
   "t.press": {
     shows: ({ c }) => !c.copy["home.press"].hidden && ((c.images["press.logos"]?.length ?? 0) > 0 || c.press.length > 0),
-    render: ({ c }, n) => <FeaturedStrip logos={c.images["press.logos"] ?? []} items={c.press} index={n} copy={c.copy["home.press"]} />,
+    render: ({ c }) => <FeaturedStrip logos={c.images["press.logos"] ?? []} items={c.press} copy={c.copy["home.press"]} />,
   },
 
   "t.cta": {
     shows: ({ c }) => !c.copy["site.cta"].hidden,
-    render: ({ c }, n) => (
-      <DualCta style={c.settings.ctaStyle} brands={c.images["contact.brands"]?.[0]} talent={c.images["contact.talent"]?.[0]} index={n || undefined} copy={c.copy["site.cta"]} />
+    render: ({ c }) => (
+      <DualCta style={c.settings.ctaStyle} brands={c.images["contact.brands"]?.[0]} talent={c.images["contact.talent"]?.[0]} copy={c.copy["site.cta"]} />
     ),
   },
 
   "t.numbers": {
     shows: ({ c }) => !c.copy["site.numbers"].hidden,
-    render: ({ c }, n) => <Infographic index={n || undefined} copy={c.copy["site.numbers"]} />,
+    render: ({ c }) => <Infographic copy={c.copy["site.numbers"]} />,
   },
 
   // ---------------------------------------------------------------- about
@@ -228,12 +228,12 @@ export const TALENT: Record<string, Feature> = {
 
   "t.aboutServices": {
     shows: ({ c }) => !c.copy["about.services"].hidden,
-    render: ({ c }, n) => {
+    render: ({ c }) => {
       const what = c.copy["about.services"];
       const services = c.copy["site.services"].items.filter((s) => s.title.trim());
       return (
         <section className="wrap py-20 md:py-28">
-          <SectionHead index={n} label={what.label} meta={what.meta} className="mb-10" />
+          <SectionHead label={what.label} meta={what.meta} className="mb-10" />
           <div className="grid items-center gap-10 md:grid-cols-12">
             <div className="md:col-span-6">
               <h2 className="font-display text-[clamp(52px,6.6vw,108px)] text-ink">
@@ -348,11 +348,11 @@ export const TALENT: Record<string, Feature> = {
 
   "t.why": {
     shows: ({ c }) => !c.copy["talent.why"].hidden,
-    render: ({ c }, n) => {
+    render: ({ c }) => {
       const why = c.copy["talent.why"];
       return (
         <section className="wrap py-20 md:py-28">
-          <SectionHead index={n} label={why.label} meta={why.meta} className="mb-10" />
+          <SectionHead label={why.label} meta={why.meta} className="mb-10" />
           <div className="mb-12 grid gap-6 md:grid-cols-12">
             <h2 className="font-display text-[clamp(52px,6.4vw,104px)] text-ink md:col-span-7">
               <Accent text={why.heading} />
@@ -367,11 +367,11 @@ export const TALENT: Record<string, Feature> = {
 
   "t.talentExpect": {
     shows: ({ c }) => !c.copy["talent.expect"].hidden,
-    render: ({ c }, n) => {
+    render: ({ c }) => {
       const expect = c.copy["talent.expect"];
       return (
         <section className="wrap py-20 md:py-28">
-          <SectionHead index={n} label={expect.label} className="mb-10" />
+          <SectionHead label={expect.label} className="mb-10" />
           <h2 className="font-display text-[clamp(52px,6.4vw,104px)] text-ink">
             <Accent text={expect.heading} />
           </h2>
@@ -389,11 +389,11 @@ export const TALENT: Record<string, Feature> = {
 
   "t.forYou": {
     shows: ({ c }) => !c.copy["talent.forYou"].hidden,
-    render: ({ c }, n) => {
+    render: ({ c }) => {
       const forYou = c.copy["talent.forYou"];
       return (
         <section className="wrap py-20 md:py-28">
-          <SectionHead index={n} label={forYou.label} meta={`${forYou.list.length} included`} className="mb-10" />
+          <SectionHead label={forYou.label} meta={`${forYou.list.length} included`} className="mb-10" />
           <div className="grid gap-10 md:grid-cols-12">
             <h2 className="font-display text-[clamp(52px,6vw,96px)] text-ink md:col-span-5">
               <Accent text={forYou.heading} />
@@ -414,11 +414,11 @@ export const TALENT: Record<string, Feature> = {
 
   "t.flexible": {
     shows: ({ c }) => !c.copy["talent.flexible"].hidden,
-    render: ({ c }, n) => {
+    render: ({ c }) => {
       const flexible = c.copy["talent.flexible"];
       return (
         <section className="wrap py-20 md:py-28">
-          <SectionHead index={n} label={flexible.label} className="mb-10" />
+          <SectionHead label={flexible.label} className="mb-10" />
           <h2 className="font-display text-[clamp(52px,6.4vw,104px)] text-ink">
             <Accent text={flexible.heading} />
           </h2>
@@ -675,7 +675,7 @@ export const TALENT: Record<string, Feature> = {
 
           {press.length > 0 && (
             <section className="wrap pb-20 md:pb-28">
-              <SectionHead index="01" label="Features" meta={`${press.length} feature${press.length === 1 ? "" : "s"}`} className="mb-10" />
+              <SectionHead label="Features" meta={`${press.length} feature${press.length === 1 ? "" : "s"}`} className="mb-10" />
               <PressGrid items={press} />
             </section>
           )}

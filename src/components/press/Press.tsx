@@ -22,7 +22,7 @@ export function PressLogos({ logos }: { logos: SiteImage[] }) {
 }
 
 /** One feature: cover photo, publication, headline, the teaser and "Read more". */
-export function PressCard({ item, index, large = false, sizes }: { item: PressItem; index?: number; large?: boolean; sizes: string }) {
+export function PressCard({ item, large = false, sizes }: { item: PressItem; large?: boolean; sizes: string }) {
   const cover = item.photos[0];
   return (
     <article className={`group relative ${large ? "grid gap-6 md:grid-cols-12 md:items-end md:gap-10" : ""}`}>
@@ -42,7 +42,6 @@ export function PressCard({ item, index, large = false, sizes }: { item: PressIt
       </div>
       <div className={large ? "md:col-span-5" : "mt-4"}>
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">
-          {index != null && <span className="mr-3 text-ink">({String(index).padStart(2, "0")})</span>}
           {item.outlet}
           {item.date && <span> · {pressDate(item.date)}</span>}
         </p>
@@ -69,13 +68,13 @@ export function PressGrid({ items }: { items: PressItem[] }) {
   return (
     <div className="grid gap-16 md:gap-24">
       <FadeUp>
-        <PressCard item={first} index={1} large sizes="(max-width: 767px) 100vw, 58vw" />
+        <PressCard item={first} large sizes="(max-width: 767px) 100vw, 58vw" />
       </FadeUp>
       {rest.length > 0 && (
         <div className="grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((a, i) => (
             <FadeUp key={a.id} delay={(i % 3) * 0.08}>
-              <PressCard item={a} index={i + 2} sizes={THIRDS} />
+              <PressCard item={a} sizes={THIRDS} />
             </FadeUp>
           ))}
         </div>
@@ -85,7 +84,7 @@ export function PressGrid({ items }: { items: PressItem[] }) {
 }
 
 /** Home page: the publication logos and the three latest features, each with "Read more". Hidden until there's press. */
-export function FeaturedStrip({ logos, items, index, copy }: { logos: SiteImage[]; items: PressItem[]; index: string; copy: { label: string; heading: string } }) {
+export function FeaturedStrip({ logos, items, index, copy }: { logos: SiteImage[]; items: PressItem[]; index?: string; copy: { label: string; heading: string } }) {
   if (!logos.length && !items.length) return null;
   return (
     <section className="wrap py-20 md:py-28" aria-label="Featured in">
@@ -102,7 +101,7 @@ export function FeaturedStrip({ logos, items, index, copy }: { logos: SiteImage[
         <div className="mt-14 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
           {items.slice(0, 3).map((a, i) => (
             <FadeUp key={a.id} delay={i * 0.08}>
-              <PressCard item={a} index={i + 1} sizes={THIRDS} />
+              <PressCard item={a} sizes={THIRDS} />
             </FadeUp>
           ))}
         </div>

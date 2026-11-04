@@ -124,6 +124,7 @@ export function SectionEditor({
   reload,
   notify,
   focus,
+  only,
 }: {
   id: SectionId;
   saved: Value;
@@ -132,6 +133,8 @@ export function SectionEditor({
   notify: (m: string) => void;
   /** a field to open and highlight (a click on it in the page builder's preview) */
   focus?: { dom: string; raw?: string; n: number };
+  /** show just this one field (the page builder's element panel), open, without the section's header */
+  only?: string;
 }) {
   const def = SECTIONS[id] as SectionDef;
   const [open, setOpen] = useState(Boolean(focus));
@@ -177,7 +180,8 @@ export function SectionEditor({
 
   return (
     <section className={`border bg-white ${open ? "border-ink" : "border-line"}`}>
-      <button className="flex w-full items-start justify-between gap-4 p-5 text-left" aria-expanded={open} onClick={() => setOpen(!open)}>
+      {!only && (
+        <button className="flex w-full items-start justify-between gap-4 p-5 text-left" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span>
           <span className="flex flex-wrap items-center gap-2">
             <span className="font-medium text-ink">{def.title}</span>
@@ -190,16 +194,19 @@ export function SectionEditor({
         <span className="mt-0.5 font-mono text-lg leading-none text-ink" aria-hidden>
           {open ? "−" : "+"}
         </span>
-      </button>
-      {open && (
+        </button>
+      )}
+      {(open || only) && (
         <div className="grid gap-5 border-t border-line p-5">
-          {def.hideable && (
+          {def.hideable && !only && (
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={draft.hidden !== true} onChange={(e) => setDraft({ ...draft, hidden: !e.target.checked })} />
               Show this section on the site
             </label>
           )}
-          {Object.entries(def.fields).map(([k, f]) => (
+          {Object.entries(def.fields)
+            .filter(([k]) => !only || k === only)
+            .map(([k, f]) => (
             <FieldInput key={k} id={`${id}-${k}`} f={f} value={draft[k]} onChange={(v) => setDraft((d) => ({ ...d, [k]: v }))} />
           ))}
           {error && <p className="text-sm text-pin">{error}</p>}
@@ -215,7 +222,7 @@ export function SectionEditor({
             <a href={def.path} target="_blank" className="text-sm text-ink-2 underline underline-offset-4">
               View on the site ↗
             </a>
-            {edited && (
+            {edited && !only && (
               <button className="ml-auto text-sm text-pin underline underline-offset-4" onClick={reset} disabled={Boolean(busy)}>
                 Reset to original
               </button>

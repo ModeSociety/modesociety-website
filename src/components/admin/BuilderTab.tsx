@@ -5,6 +5,13 @@ import { encodeFile, postJson } from "@/lib/upload";
 import {
   addable,
   ALIGNS,
+  BLANK_EL,
+  EL_CASES,
+  EL_SIZES,
+  EL_STYLES,
+  EL_WEIGHTS,
+  elementCss,
+  elStyled,
   ANIMATIONS,
   BLANK_PROPS,
   BLANK_STYLE,
@@ -19,6 +26,8 @@ import {
   styled,
   WIDTHS,
   type BlockDef,
+  type ElRule,
+  type ElStyle,
   type Item,
   type LayoutBlock,
   type PageId,
@@ -29,7 +38,7 @@ import type { SideFilter } from "@/lib/side";
 import { SLOTS, type SiteContent } from "@/lib/slots";
 import { SectionEditor } from "./CopyTab";
 import { focusField } from "./focusField";
-import { blockFields, resolveClick, type Hit, type Picked } from "./pickField";
+import { blockFields, chromeFields, describeEl, pathTo, resolveClick, slotLabel, type Hit, type Picked } from "./pickField";
 
 /** A field to open in the editor, from a click in the preview (n tells two clicks on the same field apart). */
 type Focus = { hit: Hit; n: number };
@@ -83,7 +92,7 @@ function starter(type: string, side: "talent" | "tech"): LayoutBlock {
       p.heading = "Watch";
       break;
   }
-  return { id: newId(), type, hidden: false, style, props: p };
+  return { id: newId(), type, hidden: false, style, props: p, els: [] };
 }
 
 function describe(b: LayoutBlock) {
@@ -465,11 +474,16 @@ function StyleFields({ b, feature, set, photo, side }: { b: LayoutBlock; feature
 // the live preview
 // ---------------------------------------------------------------------------
 
+/** What was clicked in the preview: an element (sel) inside a block or the nav/footer (root). */
+type ElPick = { root: string; sel: string; label: string; hit: Hit | null };
+
 function Preview({
   path,
   version,
   device,
   selected,
+  element,
+  css,
   onPick,
   resolve,
 }: {
@@ -477,9 +491,13 @@ function Preview({
   version: number;
   device: "desktop" | "phone";
   selected: string;
-  onPick: (id: string, hit: Hit | null) => void;
-  /** which field of a block the clicked element shows */
-  resolve: (id: string, target: Element, blockEl: Element) => Picked | null;
+  /** the element open in the editor, outlined in the preview */
+  element: { root: string; sel: string } | null;
+  /** element styles as they are in the editor, shown straight away (before the draft is saved) */
+  css: string;
+  onPick: (p: ElPick) => void;
+  /** which field the clicked element shows */
+  resolve: (root: string, target: Element, rootEl: Element) => Picked | null;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -502,19 +520,40 @@ function Preview({
   const pickRef = useRef(onPick);
   const resolveRef = useRef(resolve);
   const selectedRef = useRef(selected);
+  const elementRef = useRef(element);
+  const cssRef = useRef(css);
   // a block picked in the preview is already in view: don't scroll the preview to its top
   const pickedHere = useRef("");
   useEffect(() => {
     pickRef.current = onPick;
     resolveRef.current = resolve;
     selectedRef.current = selected;
+    elementRef.current = element;
   });
 
-  // outline blocks on hover, pick one with a click, and show which one is selected
+  // the editor's element styles, straight into the page
+  const paint = useCallback(() => {
+    const doc = frame.current?.contentDocument;
+    if (!doc?.body) return;
+    let st = doc.getElementById("builder-live") as HTMLStyleElement | null;
+    if (!st) {
+      st = doc.createElement("style");
+      st.id = "builder-live";
+      doc.body.appendChild(st);
+    }
+    st.textContent = cssRef.current;
+  }, []);
+  useEffect(() => {
+    cssRef.current = css;
+    paint();
+  }, [css, paint]);
+
+  // outline what's under the mouse and name it; a click opens it in the editor (Alt + click uses the page)
   const wire = useCallback(() => {
     setLoading(false);
     const doc = frame.current?.contentDocument;
     if (!doc) return;
+    paint();
     const boxOf = (el: Element) => {
       const kids = (el as HTMLElement).classList.contains("contents") ? Array.from(el.children) : [el];
       const rs = kids.map((k) => k.getBoundingClientRect()).filter((r) => r.width || r.height);
@@ -523,54 +562,84 @@ function Preview({
       const bottom = Math.max(...rs.map((r) => r.bottom));
       return { top, height: bottom - top };
     };
-    const mk = (color: string, style: string) => {
+    const band = (color: string, style: string) => {
       const d = doc.createElement("div");
       d.style.cssText = `position:fixed;left:0;right:0;pointer-events:none;z-index:2147483646;border:3px ${style} ${color};display:none`;
       doc.body.appendChild(d);
       return d;
     };
-    const hover = mk("rgba(62,94,241,.55)", "dashed");
-    const sel = mk("#3e5ef1", "solid");
-    // the thing under the mouse, outlined, with the name of the field it comes from
-    const item = doc.createElement("div");
-    item.style.cssText = "position:fixed;pointer-events:none;z-index:2147483647;outline:2px solid #3e5ef1;outline-offset:3px;border-radius:2px;display:none";
-    const tag = doc.createElement("span");
-    tag.style.cssText =
-      "position:absolute;left:-5px;bottom:100%;margin-bottom:6px;white-space:nowrap;background:#3e5ef1;color:#fff;font:600 12px/1.2 system-ui,sans-serif;padding:4px 7px;border-radius:4px;letter-spacing:0;text-transform:none";
-    item.appendChild(tag);
-    doc.body.appendChild(item);
-    let itemEl: Element | null = null;
+    const hover = band("rgba(62,94,241,.35)", "dashed");
+    const sel = band("rgba(62,94,241,.6)", "solid");
+    const box = (dashed: boolean, withTag: boolean) => {
+      const d = doc.createElement("div");
+      d.style.cssText = `position:fixed;pointer-events:none;z-index:2147483647;outline:2px ${dashed ? "dashed" : "solid"} #3e5ef1;outline-offset:3px;border-radius:2px;display:none`;
+      const tag = doc.createElement("span");
+      tag.style.cssText =
+        "position:absolute;left:-5px;bottom:100%;margin-bottom:6px;white-space:nowrap;background:#3e5ef1;color:#fff;font:600 12px/1.2 system-ui,sans-serif;padding:4px 7px;border-radius:4px;letter-spacing:0;text-transform:none;font-style:normal";
+      if (withTag) d.appendChild(tag);
+      doc.body.appendChild(d);
+      return { d, tag };
+    };
+    const item = box(true, true);
+    const picked = box(false, false);
     const place = (d: HTMLDivElement, el: Element | null) => {
       const r = el && boxOf(el);
       if (!r) return void (d.style.display = "none");
       Object.assign(d.style, { display: "block", top: `${r.top}px`, height: `${r.height}px` });
     };
-    const selectedEl = () => (selectedRef.current ? doc.querySelector(`[data-block="${selectedRef.current}"]`) : null);
-    let hovered: Element | null = null;
-    // the element a field's words or photo sit in: the smallest one holding the whole match
-    const hitAt = (target: Element) => {
-      const block = target.closest?.("[data-block]");
-      if (!block) return { block: null, hit: null, el: null };
-      const picked = resolveRef.current(block.getAttribute("data-block") || "", target, block);
-      return { block, hit: picked?.hit ?? null, el: picked?.el ?? null };
+    const placeEl = (d: HTMLDivElement, el: Element | null) => {
+      const r = el?.getBoundingClientRect();
+      if (r && (r.width || r.height)) Object.assign(d.style, { display: "block", left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+      else d.style.display = "none";
     };
+    const selectedEl = () => (selectedRef.current ? doc.querySelector(`[data-block="${selectedRef.current}"]`) : null);
+    const elementEl = () => {
+      const e = elementRef.current;
+      const root = e?.sel ? doc.querySelector(`[data-root="${e.root}"]`) : null;
+      if (!root || !e) return null;
+      try {
+        return root.querySelector(`:scope>${e.sel}`);
+      } catch {
+        return null;
+      }
+    };
+
+    const pickAt = (raw: Element) => {
+      // a drawing is picked whole, not its shapes
+      const target = raw.closest("svg") ?? raw;
+      const block = target.closest("[data-block]");
+      const rootEl = target.closest("[data-root]");
+      if (!rootEl) {
+        // a block's own background photo sits outside its content
+        return block ? { root: block.getAttribute("data-block") || "", sel: "", label: "Block", hit: null, el: block, block } : null;
+      }
+      const root = rootEl.getAttribute("data-root") || "";
+      const found = resolveRef.current(root, target, rootEl);
+      let el: Element = found?.el ?? target;
+      if (el === rootEl || !rootEl.contains(el)) el = target;
+      const path = el === rootEl ? "" : pathTo(rootEl, el);
+      return { root, sel: path, label: found?.hit.label ?? describeEl(el), hit: found?.hit ?? null, el, block };
+    };
+
+    let hovered: Element | null = null;
+    let hoverItem: Element | null = null;
     doc.addEventListener("mouseover", (e) => {
-      const { block, hit, el } = hitAt(e.target as Element);
-      hovered = block;
-      place(hover, hovered);
-      itemEl = el;
-      tag.textContent = hit ? `${hit.label} · click to edit` : "";
+      const p = pickAt(e.target as Element);
+      hovered = p?.block ?? null;
+      hoverItem = p?.sel ? p.el : null;
+      item.tag.textContent = p?.sel ? `${p.label} · click to edit` : "";
     });
     doc.addEventListener(
       "click",
       (e) => {
-        const { block, hit } = hitAt(e.target as Element);
-        if (!block) return;
+        if (e.altKey) return;
+        // nothing in the preview navigates or submits: a click edits
         e.preventDefault();
         e.stopPropagation();
-        const id = block.getAttribute("data-block") || "";
-        pickedHere.current = id;
-        pickRef.current(id, hit);
+        const p = pickAt(e.target as Element);
+        if (!p) return;
+        pickedHere.current = p.root;
+        pickRef.current({ root: p.root, sel: p.sel, label: p.label, hit: p.hit });
       },
       true,
     );
@@ -578,15 +647,14 @@ function Preview({
       if (!frame.current?.contentDocument) return;
       place(sel, selectedEl());
       place(hover, hovered);
-      const r = itemEl?.getBoundingClientRect();
-      if (r && (r.width || r.height)) Object.assign(item.style, { display: "block", left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
-      else item.style.display = "none";
+      placeEl(item.d, hoverItem);
+      placeEl(picked.d, elementEl());
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
     const el = selectedEl();
     if (el) (el.classList.contains("contents") ? el.firstElementChild : el)?.scrollIntoView({ block: "start" });
-  }, []);
+  }, [paint]);
 
   // bring the selected block into view (unless it was just clicked there)
   useEffect(() => {
@@ -610,6 +678,174 @@ function Preview({
         className="origin-top-left border-0 bg-white"
         style={{ width: w, height: `${100 / scale}%`, transform: `scale(${scale})`, marginLeft: device === "phone" ? Math.max(0, (width - w * scale) / 2) : 0 }}
       />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// one element (a button, a line, a small label…): its words and its own style
+// ---------------------------------------------------------------------------
+
+/** An element open in the editor: where it is (root + sel), what it's called, and the field its words come from. */
+type ElSel = { root: string; sel: string; label: string; hit: Hit | null; n: number };
+
+const LINK_OF: Record<string, string> = { buttonLabel: "buttonUrl", button2Label: "button2Url" };
+
+/** A general block's field by its editor path ("heading", "items-2-title"). */
+function getProp(p: Props, path: string): string {
+  const m = path.match(/^items-(\d+)-(\w+)$/);
+  if (m) return String(p.items[Number(m[1])]?.[m[2] as keyof Item] ?? "");
+  return String(p[path as keyof Props] ?? "");
+}
+function setProp(p: Props, path: string, v: string): Partial<Props> {
+  const m = path.match(/^items-(\d+)-(\w+)$/);
+  if (m) return { items: p.items.map((it, i) => (i === Number(m[1]) ? { ...it, [m[2]]: v } : it)) };
+  return { [path]: v } as Partial<Props>;
+}
+const linkOf = (path: string) => LINK_OF[path] ?? (path.match(/^items-(\d+)-linkLabel$/) ? path.replace(/linkLabel$/, "linkUrl") : "");
+
+/** The parent of an element path ("a>b>c" → "a>b"), and a name for it from its tag. */
+function parentOf(sel: string) {
+  const steps = sel.split(">");
+  steps.pop();
+  const last = steps.at(-1) ?? "";
+  const tag = last.split(":")[0];
+  const label = tag === "section" ? "Section" : tag === "a" ? "Link" : tag === "li" ? "List item" : tag === "ul" || tag === "ol" ? "List" : tag === "article" ? "Card" : "Box";
+  return { sel: steps.join(">"), label };
+}
+
+function ElementStyleFields({ style: s, set }: { style: ElStyle; set: (s: Partial<ElStyle>) => void }) {
+  return (
+    <div className="grid gap-5">
+      <Colour label="Text colour" value={s.color} onChange={(color) => set({ color })} />
+      <Colour label="Background" value={s.bg} onChange={(bg) => set({ bg })} />
+      <Colour label="Line and border colour" value={s.border} onChange={(border) => set({ border })} />
+      <div className="grid grid-cols-2 gap-3">
+        <Select label="Font" value={s.font} options={[{ id: "", label: "As designed" }, ...BLOCK_FONTS]} onChange={(font) => set({ font })} />
+        <Select label="Size" value={s.size} options={EL_SIZES} onChange={(size) => set({ size })} />
+        <Select label="Weight" value={s.weight} options={EL_WEIGHTS} onChange={(weight) => set({ weight })} />
+        <Select label="Capitals" value={s.case} options={EL_CASES} onChange={(c) => set({ case: c })} />
+        <Select label="Italic" value={s.italic} options={EL_STYLES} onChange={(italic) => set({ italic })} />
+      </div>
+      <label className="flex items-center gap-2 text-[13px]">
+        <input type="checkbox" checked={s.hidden} onChange={(e) => set({ hidden: e.target.checked })} /> Hide it
+      </label>
+      {elStyled(s) && (
+        <button type="button" className="w-fit text-[13px] text-pin underline underline-offset-4" onClick={() => set({ ...BLANK_EL })}>
+          Back to as designed
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ElementPanel({
+  el,
+  block,
+  side,
+  style,
+  setStyle,
+  setProps,
+  content,
+  focus,
+  reload,
+  notify,
+  openTab,
+  onParent,
+  onBlock,
+  onClose,
+}: {
+  el: ElSel;
+  block: LayoutBlock | undefined;
+  side: "talent" | "tech";
+  style: ElStyle;
+  setStyle: (s: Partial<ElStyle>) => void;
+  setProps: (p: Partial<Props>) => void;
+  content: SiteContent;
+  focus: Focus | null;
+  reload: () => Promise<void>;
+  notify: (m: string) => void;
+  openTab: (tab: "images") => void;
+  onParent: () => void;
+  onBlock: () => void;
+  onClose: () => void;
+}) {
+  const hit = el.hit;
+  const chrome = el.root === "nav" || el.root === "footer";
+  const where = chrome ? `The ${el.root === "nav" ? "navigation bar" : "footer"}, on every ${side === "tech" ? "Tech" : "Mode Society"} page` : block ? describe(block) : "";
+  const propPath = hit?.kind === "prop" && block ? hit.dom.slice(`gb-${block.id}-`.length) : "";
+  const photoField = /(^photos$|-photo$|^bgImage$)/.test(propPath);
+  const link = propPath ? linkOf(propPath) : "";
+  const edited = new Set(content.copyEdited);
+  const copyFocus = useMemo(() => (focus?.hit.kind === "copy" ? { dom: focus.hit.dom, raw: focus.hit.raw, n: focus.n } : undefined), [focus]);
+  return (
+    <div className="border border-line bg-white">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4 text-[13px]">
+        <button className="underline underline-offset-4" onClick={onClose}>
+          ← All blocks
+        </button>
+        {!chrome && (
+          <button className="underline underline-offset-4" onClick={onBlock}>
+            The whole block
+          </button>
+        )}
+      </div>
+      <div className="grid gap-6 p-4">
+        <div>
+          <p className="eyebrow">{where}</p>
+          <h3 className="font-display mt-1 text-2xl">{el.label}</h3>
+          {el.sel.includes(">") && (
+            <button className="mt-2 text-[13px] underline underline-offset-4" onClick={onParent}>
+              ↑ Select the box around it
+            </button>
+          )}
+        </div>
+
+        {/* its words */}
+        {propPath && !photoField && block && (
+          <div className="grid gap-3">
+            <Text id={hit!.kind === "prop" ? hit!.dom : undefined} label="Words" area={propPath === "text" || propPath.endsWith("-text")} value={getProp(block.props, propPath)} onChange={(v) => setProps(setProp(block.props, propPath, v))} />
+            {link && <Text label="Link" value={getProp(block.props, link)} onChange={(v) => setProps(setProp(block.props, link, v))} placeholder="/get-in-touch or https://…" />}
+          </div>
+        )}
+        {photoField && (
+          <p className="text-[13px] text-ink-2">
+            To replace or remove this photo, open{" "}
+            <button className="underline underline-offset-4" onClick={onBlock}>
+              the whole block
+            </button>
+            .
+          </p>
+        )}
+        {hit?.kind === "copy" && (
+          <div>
+            <p className={lab}>Words · saved straight to the live site</p>
+            <SectionEditor
+              key={hit.section}
+              id={hit.section}
+              saved={content.copy[hit.section] as unknown as Record<string, unknown>}
+              edited={edited.has(hit.section)}
+              reload={reload}
+              notify={notify}
+              focus={copyFocus}
+              only={hit.dom.slice(hit.section.length + 1).split("-")[0]}
+            />
+          </div>
+        )}
+        {hit?.kind === "slot" && (
+          <p className="text-[13px] text-ink-2">
+            This photo is under <strong>Images &amp; video</strong>: {hit.slots.map(slotLabel).join(", ")}.{" "}
+            <button type="button" className="underline underline-offset-4" onClick={() => openTab("images")}>
+              Open Images &amp; video
+            </button>
+          </p>
+        )}
+
+        <div>
+          <p className={lab}>Its look</p>
+          <ElementStyleFields style={style} set={setStyle} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -647,6 +883,10 @@ function PageBuilder({
   const [busy, setBusy] = useState("");
   const [drag, setDrag] = useState(-1);
   const [focus, setFocus] = useState<Focus | null>(null);
+  const [element, setElement] = useState<ElSel | null>(null);
+  // the nav's and footer's element styles: shared by every page on this side, saved and published with it
+  const [chrome, setChrome] = useState<ElRule[]>(() => content.chromeDrafts[side] ?? content.chrome[side]);
+  const chromeLatest = useRef(chrome);
   const photo = usePhotoUpload(setError);
   const src = (id: string) => photo.previews.get(id) ?? photoSrc(id, content.uploadsPublic);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -661,7 +901,7 @@ function PageBuilder({
     setState("saving");
     setError("");
     try {
-      await postJson("/api/admin/layout", { page, items: latest.current });
+      await postJson("/api/admin/layout", { page, items: latest.current, chrome: chromeLatest.current });
       setHasDraft(true);
       setState("idle");
       setVersion((v) => v + 1);
@@ -684,13 +924,40 @@ function PageBuilder({
       // leaving the page with an edit waiting: save it now
       if (timer.current) {
         clearTimeout(timer.current);
-        postJson("/api/admin/layout", { page, items: latest.current }).catch(() => undefined);
+        postJson("/api/admin/layout", { page, items: latest.current, chrome: chromeLatest.current }).catch(() => undefined);
       }
     },
     [page],
   );
 
-  const update = (id: string, fn: (b: LayoutBlock) => LayoutBlock) => change(items.map((b) => (b.id === id ? fn(b) : b)));
+  const update = (id: string, fn: (b: LayoutBlock) => LayoutBlock) => change(latest.current.map((b) => (b.id === id ? fn(b) : b)));
+  const changeChrome = (next: ElRule[]) => {
+    setChrome(next);
+    chromeLatest.current = next;
+    setState("pending");
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(saveDraft, 1200);
+  };
+
+  // single elements' styles: in their block, or in the nav/footer list
+  const isChrome = (root: string) => root === "nav" || root === "footer";
+  const ruleOf = (root: string, sel: string) =>
+    (isChrome(root) ? chrome.find((r) => r.root === root && r.sel === sel) : items.find((b) => b.id === root)?.els.find((r) => r.sel === sel))?.style ?? BLANK_EL;
+  const setRule = (root: string, sel: string, label: string, patch: Partial<ElStyle>) => {
+    const put = (list: ElRule[], extra: Partial<ElRule>) => {
+      const style = { ...(list.find((r) => r.sel === sel)?.style ?? BLANK_EL), ...patch };
+      const rest = list.filter((r) => r.sel !== sel);
+      return elStyled(style) ? [...rest, { sel, label, style, ...extra }] : rest;
+    };
+    if (isChrome(root)) {
+      const r = root as "nav" | "footer";
+      changeChrome([...chromeLatest.current.filter((x) => x.root !== r), ...put(chromeLatest.current.filter((x) => x.root === r), { root: r })]);
+    } else update(root, (b) => ({ ...b, els: put(b.els, {}) }));
+  };
+  const css =
+    items.map((b) => elementCss(b.id, b.els)).join("") +
+    elementCss("nav", chrome.filter((r) => r.root === "nav")) +
+    elementCss("footer", chrome.filter((r) => r.root === "footer"));
   const move = (from: number, to: number) => {
     if (to < 0 || to >= items.length || from === to) return;
     const next = [...items];
@@ -729,7 +996,7 @@ function PageBuilder({
       async () => {
         if (timer.current) clearTimeout(timer.current);
         timer.current = null;
-        await postJson("/api/admin/layout", { page, items: latest.current, publish: true });
+        await postJson("/api/admin/layout", { page, items: latest.current, chrome: chromeLatest.current, publish: true });
         setHasDraft(false);
         setState("idle");
       },
@@ -745,6 +1012,8 @@ function PageBuilder({
         await postJson("/api/admin/layout", { page }, "DELETE");
         setItems(content.layouts[page]);
         latest.current = content.layouts[page];
+        setChrome(content.chrome[side]);
+        chromeLatest.current = content.chrome[side];
         setHasDraft(false);
         setState("idle");
       },
@@ -771,20 +1040,27 @@ function PageBuilder({
   };
 
   // a click in the preview: open its block, and the field it comes from
-  const pick = (id: string, hit: Hit | null) => {
-    setSelected(id);
-    if (!hit) return setFocus(null);
-    const style = hit.kind === "prop" && hit.dom.endsWith("-bgImage");
-    setPanel(style ? "style" : "content");
-    setFocus({ hit, n: Date.now() });
+  const pick = ({ root, sel, label, hit }: ElPick) => {
+    const n = Date.now();
+    setFocus(hit ? { hit, n } : null);
+    if (isChrome(root)) {
+      setSelected("");
+      return setElement({ root, sel, label, hit, n });
+    }
+    setSelected(root);
+    if (sel) return setElement({ root, sel, label, hit, n });
+    // the block as a whole (its background photo, or empty space)
+    setElement(null);
+    setPanel(hit?.kind === "prop" && hit.dom.endsWith("-bgImage") ? "style" : "content");
   };
   useEffect(() => {
     if (focus?.hit.kind === "prop") focusField(focus.hit.dom, focus.hit.raw);
     if (focus?.hit.kind === "slot") focusField("slot-note");
   }, [focus]);
-  const resolve = (id: string, target: Element, blockEl: Element) => {
-    const b = latest.current.find((x) => x.id === id);
-    return b ? resolveClick(target, blockEl, blockFields(b, content)) : null;
+  const resolve = (root: string, target: Element, rootEl: Element) => {
+    if (isChrome(root)) return resolveClick(target, rootEl, chromeFields(side, root as "nav" | "footer", content));
+    const b = latest.current.find((x) => x.id === root);
+    return b ? resolveClick(target, rootEl, blockFields(b, content)) : null;
   };
 
   const sel = items.find((b) => b.id === selected);
@@ -813,7 +1089,38 @@ function PageBuilder({
           {error && <p className="w-full text-[13px] text-pin">{error}</p>}
         </div>
 
-        {!sel ? (
+        {element ? (
+          <ElementPanel
+            key={`${element.root}:${element.sel}`}
+            el={element}
+            block={items.find((b) => b.id === element.root)}
+            side={side}
+            style={ruleOf(element.root, element.sel)}
+            setStyle={(patch) => setRule(element.root, element.sel, element.label, patch)}
+            setProps={(p) => update(element.root, (x) => ({ ...x, props: { ...x.props, ...p } }))}
+            content={content}
+            focus={focus}
+            reload={async () => {
+              await reload();
+              setVersion((v) => v + 1);
+            }}
+            notify={notify}
+            openTab={openTab}
+            onParent={() => {
+              const up = parentOf(element.sel);
+              setFocus(null);
+              setElement(up.sel ? { ...element, sel: up.sel, label: up.label, hit: null, n: Date.now() } : null);
+            }}
+            onBlock={() => {
+              setElement(null);
+              setPanel("content");
+            }}
+            onClose={() => {
+              setElement(null);
+              setSelected("");
+            }}
+          />
+        ) : !sel ? (
           <div className="border border-line bg-white">
             <div className="flex items-center justify-between gap-3 border-b border-line p-4">
               <p className="text-[13px] text-ink-2">Top to bottom. Drag or use the arrows to reorder; click a block here, or anything in the preview, to edit it.</p>
@@ -941,7 +1248,7 @@ function PageBuilder({
 
       <div className="flex min-w-0 flex-col gap-3 xl:sticky xl:top-36 xl:h-[calc(100vh-10rem)]">
         <div className="flex items-center justify-between gap-3 text-[13px]">
-          <span className="text-muted">Preview with your unpublished changes · click any words or photo to edit them</span>
+          <span className="text-muted">Preview with your unpublished changes · click anything to edit it (Alt + click to use the page)</span>
           <span className="flex gap-1">
             {(["desktop", "phone"] as const).map((d) => (
               <button key={d} onClick={() => setDevice(d)} className={`chip !py-1 !text-[12px] ${device === d ? "!border-ink !bg-ink !text-white" : ""}`}>
@@ -956,6 +1263,8 @@ function PageBuilder({
             version={version}
             device={device}
             selected={selected}
+            element={element}
+            css={css}
             onPick={pick}
             resolve={resolve}
           />

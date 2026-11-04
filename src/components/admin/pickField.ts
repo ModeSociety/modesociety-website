@@ -151,3 +151,44 @@ export function resolveClick(target: Element, blockEl: Element, fields: ReturnTy
 }
 
 export const slotLabel = (id: string) => SLOTS.find((s) => s.id === id)?.label ?? id;
+
+/** The nav's and footer's words (only the footer has wording to edit; the nav's links are the page names). */
+export function chromeFields(side: "talent" | "tech", root: "nav" | "footer", content: SiteContent) {
+  const texts: Candidate[] = [];
+  const ids: SectionId[] = root === "nav" ? [] : side === "tech" ? ["tech.footer", "tech.cta"] : ["site.footer"];
+  for (const id of ids) copyCandidates(id, content.copy[id] as unknown as Record<string, unknown>, texts);
+  return { texts, photos: new Map<string, Hit>(), slots: [] as string[] };
+}
+
+/** How the admin panel names an element nobody has named: by what it is. */
+export function describeEl(el: Element): string {
+  const tag = el.tagName.toLowerCase();
+  const cls = typeof el.className === "string" ? el.className : "";
+  if (/btn/.test(cls)) return "Button";
+  if (tag === "a") return "Link";
+  if (tag === "img") return "Photo";
+  if (tag === "video") return "Video";
+  if (tag === "svg") return "Drawing";
+  if (tag === "hr") return "Line";
+  if (/^h[1-2]$/.test(tag)) return "Heading";
+  if (/^h[3-6]$/.test(tag)) return "Title";
+  const r = el.getBoundingClientRect();
+  if (r.height > 0 && r.height <= 4) return "Line";
+  const cs = el.ownerDocument.defaultView?.getComputedStyle(el);
+  const text = (el.textContent || "").trim();
+  if (cs && text && parseFloat(cs.fontSize) <= 13 && cs.textTransform === "uppercase") return "Small label";
+  if (["p", "li", "span", "blockquote", "summary", "label", "td", "th"].includes(tag) && text) return tag === "blockquote" ? "Quote" : "Text";
+  if (tag === "section") return "Section";
+  return "Box";
+}
+
+/** Where an element sits inside its root, as the steps builder.ts elementCss understands. */
+export function pathTo(root: Element, el: Element): string {
+  const steps: string[] = [];
+  for (let at: Element | null = el; at && at !== root; at = at.parentElement) {
+    const parent: Element | null = at.parentElement;
+    if (!parent) return "";
+    steps.unshift(`${at.tagName.toLowerCase()}:nth-child(${Array.prototype.indexOf.call(parent.children, at) + 1})`);
+  }
+  return steps.join(">");
+}

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Accent from "@/components/site/Accent";
 import { SectionHead } from "@/components/site/Editorial";
-import { INFOGRAPHIC } from "@/lib/content";
 import type { SectionCopy } from "@/lib/copy";
 
 type Row = { label: string; mode: string; inHouse: string };
@@ -14,10 +13,15 @@ const num = (v: string) => parseFloat(String(v).replace(/,/g, "").match(/-?\d+(\
 // follows the site's main colour once it's changed in the admin panel (theme.ts sets --chart-mode)
 const MODE = "var(--chart-mode, #A3242B)";
 const IN_HOUSE = "#A9822F";
-const SERIES = [
-  { key: "mode" as const, label: "With Mode Society", color: MODE },
-  { key: "inHouse" as const, label: "In-house marketer", color: IN_HOUSE },
+type Series = { key: "mode" | "inHouse"; label: string; color: string };
+const HEX = /^#[0-9a-f]{6}$/i;
+/** the two series as named and coloured in the admin panel (Pages & text → The numbers) */
+const seriesOf = (c: SectionCopy<"site.numbers">): Series[] => [
+  { key: "mode", label: c.modeLabel, color: HEX.test(c.modeColour.trim()) ? c.modeColour.trim() : MODE },
+  { key: "inHouse", label: c.inHouseLabel, color: HEX.test(c.inHouseColour.trim()) ? c.inHouseColour.trim() : IN_HOUSE },
 ];
+/** "100, 118, 141" → [100, 118, 141] */
+const numbers = (v: string) => v.split(/[,;\s]+/).map((x) => parseFloat(x)).filter((x) => Number.isFinite(x));
 
 function useInView<T extends Element>() {
   const ref = useRef<T>(null);
@@ -32,10 +36,10 @@ function useInView<T extends Element>() {
   return [ref, seen] as const;
 }
 
-function Legend() {
+function Legend({ series }: { series: Series[] }) {
   return (
     <div className="flex flex-wrap gap-5 text-sm text-ink-2">
-      {SERIES.map((s) => (
+      {series.map((s) => (
         <span key={s.key} className="inline-flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-[2px]" style={{ background: s.color }} /> {s.label}
         </span>
@@ -45,8 +49,7 @@ function Legend() {
 }
 
 /** Sales index over six months: two lines that draw in, with a crosshair tooltip. */
-function SalesLine({ on }: { on: boolean }) {
-  const { months, mode, inHouse } = INFOGRAPHIC.salesLift;
+function SalesLine({ on, series, months, mode, inHouse }: { on: boolean; series: Series[]; months: string[]; mode: number[]; inHouse: number[] }) {
   const [hover, setHover] = useState<number | null>(null);
   const W = 560;
   const H = 260;
@@ -86,7 +89,7 @@ function SalesLine({ on }: { on: boolean }) {
             {m.replace("Month ", "M")}
           </text>
         ))}
-        {SERIES.map((s) => {
+        {series.map((s) => {
           const vals = s.key === "mode" ? mode : inHouse;
           return (
             <g key={s.key}>
@@ -114,7 +117,7 @@ function SalesLine({ on }: { on: boolean }) {
         {hover !== null && (
           <g pointerEvents="none">
             <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H - pad.b} stroke="#5e1a1c" strokeOpacity={0.35} strokeWidth={1} />
-            {SERIES.map((s) => {
+            {series.map((s) => {
               const v = (s.key === "mode" ? mode : inHouse)[hover];
               return <circle key={s.key} cx={x(hover)} cy={y(v)} r={5} style={{ fill: s.color }} stroke="#fff" strokeWidth={2} />;
             })}
@@ -127,7 +130,7 @@ function SalesLine({ on }: { on: boolean }) {
           style={{ left: `${(x(hover) / W) * 100}%`, transform: `translateX(${hover > months.length / 2 ? "-110%" : "10%"})` }}
         >
           <div className="mb-1 font-semibold text-ink">{months[hover]}</div>
-          {SERIES.map((s) => (
+          {series.map((s) => (
             <div key={s.key} className="flex items-center gap-2 text-ink-2">
               <span className="h-2 w-2 rounded-[2px]" style={{ background: s.color }} />
               {s.label}: <strong className="text-ink">{(s.key === "mode" ? mode : inHouse)[hover]}</strong>
@@ -140,7 +143,7 @@ function SalesLine({ on }: { on: boolean }) {
 }
 
 /** One pair of bars per metric; each metric keeps its own scale (no shared/dual axis). */
-function MetricBars({ on, rows }: { on: boolean; rows: Row[] }) {
+function MetricBars({ on, rows, series }: { on: boolean; rows: Row[]; series: Series[] }) {
   const [tip, setTip] = useState<string | null>(null);
   return (
     <div className="grid gap-6">
@@ -150,7 +153,7 @@ function MetricBars({ on, rows }: { on: boolean; rows: Row[] }) {
           <div key={m.label}>
             <div className="mb-2 text-sm font-medium text-ink">{m.label}</div>
             <div className="grid gap-[2px]">
-              {SERIES.map((s, k) => {
+              {series.map((s, k) => {
                 const v = s.key === "mode" ? m.mode : m.inHouse;
                 const id = `${m.label}-${s.key}`;
                 return (
@@ -186,9 +189,8 @@ function MetricBars({ on, rows }: { on: boolean; rows: Row[] }) {
 }
 
 /** Share of spend that actually reaches creators, as one ring per series. */
-function SpendRing({ series, on }: { series: (typeof SERIES)[number]; on: boolean }) {
-  const parts = INFOGRAPHIC.budget[series.key];
-  const toCreators = parts.find((p) => /creators/i.test(p.label))?.value ?? 0;
+function SpendRing({ series, on, share, caption }: { series: Series; on: boolean; share: number; caption: string }) {
+  const toCreators = Math.max(0, Math.min(100, share));
   const R = 52;
   const C = 2 * Math.PI * R;
   return (
@@ -214,7 +216,7 @@ function SpendRing({ series, on }: { series: (typeof SERIES)[number]; on: boolea
       <figcaption className="mt-3 max-w-[18ch] text-sm text-ink-2">
         <span className="font-medium text-ink">{series.label}</span>
         <br />
-        of the budget goes to creators &amp; content
+        {caption}
       </figcaption>
     </figure>
   );
@@ -223,8 +225,13 @@ function SpendRing({ series, on }: { series: (typeof SERIES)[number]; on: boolea
 /** "How sourcing the right people boosts sales and ROI vs. an in-house marketer." */
 export default function Infographic({ index, copy }: { index?: string; copy: SectionCopy<"site.numbers"> }) {
   const [ref, on] = useInView<HTMLElement>();
-  const { salesLift } = INFOGRAPHIC;
+  const series = seriesOf(copy);
   const roi = copy.rows.filter((r) => r.label.trim());
+  // the line chart: as many months as both series have numbers for
+  const lineMode = numbers(copy.modeLine);
+  const lineInHouse = numbers(copy.inHouseLine);
+  const months = copy.months.filter((m) => m.trim()).slice(0, Math.min(lineMode.length, lineInHouse.length));
+  const salesLift = { months, mode: lineMode.slice(0, months.length), inHouse: lineInHouse.slice(0, months.length) };
   return (
     <section ref={ref} className="py-20 md:py-28">
       <div className="wrap">
@@ -236,38 +243,38 @@ export default function Infographic({ index, copy }: { index?: string; copy: Sec
             </h2>
             {copy.intro && <p className="mt-3 max-w-xl text-ink-2">{copy.intro}</p>}
           </div>
-          <Legend />
+          <Legend series={series} />
         </div>
 
         <div className="mt-10 grid gap-5 lg:grid-cols-12">
           <div className="border border-espresso/15 bg-white p-6 lg:col-span-7">
             <h3 className="font-medium text-ink">{copy.chartTitle}</h3>
             <p className="mb-4 text-sm text-muted">{copy.chartNote}</p>
-            <SalesLine on={on} />
+            {months.length > 1 && <SalesLine on={on} series={series} {...salesLift} />}
           </div>
           <div className="border border-espresso/15 bg-white p-6 lg:col-span-5">
             <h3 className="mb-5 font-medium text-ink">{copy.barsTitle}</h3>
-            <MetricBars on={on} rows={roi} />
+            <MetricBars on={on} rows={roi} series={series} />
           </div>
           <div className="grid grid-cols-2 gap-6 border border-espresso/15 bg-white p-6 lg:col-span-12 lg:grid-cols-[1fr_auto_auto] lg:items-center">
             <div className="col-span-2 lg:col-span-1">
               <h3 className="font-medium text-ink">{copy.moneyTitle}</h3>
               <p className="mt-2 max-w-md text-sm text-ink-2">{copy.moneyText}</p>
             </div>
-            {SERIES.map((s) => (
-              <SpendRing key={s.key} series={s} on={on} />
+            {series.map((s) => (
+              <SpendRing key={s.key} series={s} on={on} share={parseFloat(s.key === "mode" ? copy.modeShare : copy.inHouseShare) || 0} caption={copy.ringCaption} />
             ))}
           </div>
         </div>
 
         <details className="mt-6 text-sm text-ink-2">
-          <summary className="cursor-pointer underline underline-offset-4">View the figures as a table</summary>
+          <summary className="cursor-pointer underline underline-offset-4">{copy.tableToggle}</summary>
           <table className="mt-3 w-full max-w-2xl border-collapse text-left">
             <thead>
               <tr className="border-b border-line">
-                <th className="py-2 pr-4">Measure</th>
-                <th className="py-2 pr-4">With Mode Society</th>
-                <th className="py-2">In-house marketer</th>
+                <th className="py-2 pr-4">{copy.tableMeasure}</th>
+                <th className="py-2 pr-4">{series[0].label}</th>
+                <th className="py-2">{series[1].label}</th>
               </tr>
             </thead>
             <tbody>
@@ -278,11 +285,13 @@ export default function Infographic({ index, copy }: { index?: string; copy: Sec
                   <td className="py-2 tabular-nums">{m.inHouse}</td>
                 </tr>
               ))}
-              <tr className="border-b border-line/60">
-                <td className="py-2 pr-4">Sales index at month 6</td>
-                <td className="py-2 pr-4 tabular-nums">{salesLift.mode.at(-1)}</td>
-                <td className="py-2 tabular-nums">{salesLift.inHouse.at(-1)}</td>
-              </tr>
+              {months.length > 0 && copy.tableSales && (
+                <tr className="border-b border-line/60">
+                  <td className="py-2 pr-4">{copy.tableSales}</td>
+                  <td className="py-2 pr-4 tabular-nums">{salesLift.mode.at(-1)}</td>
+                  <td className="py-2 tabular-nums">{salesLift.inHouse.at(-1)}</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </details>

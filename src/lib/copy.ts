@@ -69,6 +69,9 @@ const lines = (label: string, hint?: string): Field => ({ type: "lines", label, 
 const list = (label: string, itemName: string, item: Record<string, Field>, hint?: string): Field => ({ type: "list", label, itemName, item, hint });
 const label = text("Small label", "The small capitals above the section");
 const meta = text("Note on the right", "The small note at the right of the label. Leave empty to hide it.");
+const tag = text("Tag", "The word in brackets before the small label. Leave empty to hide it.");
+/** a note with a count in it: {n} is the number, {s} an s when it's not one */
+const count = (label: string, example: string) => text(label, `{n} = the number, {s} = "s" when it's not one (e.g. ${example})`);
 
 export const STEP_ICONS: StepIcon[] = ["brief", "users", "contract", "camera", "chart", "target", "search", "package", "refresh", "room", "list", "check", "mail", "badge", "file", "megaphone", "coins"];
 
@@ -94,12 +97,14 @@ export const SECTIONS = {
     title: "Services cards",
     hint: "The flip cards on the home page and For brands, and the services list on About.",
     fields: {
+      cardLabel: text("Card label"), tapHint: text("Card hint on phones"), hoverHint: text("Card hint on computers"),
       label,
       meta,
       heading: heading(),
       items: list("Services", "service", { title: text("Name"), body: area("What it is"), linkLabel: text("Link text (optional)"), linkUrl: text("Link address (optional)") }),
     },
     defaults: {
+      cardLabel: "Service", tapHint: "Tap to read →", hoverHint: "Hover to read →",
       label: "Services",
       meta: "Four ways we work with brands",
       heading: "What we\n*bring to the table.*",
@@ -113,8 +118,8 @@ export const SECTIONS = {
     title: "What you can expect from us",
     hint: "The swipe-through cards on the burgundy background (About and For brands).",
     hideable: true,
-    fields: { label, heading: heading(), intro: area("Intro"), cards: list("Cards", "card", { title: text("Title"), body: area("Text") }), button: text("Button") },
-    defaults: { label: "How we work", heading: "What you can expect *from us.*", intro: EXPECT.intro, cards: EXPECT.cards.map((c) => ({ ...c })), button: "Book a call" },
+    fields: { tag, meta: count("Note on the right", "{n} things you can count on"), cardLabel: text("Card label"), label, heading: heading(), intro: area("Intro"), cards: list("Cards", "card", { title: text("Title"), body: area("Text") }), button: text("Button") },
+    defaults: { tag: "✶", meta: "{n} things you can count on", cardLabel: "Mode Society", label: "How we work", heading: "What you can expect *from us.*", intro: EXPECT.intro, cards: EXPECT.cards.map((c) => ({ ...c })), button: "Book a call" },
   },
   "site.clients": {
     side: "talent",
@@ -123,8 +128,8 @@ export const SECTIONS = {
     title: "Brands slideshow",
     hint: "The two rows of brand logos. The logos themselves are under Images.",
     hideable: true,
-    fields: { label, heading: text("Big word"), subheading: text("Line beside it") },
-    defaults: { label: "Clients", heading: "Brands", subheading: "our creators have worked with" },
+    fields: { meta: count("Note on the right", "{n} brands & counting"), label, heading: text("Big word"), subheading: text("Line beside it") },
+    defaults: { meta: "{n} brands & counting", label: "Clients", heading: "Brands", subheading: "our creators have worked with" },
   },
   "site.numbers": {
     side: "talent",
@@ -134,6 +139,7 @@ export const SECTIONS = {
     hint: "The charts comparing Mode Society with an in-house marketer (home, About, For brands).",
     hideable: true,
     fields: {
+      modeLabel: text("First series name"), inHouseLabel: text("Second series name"), modeColour: text("First series colour", "A colour code like #a3242b. Empty = the site's main colour"), inHouseColour: text("Second series colour", "A colour code like #a9822f. Empty = as designed"), months: lines("Line chart: months", "One per line"), modeLine: text("Line chart: first series", "One number per month, separated by commas"), inHouseLine: text("Line chart: second series", "One number per month, separated by commas"), modeShare: text("Budget ring: first series %", "How much of the budget reaches creators"), inHouseShare: text("Budget ring: second series %", "How much of the budget reaches creators"), ringCaption: text("Budget ring caption"), tableToggle: text("Table link"), tableMeasure: text("Table: first heading"), tableSales: text("Table: last row"),
       label,
       meta,
       heading: heading(),
@@ -151,6 +157,7 @@ export const SECTIONS = {
       note: text("Small print", "e.g. \"Illustrative figures.\" Leave empty to hide it."),
     },
     defaults: {
+      modeLabel: "With Mode Society", inHouseLabel: "In-house marketer", modeColour: "", inHouseColour: "", months: [...INFOGRAPHIC.salesLift.months], modeLine: INFOGRAPHIC.salesLift.mode.join(", "), inHouseLine: INFOGRAPHIC.salesLift.inHouse.join(", "), modeShare: String(INFOGRAPHIC.budget.mode.find((b) => /creators/i.test(b.label))?.value ?? ""), inHouseShare: String(INFOGRAPHIC.budget.inHouse.find((b) => /creators/i.test(b.label))?.value ?? ""), ringCaption: "of the budget goes to creators & content", tableToggle: "View the figures as a table", tableMeasure: "Measure", tableSales: "Sales index at month 6",
       label: "The numbers",
       meta: "Mode Society vs an in-house marketer",
       heading: "The right creators, *better returns.*",
@@ -172,6 +179,7 @@ export const SECTIONS = {
     hint: "The For brands / For talent section near the bottom of the home page. Its animation is chosen under Animations.",
     hideable: true,
     fields: {
+      meta, hint: text("Hint under the headlines", "Shown on computers with the blinds style"),
       label,
       brandsEyebrow: text("Brands: label"),
       brandsTitle: text("Brands: headline"),
@@ -181,6 +189,7 @@ export const SECTIONS = {
       talentButton: text("Talent: button"),
     },
     defaults: {
+      meta: "Brands · talent", hint: "Hover to open the blinds",
       label: "Let's work together",
       brandsEyebrow: "For brands",
       brandsTitle: "Cast your next campaign",
@@ -206,6 +215,7 @@ export const SECTIONS = {
     title: "Footer",
     hint: "The burgundy footer on every page.",
     fields: {
+      tag,
       label,
       meta,
       heading: text("Headline"),
@@ -216,6 +226,7 @@ export const SECTIONS = {
       strapline: text("Bottom line"),
     },
     defaults: {
+      tag: "✶",
       label: "Let's connect",
       meta: "Melbourne → worldwide",
       heading: "Tell us your vision.",
@@ -237,6 +248,7 @@ export const SECTIONS = {
     title: "Hero",
     hint: "Under the big logo at the top. The photos are under Images; the animation under Animations.",
     fields: {
+      est: text("Top line: year"), kind: text("Top line: what we are"), middle: text("Top line: middle"), where: text("Top line: right"), whereShort: text("Top line: right, on phones"),
       tagline: area("Tagline", "*stars* = italic"),
       circled: text("Circled word", "A word from the tagline that gets the red circle drawn around it"),
       brandsButton: text("Brands button"),
@@ -244,6 +256,7 @@ export const SECTIONS = {
       list: lines("List on the right", "One per line"),
     },
     defaults: {
+      est: "Est. 2022", kind: "Talent & creator agency", middle: "Models · Influencers · UGC · Streamers", where: "Melbourne → worldwide", whereShort: "Melbourne → world",
       tagline: "*Models, influencers, UGC creators & streamers,* cast for fit, not follower count.",
       circled: "fit",
       brandsButton: "For brands",
@@ -299,8 +312,8 @@ export const SECTIONS = {
     title: "Featured in",
     hint: "Shows once there's press. The features themselves are in the Featured in tab.",
     hideable: true,
-    fields: { label, heading: heading() },
-    defaults: { label: "Featured in", heading: "As *seen in.*" },
+    fields: { allPress: text("Link to all press"), readMore: text("Read more link"), label, heading: heading() },
+    defaults: { allPress: "All press ↗", readMore: "Read more", label: "Featured in", heading: "As *seen in.*" },
   },
 
   // =========================================================================
@@ -311,8 +324,8 @@ export const SECTIONS = {
     page: "About us",
     path: "/about",
     title: "Page title",
-    fields: { label, meta, heading: heading() },
-    defaults: { label: "Mode Society", meta: "Est. January 2022 · Melbourne", heading: "About *us.*" },
+    fields: { tag, label, meta, heading: heading() },
+    defaults: { tag: "About", label: "Mode Society", meta: "Est. January 2022 · Melbourne", heading: "About *us.*" },
   },
   "about.story": {
     side: "talent",
@@ -320,6 +333,7 @@ export const SECTIONS = {
     path: "/about",
     title: "Our story",
     fields: {
+      figLabel: text("Before the photo caption"),
       storyTitle: text("First dropdown title"),
       story: area("Our story", "Leave a blank line between paragraphs"),
       listTitle: text("Second dropdown title"),
@@ -327,6 +341,7 @@ export const SECTIONS = {
       caption: text("Team photo caption"),
     },
     defaults: {
+      figLabel: "Fig. 01",
       storyTitle: "Our story",
       story: [ABOUT.story, AGENCY_INTRO, ABOUT.grantHelp].join("\n\n"),
       listTitle: "What we are",
@@ -353,8 +368,9 @@ export const SECTIONS = {
     page: "For brands",
     path: "/work-with-us",
     title: "Page title",
-    fields: { label, meta, heading: heading(), body: area("Text"), button: text("Button") },
+    fields: { tag, label, meta, heading: heading(), body: area("Text"), button: text("Button") },
     defaults: {
+      tag: "For brands",
       label: "Your external PR team",
       meta: "Influencer · UGC · Events · Funding",
       heading: "Let's work\n*together.*",
@@ -369,8 +385,8 @@ export const SECTIONS = {
     title: "Our approach",
     hint: "Shows the pull quote (Shared sections → Pull quote).",
     hideable: true,
-    fields: { label },
-    defaults: { label: "Our approach" },
+    fields: { tag, label },
+    defaults: { tag: "✶", label: "Our approach" },
   },
   "brands.faq": {
     side: "talent",
@@ -379,8 +395,8 @@ export const SECTIONS = {
     title: "Questions brands ask",
     hint: "Also given to Google as FAQ data.",
     hideable: true,
-    fields: faqFields,
-    defaults: { label: "Questions brands ask", heading: "Good to *know.*", items: BRAND_FAQ.map((f) => ({ ...f })) },
+    fields: { ...faqFields, tag, meta: count("Note on the right", "{n} question{s}") },
+    defaults: { tag: "FAQ", meta: "{n} question{s}", label: "Questions brands ask", heading: "Good to *know.*", items: BRAND_FAQ.map((f) => ({ ...f })) },
   },
   "brands.form": {
     side: "talent",
@@ -388,8 +404,8 @@ export const SECTIONS = {
     path: "/work-with-us#book",
     title: "Enquiry form",
     hint: "The form's own introduction is under Shared sections → Form introductions.",
-    fields: { label, meta, heading: heading() },
-    defaults: { label: "Enquiry form", meta: "We reply by email", heading: "Tell us about *your brand.*" },
+    fields: { tag, label, meta, heading: heading() },
+    defaults: { tag: "Book a call", label: "Enquiry form", meta: "We reply by email", heading: "Tell us about *your brand.*" },
   },
 
   // =========================================================================
@@ -400,8 +416,9 @@ export const SECTIONS = {
     page: "For talent",
     path: "/apply-to-be-a-creator",
     title: "Page title",
-    fields: { label, meta, heading: heading(), body: area("Text"), button: text("Button") },
+    fields: { tag, label, meta, heading: heading(), body: area("Text"), button: text("Button") },
     defaults: {
+      tag: "For talent",
       label: "Models · influencers · UGC · streamers",
       meta: "Applications open",
       heading: "Thinking of\n*signing?*",
@@ -430,8 +447,9 @@ export const SECTIONS = {
     path: "/apply-to-be-a-creator",
     title: "What you can expect",
     hideable: true,
-    fields: { label, heading: heading(), body: area("Big text"), stepsLabel: text("Steps label"), steps: list("Steps", "step", { title: text("Title"), body: area("Text") }) },
+    fields: { stepsMeta: count("Steps note", "{n} steps"), stepWord: text("Word before each step number"), label, heading: heading(), body: area("Big text"), stepsLabel: text("Steps label"), steps: list("Steps", "step", { title: text("Title"), body: area("Text") }) },
     defaults: {
+      stepsMeta: "{n} steps", stepWord: "Step",
       label: "What you can expect",
       heading: "What you can expect *from us.*",
       body: TALENT.created,
@@ -445,8 +463,8 @@ export const SECTIONS = {
     path: "/apply-to-be-a-creator",
     title: "What we do for you",
     hideable: true,
-    fields: { label, heading: heading(), list: lines("Ticked list", "One per line") },
-    defaults: { label: "What we do for you", heading: "What we do *for you.*", list: [...TALENT.forYou] },
+    fields: { meta: count("Note on the right", "{n} included"), label, heading: heading(), list: lines("Ticked list", "One per line") },
+    defaults: { meta: "{n} included", label: "What we do for you", heading: "What we do *for you.*", list: [...TALENT.forYou] },
   },
   "talent.flexible": {
     side: "talent",
@@ -464,8 +482,8 @@ export const SECTIONS = {
     title: "Questions creators ask",
     hint: "Also given to Google as FAQ data.",
     hideable: true,
-    fields: faqFields,
-    defaults: { label: "Questions creators ask", heading: "Good to *know.*", items: TALENT_FAQ.map((f) => ({ ...f })) },
+    fields: { ...faqFields, tag, meta: count("Note on the right", "{n} question{s}") },
+    defaults: { tag: "FAQ", meta: "{n} question{s}", label: "Questions creators ask", heading: "Good to *know.*", items: TALENT_FAQ.map((f) => ({ ...f })) },
   },
   "talent.form": {
     side: "talent",
@@ -473,8 +491,8 @@ export const SECTIONS = {
     path: "/apply-to-be-a-creator#apply",
     title: "Application form",
     hint: "The form's own introduction is under Shared sections → Form introductions.",
-    fields: { label, heading: heading() },
-    defaults: { label: "Talent application", heading: "Want Mode *to represent you?*" },
+    fields: { tag, label, heading: heading() },
+    defaults: { tag: "Apply now", label: "Talent application", heading: "Want Mode *to represent you?*" },
   },
 
   // =========================================================================
@@ -486,8 +504,8 @@ export const SECTIONS = {
     path: "/services",
     title: "Page title",
     hint: "The second line of the heading is set smaller.",
-    fields: { label, meta, heading: heading() },
-    defaults: { label: "How it works", meta: "No price list: every package is built around you", heading: "Four ways\n*we work with brands.*" },
+    fields: { tag, label, meta, heading: heading() },
+    defaults: { tag: "Services", label: "How it works", meta: "No price list: every package is built around you", heading: "Four ways\n*we work with brands.*" },
   },
   "services.list": {
     side: "talent",
@@ -495,6 +513,7 @@ export const SECTIONS = {
     path: "/services",
     title: "Services, step by step",
     fields: {
+      eyebrow: text("Label above each service"),
       items: list("Services", "service", {
         title: text("Name"),
         steps: list("How it works", "step", { name: text("Step"), text: area("What happens"), icon: { type: "select", label: "Icon", options: STEP_ICONS } }),
@@ -505,6 +524,7 @@ export const SECTIONS = {
       }),
     },
     defaults: {
+      eyebrow: "How it works",
       items: SERVICES_PAGE.map((s) => ({
         title: s.title,
         steps: s.steps.map((st) => ({ ...st })),
@@ -524,8 +544,9 @@ export const SECTIONS = {
     page: "Our work",
     path: "/our-work",
     title: "Page title",
-    fields: { label, meta, heading: text("Big word"), accent: text("Red word beside it"), body: area("Text"), side: lines("Note on the right", "One per line") },
+    fields: { tag, label, meta, heading: text("Big word"), accent: text("Red word beside it"), body: area("Text"), side: lines("Note on the right", "One per line") },
     defaults: {
+      tag: "Archive",
       label: "Case studies",
       meta: "Since 2022",
       heading: "Work/",
@@ -540,8 +561,8 @@ export const SECTIONS = {
     path: "/our-work",
     title: "Gallery",
     hint: "The photos and videos are under Images → Our work; the brand names come from the brand logos.",
-    fields: { heading: text("Heading"), brandsLabel: text("Brand list label"), button: text("Button") },
-    defaults: { heading: "Selected work", brandsLabel: "Brands", button: "Be next" },
+    fields: { countLabel: count("Count beside the heading", "{n} pieces"), heading: text("Heading"), brandsLabel: text("Brand list label"), button: text("Button") },
+    defaults: { countLabel: "{n} pieces", heading: "Selected work", brandsLabel: "Brands", button: "Be next" },
   },
   "work.next": {
     side: "talent",
@@ -549,8 +570,8 @@ export const SECTIONS = {
     path: "/our-work",
     title: "Want to be next?",
     hideable: true,
-    fields: { label, meta, heading: heading(), brandsButton: text("Brands button"), talentButton: text("Talent button") },
-    defaults: { label: "Your campaign", meta: "Brands · talent", heading: "Want to be *next?*", brandsButton: "For brands", talentButton: "For talent" },
+    fields: { tag, label, meta, heading: heading(), brandsButton: text("Brands button"), talentButton: text("Talent button") },
+    defaults: { tag: "Next", label: "Your campaign", meta: "Brands · talent", heading: "Want to be *next?*", brandsButton: "For brands", talentButton: "For talent" },
   },
 
   // =========================================================================
@@ -563,6 +584,7 @@ export const SECTIONS = {
     title: "Page title",
     hint: "The features themselves are in the Featured in tab.",
     fields: {
+      tag, featuresLabel: text("Label above the features"), featuresMeta: count("Note above the features", "{n} feature{s}"),
       label,
       meta,
       heading: heading(),
@@ -571,6 +593,7 @@ export const SECTIONS = {
       emptyButton: text("Button while there's no press yet"),
     },
     defaults: {
+      tag: "Press", featuresLabel: "Features", featuresMeta: "{n} feature{s}",
       label: "Featured in",
       meta: "Media & press",
       heading: "Featured *in.*",
@@ -585,16 +608,16 @@ export const SECTIONS = {
     path: "/partner-with-us",
     title: "Page title",
     hint: "The form's introduction is under Shared sections → Form introductions.",
-    fields: { label, meta, heading: heading() },
-    defaults: { label: "B2B partnerships", meta: "Referrals · affiliates · co-marketing", heading: "Partner *with us.*" },
+    fields: { tag, label, meta, heading: heading() },
+    defaults: { tag: "Partners", label: "B2B partnerships", meta: "Referrals · affiliates · co-marketing", heading: "Partner *with us.*" },
   },
   "contact.hero": {
     side: "talent",
     page: "Contact us",
     path: "/get-in-touch",
     title: "Page title",
-    fields: { label, meta, heading: heading(), line: area("Line under the heading"), socials: text("Line beside the social links") },
-    defaults: { label: "Brands · talent · partners", meta: "Melbourne → worldwide", heading: "Get in *touch.*", line: GET_IN_TOUCH.line, socials: GET_IN_TOUCH.socials },
+    fields: { tag, label, meta, heading: heading(), line: area("Line under the heading"), socials: text("Line beside the social links") },
+    defaults: { tag: "Contact", label: "Brands · talent · partners", meta: "Melbourne → worldwide", heading: "Get in *touch.*", line: GET_IN_TOUCH.line, socials: GET_IN_TOUCH.socials },
   },
   "contact.cards": {
     side: "talent",

@@ -1,6 +1,7 @@
 import { SectionHead } from "@/components/site/Editorial";
 import Marquee from "@/components/site/Marquee";
 import type { SiteImage } from "@/lib/slots";
+import { countText } from "@/lib/count";
 
 /** Repeats a short list so a marquee row is always wider than the screen. */
 function fill(list: SiteImage[], min = 8) {
@@ -31,7 +32,7 @@ function Row({ logos, reverse }: { logos: SiteImage[]; reverse?: boolean }) {
 }
 
 /** "Brands our creators have worked with": a two-row slideshow, the rows sliding in opposite directions. */
-export default function Clients({ logos, index, copy }: { logos: SiteImage[]; index?: string; copy: { label: string; heading: string; subheading: string } }) {
+export default function Clients({ logos, index, copy }: { logos: SiteImage[]; index?: string; copy: { label: string; heading: string; subheading: string; meta: string } }) {
   if (!logos.length) return null;
   const top = logos.filter((_, i) => i % 2 === 0);
   const bottom = logos.length > 1 ? logos.filter((_, i) => i % 2 === 1) : logos;
@@ -39,7 +40,7 @@ export default function Clients({ logos, index, copy }: { logos: SiteImage[]; in
   return (
     <section className="overflow-hidden py-20 md:py-28" aria-label="Brands our creators have worked with">
       <div className="wrap">
-        <SectionHead index={index} label={copy.label} meta={`${logos.length} brands & counting`} />
+        <SectionHead index={index} label={copy.label} meta={countText(copy.meta, logos.length)} />
         <div className="mt-8 flex flex-wrap items-end gap-x-6 gap-y-2">
           <h2 className="font-display text-[clamp(80px,15vw,250px)] leading-[0.82] text-ink">{copy.heading}</h2>
           {copy.subheading && <p className="font-serif pb-[0.4em] text-[clamp(22px,2.6vw,40px)] italic leading-none text-ink">{copy.subheading}</p>}

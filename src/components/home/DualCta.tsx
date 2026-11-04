@@ -30,9 +30,9 @@ export default function DualCta({
   copy: SectionCopy<"site.cta">;
 }) {
   const list = panels(copy, brands, talent);
-  if (style === "reveal") return <Reveal panels={list} index={index} label={copy.label} />;
-  if (style === "tilt") return <Tilt panels={list} index={index} label={copy.label} />;
-  if (style === "blinds") return <Blinds panels={list} />;
+  if (style === "reveal") return <Reveal panels={list} index={index} label={copy.label} meta={copy.meta} />;
+  if (style === "tilt") return <Tilt panels={list} index={index} label={copy.label} meta={copy.meta} />;
+  if (style === "blinds") return <Blinds panels={list} hint={copy.hint} />;
   return <Split panels={list} />;
 }
 
@@ -71,11 +71,11 @@ function Split({ panels }: { panels: Panel[] }) {
 }
 
 /** Big typographic rows that slide across on hover. */
-function Reveal({ panels, index, label }: { panels: Panel[]; index?: string; label: string }) {
+function Reveal({ panels, index, label, meta }: { panels: Panel[]; index?: string; label: string; meta: string }) {
   return (
     <section className="relative overflow-hidden bg-paper py-20 md:py-28">
       <div className="wrap">
-        <SectionHead index={index} label={label} meta="Brands · talent" className="mb-4" />
+        <SectionHead index={index} label={label} meta={meta} className="mb-4" />
         {panels.map((p, i) => (
           <Link
             key={p.href}
@@ -102,7 +102,7 @@ function Reveal({ panels, index, label }: { panels: Panel[]; index?: string; lab
 }
 
 /** Two pinned polaroids that tilt toward the cursor with a moving glare. */
-function Tilt({ panels, index, label }: { panels: Panel[]; index?: string; label: string }) {
+function Tilt({ panels, index, label, meta }: { panels: Panel[]; index?: string; label: string; meta: string }) {
   const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
     const el = e.currentTarget;
     const r = el.getBoundingClientRect();
@@ -120,7 +120,7 @@ function Tilt({ panels, index, label }: { panels: Panel[]; index?: string; label
   return (
     <section className="py-20 md:py-28">
       <div className="wrap">
-        <SectionHead index={index} label={label} meta="Brands · talent" className="mb-12" />
+        <SectionHead index={index} label={label} meta={meta} className="mb-12" />
         <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-2 md:gap-20" style={{ perspective: "1200px" }}>
           {panels.map((p, i) => (
             <Link
@@ -164,7 +164,7 @@ function Tilt({ panels, index, label }: { panels: Panel[]; index?: string; label
 }
 
 /** Ink slats that open like venetian blinds to reveal each photo. */
-function Blinds({ panels }: { panels: Panel[] }) {
+function Blinds({ panels, hint }: { panels: Panel[]; hint: string }) {
   const SLATS = 7;
   return (
     <section className="grid h-[85svh] min-h-[520px] md:grid-cols-2">
@@ -194,7 +194,7 @@ function Blinds({ panels }: { panels: Panel[] }) {
             <span className="mt-6 inline-flex items-center gap-3 text-[12px] uppercase tracking-[0.18em]">
               <span className="h-px w-10 bg-paper transition-all duration-700 group-hover:w-20" /> {p.cta}
             </span>
-            <span className="mt-3 block text-xs text-paper/40 transition-opacity group-hover:opacity-0">Hover to open the blinds</span>
+            <span className="mt-3 block text-xs text-paper/40 transition-opacity group-hover:opacity-0">{hint}</span>
           </div>
         </Link>
       ))}

@@ -178,12 +178,12 @@ export default function Hero({ images, settings, text }: { images: SiteImage[]; 
       <div className="hero-fade wrap pointer-events-none absolute inset-x-0 top-[68px] z-20 md:top-[88px]">
         <div className="flex justify-between gap-6 border-t border-espresso/15 pt-2.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.04em] text-muted md:text-[11px]">
           <span>
-            <span className="text-ink">(Est. 2022)</span> Talent<span className="hidden sm:inline"> &amp; creator</span> agency
+            {text.est && <span className="text-ink">({text.est})</span>} {text.kind}
           </span>
-          <span className="hidden lg:inline">Models · Influencers · UGC · Streamers</span>
+          {text.middle && <span className="hidden lg:inline">{text.middle}</span>}
           <span>
-            Melbourne → <span className="hidden sm:inline">worldwide</span>
-            <span className="sm:hidden">world</span>
+            <span className="hidden sm:inline">{text.where}</span>
+            <span className="sm:hidden">{text.whereShort || text.where}</span>
           </span>
         </div>
       </div>

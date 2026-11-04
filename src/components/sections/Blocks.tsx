@@ -10,6 +10,7 @@ import type { SiteImage } from "@/lib/slots";
 import { InstagramIcon } from "@/components/site/Icons";
 import { useDragScroll } from "@/lib/useDragScroll";
 import { responsive } from "@/lib/img";
+import { countText } from "@/lib/count";
 
 /** A dropdown: the title is always visible, the body slides open. */
 export function Accordion({
@@ -81,7 +82,7 @@ export function ExpectCards({ copy, href = "/get-in-touch?form=brands" }: { copy
   return (
     <section className="relative isolate overflow-hidden bg-ink py-24 text-white md:py-32">
       <div className="wrap">
-        <SectionHead tone="dark" index="✶" label={copy.label} meta={`${copy.cards.length} things you can count on`} className="mb-8" />
+        <SectionHead tone="dark" index={copy.tag} label={copy.label} meta={countText(copy.meta, copy.cards.length)} className="mb-8" />
       </div>
       <div className="wrap grid gap-10 md:grid-cols-12">
         <div className="md:col-span-7">
@@ -108,7 +109,7 @@ export function ExpectCards({ copy, href = "/get-in-touch?form=brands" }: { copy
               <p className="mt-4 text-[15px] leading-relaxed text-ink-2">{c.body}</p>
             </div>
             <div className="flex items-end justify-between border-t border-espresso/15 pt-3">
-              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">Mode Society</span>
+              <span className="font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">{copy.cardLabel}</span>
               <span className="font-display text-[22px] leading-none">{String(i + 1).padStart(2, "0")}</span>
             </div>
           </article>
@@ -166,7 +167,7 @@ export function InstagramGrid({ posts }: { posts: SiteImage[] }) {
 }
 
 /** Small numbered steps in a row (e.g. a talent's journey from signing to getting paid). */
-export function Steps({ steps }: { steps: { title: string; body: string }[] }) {
+export function Steps({ steps, word = "Step" }: { steps: { title: string; body: string }[]; word?: string }) {
   return (
     <ol className="grid gap-px overflow-hidden border border-espresso/15 bg-espresso/15 sm:grid-cols-2 lg:grid-cols-4">
       {steps.map((s, i) => (
@@ -175,7 +176,9 @@ export function Steps({ steps }: { steps: { title: string; body: string }[] }) {
             <h3 className="font-display text-[clamp(34px,3vw,44px)] text-ink">{s.title}</h3>
             <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{s.body}</p>
           </div>
-          <span className="font-mono text-[11px] font-medium text-muted">Step {String(i + 1).padStart(2, "0")}</span>
+          <span className="font-mono text-[11px] font-medium text-muted">
+            {word} {String(i + 1).padStart(2, "0")}
+          </span>
         </li>
       ))}
     </ol>

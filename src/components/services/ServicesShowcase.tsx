@@ -16,7 +16,7 @@ const STEP_MS = 750; // each step takes the highlight for this long
  * each step appears and takes the burgundy highlight, then settles to an outline as the
  * next arrives; the call to action follows the last step. Arrows (or a swipe) change service.
  */
-function Stepper({ service, play }: { service: ServiceDetail; play: boolean }) {
+function Stepper({ service, play, eyebrow }: { service: ServiceDetail; play: boolean; eyebrow: string }) {
   // phase: -1 hidden · 0 title · 1..n step k active · n+1 all settled + CTA
   const n = service.steps.length;
   const [phase, setPhase] = useState(-1);
@@ -35,7 +35,7 @@ function Stepper({ service, play }: { service: ServiceDetail; play: boolean }) {
 
   return (
     <div>
-      <p className={`eyebrow transition-opacity duration-500 ${phase >= 0 ? "opacity-100" : "opacity-0"}`}>How it works</p>
+      <p className={`eyebrow transition-opacity duration-500 ${phase >= 0 ? "opacity-100" : "opacity-0"}`}>{eyebrow}</p>
       <h2
         className={`font-display mt-3 text-[clamp(52px,6vw,96px)] text-ink transition-all duration-700 ${
           phase >= 0 ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
@@ -110,7 +110,7 @@ function Arrow({ dir, onClick, big = false }: { dir: -1 | 1; onClick: () => void
   );
 }
 
-export default function ServicesShowcase({ services, media }: { services: ServiceDetail[]; media: SiteImage[] }) {
+export default function ServicesShowcase({ services, media, eyebrow = "How it works" }: { services: ServiceDetail[]; media: SiteImage[]; eyebrow?: string }) {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [inView, setInView] = useState(false);
@@ -162,7 +162,7 @@ export default function ServicesShowcase({ services, media }: { services: Servic
         <div className="flex items-start gap-6">
           <div className="min-h-[640px] min-w-0 flex-1 overflow-hidden" aria-live="polite">
             <div key={services[index].id} className="animate-[svc-in_.6s_cubic-bezier(.16,1,.3,1)_both]" style={{ ["--from" as string]: `${dir * 40}px` }}>
-              <Stepper service={services[index]} play={inView} />
+              <Stepper service={services[index]} play={inView} eyebrow={eyebrow} />
             </div>
           </div>
           {/* the main control: an arrow on the right to move to the next service */}

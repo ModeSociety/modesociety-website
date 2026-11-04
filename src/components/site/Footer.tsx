@@ -17,7 +17,7 @@ export default function Footer({ style, copy }: { style: FooterStyle; copy: Sect
       </div>
       <div className="bg-ink">
         <div className="wrap pt-14 md:pt-20">
-          <SectionHead tone="dark" index="✶" label={copy.label} meta={copy.meta} />
+          <SectionHead tone="dark" index={copy.tag} label={copy.label} meta={copy.meta} />
         </div>
         <div className="wrap grid gap-14 pb-10 pt-10 md:grid-cols-12 md:pt-14">
           <div className="md:col-span-7">

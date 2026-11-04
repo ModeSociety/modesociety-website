@@ -22,7 +22,7 @@ export function PressLogos({ logos }: { logos: SiteImage[] }) {
 }
 
 /** One feature: cover photo, publication, headline, the teaser and "Read more". */
-export function PressCard({ item, large = false, sizes }: { item: PressItem; large?: boolean; sizes: string }) {
+export function PressCard({ item, large = false, sizes, readMore = "Read more" }: { item: PressItem; large?: boolean; sizes: string; readMore?: string }) {
   const cover = item.photos[0];
   return (
     <article className={`group relative ${large ? "grid gap-6 md:grid-cols-12 md:items-end md:gap-10" : ""}`}>
@@ -52,7 +52,7 @@ export function PressCard({ item, large = false, sizes }: { item: PressItem; lar
         </h3>
         <p className={`mt-3 leading-relaxed text-ink-2 ${large ? "text-[17px]" : "text-[15px]"}`}>{pressTeaser(item, large ? 320 : 170)}</p>
         <span className="mt-4 inline-flex items-center gap-2 font-mono text-[12px] font-medium uppercase tracking-[0.04em] text-ink">
-          <span className="link-underline">Read more</span> <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
+          <span className="link-underline">{readMore}</span> <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
         </span>
       </div>
     </article>
@@ -62,19 +62,19 @@ export function PressCard({ item, large = false, sizes }: { item: PressItem; lar
 const THIRDS = "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw";
 
 /** Every feature: the newest large, the rest three to a row. */
-export function PressGrid({ items }: { items: PressItem[] }) {
+export function PressGrid({ items, readMore }: { items: PressItem[]; readMore?: string }) {
   if (!items.length) return null;
   const [first, ...rest] = items;
   return (
     <div className="grid gap-16 md:gap-24">
       <FadeUp>
-        <PressCard item={first} large sizes="(max-width: 767px) 100vw, 58vw" />
+        <PressCard item={first} readMore={readMore} large sizes="(max-width: 767px) 100vw, 58vw" />
       </FadeUp>
       {rest.length > 0 && (
         <div className="grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((a, i) => (
             <FadeUp key={a.id} delay={(i % 3) * 0.08}>
-              <PressCard item={a} sizes={THIRDS} />
+              <PressCard item={a} sizes={THIRDS} readMore={readMore} />
             </FadeUp>
           ))}
         </div>
@@ -84,11 +84,11 @@ export function PressGrid({ items }: { items: PressItem[] }) {
 }
 
 /** Home page: the publication logos and the three latest features, each with "Read more". Hidden until there's press. */
-export function FeaturedStrip({ logos, items, index, copy }: { logos: SiteImage[]; items: PressItem[]; index?: string; copy: { label: string; heading: string } }) {
+export function FeaturedStrip({ logos, items, index, copy }: { logos: SiteImage[]; items: PressItem[]; index?: string; copy: { label: string; heading: string; allPress: string; readMore: string } }) {
   if (!logos.length && !items.length) return null;
   return (
     <section className="wrap py-20 md:py-28" aria-label="Featured in">
-      <SectionHead index={index} label={copy.label} meta={<Link href="/featured-in" className="link-underline text-ink">All press ↗</Link>} />
+      <SectionHead index={index} label={copy.label} meta={<Link href="/featured-in" className="link-underline text-ink">{copy.allPress}</Link>} />
       <h2 className="font-display mt-8 text-[clamp(56px,9vw,150px)] text-ink">
         <Accent text={copy.heading} />
       </h2>
@@ -101,7 +101,7 @@ export function FeaturedStrip({ logos, items, index, copy }: { logos: SiteImage[
         <div className="mt-14 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
           {items.slice(0, 3).map((a, i) => (
             <FadeUp key={a.id} delay={i * 0.08}>
-              <PressCard item={a} sizes={THIRDS} />
+              <PressCard item={a} sizes={THIRDS} readMore={copy.readMore} />
             </FadeUp>
           ))}
         </div>

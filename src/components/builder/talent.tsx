@@ -30,6 +30,7 @@ import { responsive } from "@/lib/img";
 import { slugify } from "@/lib/press";
 import { SLOTS } from "@/lib/slots";
 import { embedFor } from "@/lib/video";
+import { countText } from "@/lib/count";
 import type { Feature } from "./types";
 
 /* a loose editorial rhythm of crops down the Our work grid; videos stay portrait */
@@ -144,7 +145,7 @@ export const TALENT: Record<string, Feature> = {
       const hero = c.copy["about.hero"];
       return (
         <section className="wrap pt-28 md:pt-36">
-          <SectionHead index="About" label={hero.label} meta={hero.meta} />
+          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           <RiseLines as="h1" immediate delay={0.1} className="font-display mt-6 text-[clamp(62px,15vw,250px)] leading-[0.84] text-ink" lines={headingLines(hero.heading)} />
         </section>
       );
@@ -216,7 +217,8 @@ export const TALENT: Record<string, Feature> = {
               )}
               {story.caption && (
                 <p className="mt-3 font-mono text-[11px] font-medium uppercase leading-relaxed tracking-[0.04em] text-muted">
-                  <span className="text-ink">Fig. 01</span> — {story.caption}
+                  {story.figLabel && <span className="text-ink">{story.figLabel} — </span>}
+                  {story.caption}
                 </p>
               )}
             </FadeUp>
@@ -265,7 +267,7 @@ export const TALENT: Record<string, Feature> = {
       return (
         <>
           <section className="wrap pt-28 md:pt-36">
-            <SectionHead index="For brands" label={hero.label} meta={hero.meta} />
+            <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           </section>
           <section className="wrap grid gap-12 pb-16 pt-6 md:grid-cols-12 md:pb-24">
             <div className="md:col-span-7">
@@ -292,7 +294,7 @@ export const TALENT: Record<string, Feature> = {
     shows: ({ c }) => !c.copy["brands.approach"].hidden && Boolean(c.copy["site.quote"].quote.trim()),
     render: ({ c }) => (
       <section className="wrap py-20 md:py-28">
-        <SectionHead index="✶" label={c.copy["brands.approach"].label} className="mb-10" />
+        <SectionHead index={c.copy["brands.approach"].tag} label={c.copy["brands.approach"].label} className="mb-10" />
         <FadeUp>
           <Quote text={c.copy["site.quote"].quote} className="max-w-5xl" />
         </FadeUp>
@@ -307,7 +309,7 @@ export const TALENT: Record<string, Feature> = {
       const form = c.copy["brands.form"];
       return (
         <section id="book" className="wrap scroll-mt-24 py-20 md:py-28">
-          <SectionHead index="Book a call" label={form.label} meta={form.meta} className="mb-10" />
+          <SectionHead index={form.tag} label={form.label} meta={form.meta} className="mb-10" />
           <div className="grid gap-10 md:grid-cols-12">
             <div className="md:col-span-4">
               <h2 className="font-display text-[clamp(52px,6vw,96px)] text-ink">
@@ -329,7 +331,7 @@ export const TALENT: Record<string, Feature> = {
       const hero = c.copy["talent.hero"];
       return (
         <section className="wrap pb-16 pt-28 md:pb-24 md:pt-36">
-          <SectionHead index="For talent" label={hero.label} meta={hero.meta} />
+          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           <RiseLines as="h1" immediate delay={0.15} className="font-display mt-6 text-[clamp(62px,14vw,240px)] leading-[0.84] text-ink" lines={headingLines(hero.heading)} />
           <FadeUp delay={0.35} className="mt-8 grid gap-8 md:grid-cols-12">
             <p className="text-[clamp(17px,1.4vw,20px)] leading-relaxed text-ink-2 md:col-span-7">{hero.body}</p>
@@ -378,8 +380,8 @@ export const TALENT: Record<string, Feature> = {
           {expect.body && <ScrubText className="font-serif mt-10 max-w-5xl text-[clamp(24px,3vw,44px)] leading-[1.15]" text={expect.body} />}
           {expect.steps.length > 0 && (
             <>
-              <SectionHead label={expect.stepsLabel} meta={`${expect.steps.length} steps`} className="mb-5 mt-16" />
-              <Steps steps={expect.steps} />
+              <SectionHead label={expect.stepsLabel} meta={countText(expect.stepsMeta, expect.steps.length)} className="mb-5 mt-16" />
+              <Steps steps={expect.steps} word={expect.stepWord} />
             </>
           )}
         </section>
@@ -393,7 +395,7 @@ export const TALENT: Record<string, Feature> = {
       const forYou = c.copy["talent.forYou"];
       return (
         <section className="wrap py-20 md:py-28">
-          <SectionHead label={forYou.label} meta={`${forYou.list.length} included`} className="mb-10" />
+          <SectionHead label={forYou.label} meta={countText(forYou.meta, forYou.list.length)} className="mb-10" />
           <div className="grid gap-10 md:grid-cols-12">
             <h2 className="font-display text-[clamp(52px,6vw,96px)] text-ink md:col-span-5">
               <Accent text={forYou.heading} />
@@ -442,7 +444,7 @@ export const TALENT: Record<string, Feature> = {
       const form = c.copy["talent.form"];
       return (
         <section id="apply" className="wrap scroll-mt-24 py-20 md:py-28">
-          <SectionHead index="Apply now" label={form.label} className="mb-10" />
+          <SectionHead index={form.tag} label={form.label} className="mb-10" />
           <div className="grid gap-10 md:grid-cols-12">
             <div className="md:col-span-4">
               <h2 className="font-display text-[clamp(52px,6vw,96px)] text-ink">
@@ -465,7 +467,7 @@ export const TALENT: Record<string, Feature> = {
       const [first = "", ...rest] = hero.heading.split("\n").map((l) => l.trim()).filter(Boolean);
       return (
         <section className="wrap pb-12 pt-28 md:pb-16 md:pt-36">
-          <SectionHead index="Services" label={hero.label} meta={hero.meta} />
+          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           <RiseLines
             as="h1"
             immediate
@@ -498,7 +500,7 @@ export const TALENT: Record<string, Feature> = {
           cta: { label: s.ctaLabel, href: s.ctaUrl || "/get-in-touch?form=brands" },
           ...(s.moreLabel && s.moreUrl ? { more: { label: s.moreLabel, href: s.moreUrl, external: /^https?:/.test(s.moreUrl) } } : {}),
         }));
-      return <ServicesShowcase services={services} media={c.images["services.orbit"]} />;
+      return <ServicesShowcase services={services} media={c.images["services.orbit"]} eyebrow={c.copy["services.list"].eyebrow} />;
     },
   },
 
@@ -511,7 +513,7 @@ export const TALENT: Record<string, Feature> = {
       const tail = words.length > 4 ? words.splice(-3).join(" ") : "";
       return (
         <section className="wrap pb-12 pt-28 md:pb-16 md:pt-36">
-          <SectionHead index="Archive" label={hero.label} meta={hero.meta} />
+          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           <div className="mt-6 flex flex-wrap items-end gap-x-5">
             <RiseLines as="h1" immediate delay={0.1} className="font-display text-[clamp(96px,17vw,290px)] leading-[0.82] text-ink" lines={[hero.heading]} />
             {hero.accent && (
@@ -574,7 +576,7 @@ export const TALENT: Record<string, Feature> = {
           <div className="md:col-span-9">
             <div className="flex items-end justify-between gap-6">
               <h2 className="font-display text-[clamp(48px,6vw,96px)] text-ink">{gallery.heading}</h2>
-              <span className="pb-2 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">{work.length} pieces</span>
+              <span className="pb-2 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">{countText(gallery.countLabel, work.length)}</span>
             </div>
             <div className="mt-6 columns-2 gap-2 md:columns-3 md:gap-3">
               {work.map((m, i) => {
@@ -611,7 +613,7 @@ export const TALENT: Record<string, Feature> = {
       return (
         <section className="bg-ink py-20 text-white md:py-28">
           <div className="wrap">
-            <SectionHead tone="dark" index="Next" label={next.label} meta={next.meta} />
+            <SectionHead tone="dark" index={next.tag} label={next.label} meta={next.meta} />
             <div className="mt-8 flex flex-col justify-between gap-10 md:flex-row md:items-end">
               <h2 className="font-display text-[clamp(64px,10vw,170px)]">
                 <Accent text={next.heading} />
@@ -641,7 +643,7 @@ export const TALENT: Record<string, Feature> = {
       const hero = c.copy["press.hero"];
       return (
         <section className="wrap overflow-hidden pb-12 pt-28 md:pb-16 md:pt-36">
-          <SectionHead index="Press" label={hero.label} meta={hero.meta} />
+          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           <div className="relative mt-4">
             {/* the out-of-focus word behind the headline */}
             <p
@@ -675,8 +677,8 @@ export const TALENT: Record<string, Feature> = {
 
           {press.length > 0 && (
             <section className="wrap pb-20 md:pb-28">
-              <SectionHead label="Features" meta={`${press.length} feature${press.length === 1 ? "" : "s"}`} className="mb-10" />
-              <PressGrid items={press} />
+              <SectionHead label={hero.featuresLabel} meta={countText(hero.featuresMeta, press.length)} className="mb-10" />
+              <PressGrid items={press} readMore={c.copy["home.press"].readMore} />
             </section>
           )}
 
@@ -705,7 +707,7 @@ export const TALENT: Record<string, Feature> = {
       const hero = c.copy["partner.hero"];
       return (
         <section className="wrap pb-24 pt-28 md:pb-32 md:pt-36">
-          <SectionHead index="Partners" label={hero.label} meta={hero.meta} />
+          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           <RiseLines as="h1" immediate delay={0.15} className="font-display mt-6 text-[clamp(62px,14vw,240px)] leading-[0.84] text-ink" lines={headingLines(hero.heading)} />
           <div className="mt-12 max-w-4xl md:mt-16">
             <PartnerForm intro={c.copy["site.forms"].partner} typeHint={q.for === "tech" ? "Tech company" : ""} />
@@ -721,7 +723,7 @@ export const TALENT: Record<string, Feature> = {
       const hero = c.copy["contact.hero"];
       return (
         <section className="wrap pb-10 pt-28 md:pt-36">
-          <SectionHead index="Contact" label={hero.label} meta={hero.meta} />
+          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
           <RiseLines as="h1" immediate delay={0.15} className="font-display mt-6 text-[clamp(62px,15vw,250px)] leading-[0.84] text-ink" lines={headingLines(hero.heading)} />
           <FadeUp delay={0.3}>{hero.line && <p className="font-serif mt-8 max-w-3xl text-[clamp(22px,2.6vw,38px)] italic leading-snug">{hero.line}</p>}</FadeUp>
         </section>

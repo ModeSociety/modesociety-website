@@ -56,13 +56,13 @@ export default function Services({ copy, quote, index }: { copy: SectionCopy<"si
                 {/* front: the service name up top, a small number at the foot */}
                 <div className="flip-face flex flex-col justify-between bg-white p-5 shadow-[0_24px_48px_-24px_rgba(0,0,0,.55)] md:p-6">
                   <div>
-                    <span className="font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">Service</span>
+                    <span className="font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">{copy.cardLabel}</span>
                     <h3 className="font-display mt-3 text-[clamp(42px,12.5vw,64px)] leading-[0.9] text-ink md:text-[clamp(30px,3vw,52px)]">{s.title}</h3>
                   </div>
                   <div className="flex items-end justify-between gap-3 border-t border-espresso/15 pt-3">
                     <span className="font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted">
-                      <span className="md:hidden">Tap to read →</span>
-                      <span className="hidden md:inline">Hover to read →</span>
+                      <span className="md:hidden">{copy.tapHint}</span>
+                      <span className="hidden md:inline">{copy.hoverHint}</span>
                     </span>
                     <span className="font-display text-[26px] leading-none text-ink md:text-[22px]">{String(i + 1).padStart(2, "0")}</span>
                   </div>

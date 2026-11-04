@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { focusField } from "./focusField";
 import { postJson } from "@/lib/upload";
 import { SECTIONS, SECTION_IDS, type Field, type SectionDef, type SectionId } from "@/lib/copy";
 import type { SideFilter } from "@/lib/side";
@@ -122,15 +123,24 @@ export function SectionEditor({
   edited,
   reload,
   notify,
+  focus,
 }: {
   id: SectionId;
   saved: Value;
   edited: boolean;
   reload: () => Promise<void>;
   notify: (m: string) => void;
+  /** a field to open and highlight (a click on it in the page builder's preview) */
+  focus?: { dom: string; raw?: string; n: number };
 }) {
   const def = SECTIONS[id] as SectionDef;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(focus));
+  useEffect(() => {
+    if (!focus) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a click in the preview opens this section
+    setOpen(true);
+    focusField(focus.dom, focus.raw);
+  }, [focus]);
   const [draft, setDraft] = useState<Value>(saved);
   // after a save or reset, start again from what's now on the site (the card stays open)
   const [base, setBase] = useState(saved);

@@ -947,3 +947,18 @@ html:has(.tech-root) body {
 .bf[data-tinted] > .bf-in > section.bg-white {
   background: transparent;
 }
+
+/* admin: a field picked by clicking it in the page builder's preview */
+.field-flash {
+  animation: field-flash 1.8s var(--ease-out);
+}
+@keyframes field-flash {
+  0%,
+  35% {
+    box-shadow: 0 0 0 3px #3e5ef1;
+    background-color: #eef2ff;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}

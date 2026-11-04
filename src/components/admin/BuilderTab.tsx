@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import {
   addable,
@@ -28,6 +28,11 @@ import {
 import type { SideFilter } from "@/lib/side";
 import { SLOTS, type SiteContent } from "@/lib/slots";
 import { SectionEditor } from "./CopyTab";
+import { focusField } from "./focusField";
+import { blockFields, resolveClick, type Hit, type Picked } from "./pickField";
+
+/** A field to open in the editor, from a click in the preview (n tells two clicks on the same field apart). */
+type Focus = { hit: Hit; n: number };
 
 const box = "w-full border border-line bg-white px-3 py-2 text-[14px] text-ink outline-none focus:border-ink";
 const lab = "mb-1.5 block font-mono text-[10.5px] font-medium uppercase tracking-[0.05em] text-ink-2";
@@ -108,7 +113,7 @@ function Select<T extends string>({ label, value, options, onChange }: { label: 
   );
 }
 
-function Text({ label, value, onChange, area = false, hint, placeholder }: { label: string; value: string; onChange: (v: string) => void; area?: boolean; hint?: string; placeholder?: string }) {
+function Text({ id, label, value, onChange, area = false, hint, placeholder }: { id?: string; label: string; value: string; onChange: (v: string) => void; area?: boolean; hint?: string; placeholder?: string }) {
   return (
     <label className="block">
       <span className={lab}>
@@ -116,9 +121,9 @@ function Text({ label, value, onChange, area = false, hint, placeholder }: { lab
         {hint && <span className="ml-2 normal-case tracking-normal text-muted">{hint}</span>}
       </span>
       {area ? (
-        <textarea className={`${box} min-h-[110px]`} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+        <textarea id={id} className={`${box} min-h-[110px]`} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
       ) : (
-        <input className={box} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+        <input id={id} className={box} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
       )}
     </label>
   );
@@ -180,7 +185,7 @@ function usePhotoUpload(onError: (m: string) => void) {
   return { busy, upload, previews };
 }
 
-function Photos({ ids, max, onChange, src, upload, busy, label }: { ids: string[]; max: number; onChange: (ids: string[]) => void; src: (id: string) => string; upload: (f: FileList | null, room: number) => Promise<string[]>; busy: string; label: string }) {
+function Photos({ dom, ids, max, onChange, src, upload, busy, label }: { dom?: string; ids: string[]; max: number; onChange: (ids: string[]) => void; src: (id: string) => string; upload: (f: FileList | null, room: number) => Promise<string[]>; busy: string; label: string }) {
   const file = useRef<HTMLInputElement>(null);
   const move = (i: number, d: -1 | 1) => {
     const j = i + d;
@@ -190,7 +195,7 @@ function Photos({ ids, max, onChange, src, upload, busy, label }: { ids: string[
     onChange(next);
   };
   return (
-    <div>
+    <div id={dom}>
       <span className={lab}>{label}</span>
       <div className="grid grid-cols-4 gap-2">
         {ids.map((id, i) => (
@@ -266,10 +271,11 @@ function GenericContent({ b, def, set, photo }: { b: LayoutBlock; def: Extract<B
   };
   return (
     <div className="grid gap-4">
-      {def.photos && <Photos label={def.photos === 1 ? "Photo · shown whole, never cropped" : `Photos (up to ${def.photos})`} ids={p.photos} max={def.photos} onChange={(photos) => set({ photos })} src={photo.src} upload={photo.upload} busy={photo.busy} />}
-      {uses.has("heading") && <Text label="Heading" hint="*stars* = accent style" value={p.heading} onChange={(heading) => set({ heading })} />}
+      {def.photos && <Photos dom={`gb-${b.id}-photos`} label={def.photos === 1 ? "Photo · shown whole, never cropped" : `Photos (up to ${def.photos})`} ids={p.photos} max={def.photos} onChange={(photos) => set({ photos })} src={photo.src} upload={photo.upload} busy={photo.busy} />}
+      {uses.has("heading") && <Text id={`gb-${b.id}-heading`} label="Heading" hint="*stars* = accent style" value={p.heading} onChange={(heading) => set({ heading })} />}
       {uses.has("text") && (
         <Text
+          id={`gb-${b.id}-text`}
           label={quote ? "The quote" : "Text"}
           area
           value={p.text}
@@ -277,7 +283,7 @@ function GenericContent({ b, def, set, photo }: { b: LayoutBlock; def: Extract<B
           placeholder={quote ? "" : "Blank line = new paragraph · ## Heading · - bullet · **bold** · [link](https://…)"}
         />
       )}
-      {uses.has("caption") && <Text label={quote ? "Who said it" : "Caption (optional)"} value={p.caption} onChange={(caption) => set({ caption })} />}
+      {uses.has("caption") && <Text id={`gb-${b.id}-caption`} label={quote ? "Who said it" : "Caption (optional)"} value={p.caption} onChange={(caption) => set({ caption })} />}
       {uses.has("videoUrl") && <Text label="YouTube or Vimeo link" value={p.videoUrl} onChange={(videoUrl) => set({ videoUrl })} placeholder="https://youtu.be/…" />}
       {uses.has("imageSide") && (
         <Select label="Photo side" value={p.imageSide} options={[{ id: "left", label: "Photo on the left" }, { id: "right", label: "Photo on the right" }] as const} onChange={(imageSide) => set({ imageSide })} />
@@ -307,13 +313,13 @@ function GenericContent({ b, def, set, photo }: { b: LayoutBlock; def: Extract<B
       )}
       {uses.has("buttonLabel") && (
         <div className="grid grid-cols-2 gap-3">
-          <Text label="Button text" value={p.buttonLabel} onChange={(buttonLabel) => set({ buttonLabel })} placeholder="Optional" />
+          <Text id={`gb-${b.id}-buttonLabel`} label="Button text" value={p.buttonLabel} onChange={(buttonLabel) => set({ buttonLabel })} placeholder="Optional" />
           <Text label="Button link" value={p.buttonUrl} onChange={(buttonUrl) => set({ buttonUrl })} placeholder="/get-in-touch or https://…" />
         </div>
       )}
       {uses.has("button2Label") && (
         <div className="grid grid-cols-2 gap-3">
-          <Text label="Second button" value={p.button2Label} onChange={(button2Label) => set({ button2Label })} placeholder="Optional" />
+          <Text id={`gb-${b.id}-button2Label`} label="Second button" value={p.button2Label} onChange={(button2Label) => set({ button2Label })} placeholder="Optional" />
           <Text label="Its link" value={p.button2Url} onChange={(button2Url) => set({ button2Url })} />
         </div>
       )}
@@ -342,9 +348,9 @@ function GenericContent({ b, def, set, photo }: { b: LayoutBlock; def: Extract<B
                 <div className="grid gap-3">
                   {def.itemFields!.map((k) =>
                     k === "photo" ? (
-                      <Photos key={k} label={ITEM_LABELS[b.type]?.photo ?? "Photo"} ids={it.photo ? [it.photo] : []} max={1} onChange={(ids) => setItem(i, { photo: ids[0] ?? "" })} src={photo.src} upload={photo.upload} busy={photo.busy} />
+                      <Photos key={k} dom={`gb-${b.id}-items-${i}-photo`} label={ITEM_LABELS[b.type]?.photo ?? "Photo"} ids={it.photo ? [it.photo] : []} max={1} onChange={(ids) => setItem(i, { photo: ids[0] ?? "" })} src={photo.src} upload={photo.upload} busy={photo.busy} />
                     ) : (
-                      <Text key={k} label={ITEM_LABELS[b.type]?.[k] ?? k} area={k === "text"} value={it[k]} onChange={(v) => setItem(i, { [k]: v })} />
+                      <Text key={k} id={`gb-${b.id}-items-${i}-${k}`} label={ITEM_LABELS[b.type]?.[k] ?? k} area={k === "text"} value={it[k]} onChange={(v) => setItem(i, { [k]: v })} />
                     ),
                   )}
                 </div>
@@ -362,7 +368,27 @@ function GenericContent({ b, def, set, photo }: { b: LayoutBlock; def: Extract<B
   );
 }
 
-function FeatureContent({ def, content, reload, notify }: { def: Extract<BlockDef, { kind: "feature" }>; content: SiteContent; reload: () => Promise<void>; notify: (m: string) => void }) {
+function FeatureContent({
+  def,
+  content,
+  reload,
+  notify,
+  focus,
+  openTab,
+}: {
+  def: Extract<BlockDef, { kind: "feature" }>;
+  content: SiteContent;
+  reload: () => Promise<void>;
+  notify: (m: string) => void;
+  focus: Focus | null;
+  openTab: (tab: "images") => void;
+}) {
+  // one object per click, so the section editor opens and highlights once (not on every keystroke)
+  const copyFocus = useMemo(
+    () => (focus?.hit.kind === "copy" ? { section: focus.hit.section, value: { dom: focus.hit.dom, raw: focus.hit.raw, n: focus.n } } : null),
+    [focus],
+  );
+  const slotFocus = focus?.hit.kind === "slot" ? focus.hit : null;
   const edited = new Set(content.copyEdited);
   const slots = (def.slots ?? []).map((id) => SLOTS.find((s) => s.id === id)?.label).filter(Boolean);
   return (
@@ -371,12 +397,23 @@ function FeatureContent({ def, content, reload, notify }: { def: Extract<BlockDe
         One of the site&apos;s designed sections. Its wording is below; saving wording puts it <strong>live straight away</strong>, wherever the section appears.
       </p>
       {def.copy.map((id) => (
-        <SectionEditor key={id} id={id} saved={content.copy[id] as unknown as Record<string, unknown>} edited={edited.has(id)} reload={reload} notify={notify} />
+        <SectionEditor
+          key={id}
+          id={id}
+          saved={content.copy[id] as unknown as Record<string, unknown>}
+          edited={edited.has(id)}
+          reload={reload}
+          notify={notify}
+          focus={copyFocus?.section === id ? copyFocus.value : undefined}
+        />
       ))}
       {def.copy.length === 0 && <p className="text-[13px] text-muted">Nothing to word here: its figures come from the Roster tab.</p>}
       {slots.length > 0 && (
-        <p className="text-[13px] text-ink-2">
-          Its photos and videos are under <strong>Images &amp; video</strong>: {slots.join(", ")}.
+        <p id={slotFocus ? "slot-note" : undefined} key={slotFocus ? focus!.n : "slots"} className={`text-[13px] text-ink-2 ${slotFocus ? "field-flash border-l-2 border-[#3e5ef1] pl-3" : ""}`}>
+          {slotFocus ? "That photo is" : "Its photos and videos are"} under <strong>Images &amp; video</strong>: {slots.join(", ")}.{" "}
+          <button type="button" className="underline underline-offset-4" onClick={() => openTab("images")}>
+            Open Images &amp; video
+          </button>
         </p>
       )}
       {def.copy.some((id) => (content.copy[id] as { hidden?: boolean }).hidden) && (
@@ -392,7 +429,7 @@ function StyleFields({ b, feature, set, photo, side }: { b: LayoutBlock; feature
   return (
     <div className="grid gap-5">
       <Colour label="Background" value={s.bg} onChange={(bg) => set({ bg })} extra={[{ id: "tint", label: "Soft tint" }, { id: "brand", label: side === "tech" ? "Blue" : "Brand colour" }]} />
-      <Photos label="Background photo (optional)" ids={s.bgImage ? [s.bgImage] : []} max={1} onChange={(ids) => set({ bgImage: ids[0] ?? "", overlay: ids[0] && !s.bgImage ? 40 : s.overlay })} src={photo.src} upload={photo.upload} busy={photo.busy} />
+      <Photos dom={`gb-${b.id}-bgImage`} label="Background photo (optional)" ids={s.bgImage ? [s.bgImage] : []} max={1} onChange={(ids) => set({ bgImage: ids[0] ?? "", overlay: ids[0] && !s.bgImage ? 40 : s.overlay })} src={photo.src} upload={photo.upload} busy={photo.busy} />
       {s.bgImage && (
         <label className="block">
           <span className={lab}>Darken the photo: {s.overlay}%</span>
@@ -428,7 +465,22 @@ function StyleFields({ b, feature, set, photo, side }: { b: LayoutBlock; feature
 // the live preview
 // ---------------------------------------------------------------------------
 
-function Preview({ path, version, device, selected, onPick }: { path: string; version: number; device: "desktop" | "phone"; selected: string; onPick: (id: string) => void }) {
+function Preview({
+  path,
+  version,
+  device,
+  selected,
+  onPick,
+  resolve,
+}: {
+  path: string;
+  version: number;
+  device: "desktop" | "phone";
+  selected: string;
+  onPick: (id: string, hit: Hit | null) => void;
+  /** which field of a block the clicked element shows */
+  resolve: (id: string, target: Element, blockEl: Element) => Picked | null;
+}) {
   const wrap = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [width, setWidth] = useState(900);
@@ -453,9 +505,13 @@ function Preview({ path, version, device, selected, onPick }: { path: string; ve
   }, []);
 
   const pickRef = useRef(onPick);
+  const resolveRef = useRef(resolve);
   const selectedRef = useRef(selected);
+  // a block picked in the preview is already in view: don't scroll the preview to its top
+  const pickedHere = useRef("");
   useEffect(() => {
     pickRef.current = onPick;
+    resolveRef.current = resolve;
     selectedRef.current = selected;
   });
 
@@ -480,6 +536,15 @@ function Preview({ path, version, device, selected, onPick }: { path: string; ve
     };
     const hover = mk("rgba(62,94,241,.55)", "dashed");
     const sel = mk("#3e5ef1", "solid");
+    // the thing under the mouse, outlined, with the name of the field it comes from
+    const item = doc.createElement("div");
+    item.style.cssText = "position:fixed;pointer-events:none;z-index:2147483647;outline:2px solid #3e5ef1;outline-offset:3px;border-radius:2px;display:none";
+    const tag = doc.createElement("span");
+    tag.style.cssText =
+      "position:absolute;left:-5px;bottom:100%;margin-bottom:6px;white-space:nowrap;background:#3e5ef1;color:#fff;font:600 12px/1.2 system-ui,sans-serif;padding:4px 7px;border-radius:4px;letter-spacing:0;text-transform:none";
+    item.appendChild(tag);
+    doc.body.appendChild(item);
+    let itemEl: Element | null = null;
     const place = (d: HTMLDivElement, el: Element | null) => {
       const r = el && boxOf(el);
       if (!r) return void (d.style.display = "none");
@@ -487,18 +552,30 @@ function Preview({ path, version, device, selected, onPick }: { path: string; ve
     };
     const selectedEl = () => (selectedRef.current ? doc.querySelector(`[data-block="${selectedRef.current}"]`) : null);
     let hovered: Element | null = null;
+    // the element a field's words or photo sit in: the smallest one holding the whole match
+    const hitAt = (target: Element) => {
+      const block = target.closest?.("[data-block]");
+      if (!block) return { block: null, hit: null, el: null };
+      const picked = resolveRef.current(block.getAttribute("data-block") || "", target, block);
+      return { block, hit: picked?.hit ?? null, el: picked?.el ?? null };
+    };
     doc.addEventListener("mouseover", (e) => {
-      hovered = (e.target as Element).closest?.("[data-block]") ?? null;
+      const { block, hit, el } = hitAt(e.target as Element);
+      hovered = block;
       place(hover, hovered);
+      itemEl = el;
+      tag.textContent = hit ? `${hit.label} · click to edit` : "";
     });
     doc.addEventListener(
       "click",
       (e) => {
-        const el = (e.target as Element).closest?.("[data-block]");
-        if (!el) return;
+        const { block, hit } = hitAt(e.target as Element);
+        if (!block) return;
         e.preventDefault();
         e.stopPropagation();
-        pickRef.current(el.getAttribute("data-block") || "");
+        const id = block.getAttribute("data-block") || "";
+        pickedHere.current = id;
+        pickRef.current(id, hit);
       },
       true,
     );
@@ -506,6 +583,9 @@ function Preview({ path, version, device, selected, onPick }: { path: string; ve
       if (!frame.current?.contentDocument) return;
       place(sel, selectedEl());
       place(hover, hovered);
+      const r = itemEl?.getBoundingClientRect();
+      if (r && (r.width || r.height)) Object.assign(item.style, { display: "block", left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+      else item.style.display = "none";
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -513,8 +593,10 @@ function Preview({ path, version, device, selected, onPick }: { path: string; ve
     if (el) (el.classList.contains("contents") ? el.firstElementChild : el)?.scrollIntoView({ block: "start" });
   }, []);
 
-  // bring the selected block into view
+  // bring the selected block into view (unless it was just clicked there)
   useEffect(() => {
+    if (pickedHere.current && pickedHere.current === selected) return;
+    pickedHere.current = "";
     const doc = frame.current?.contentDocument;
     const el = selected && doc?.querySelector(`[data-block="${selected}"]`);
     if (el) (el.classList.contains("contents") ? el.firstElementChild : el)?.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -543,7 +625,19 @@ function Preview({ path, version, device, selected, onPick }: { path: string; ve
 
 type SaveState = "idle" | "pending" | "saving" | "error";
 
-function PageBuilder({ page, content, reload, notify }: { page: PageId; content: SiteContent; reload: () => Promise<void>; notify: (m: string) => void }) {
+function PageBuilder({
+  page,
+  content,
+  reload,
+  notify,
+  openTab,
+}: {
+  page: PageId;
+  content: SiteContent;
+  reload: () => Promise<void>;
+  notify: (m: string) => void;
+  openTab: (tab: "images") => void;
+}) {
   const def = PAGES[page];
   const side = def.side;
   const [items, setItems] = useState<LayoutBlock[]>(() => content.layoutDrafts[page] ?? content.layouts[page]);
@@ -557,6 +651,7 @@ function PageBuilder({ page, content, reload, notify }: { page: PageId; content:
   const [version, setVersion] = useState(0);
   const [busy, setBusy] = useState("");
   const [drag, setDrag] = useState(-1);
+  const [focus, setFocus] = useState<Focus | null>(null);
   const photo = usePhotoUpload(setError);
   const src = (id: string) => photo.previews.get(id) ?? photoSrc(id, content.uploadsPublic);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -680,6 +775,23 @@ function PageBuilder({ page, content, reload, notify }: { page: PageId; content:
     );
   };
 
+  // a click in the preview: open its block, and the field it comes from
+  const pick = (id: string, hit: Hit | null) => {
+    setSelected(id);
+    if (!hit) return setFocus(null);
+    const style = hit.kind === "prop" && hit.dom.endsWith("-bgImage");
+    setPanel(style ? "style" : "content");
+    setFocus({ hit, n: Date.now() });
+  };
+  useEffect(() => {
+    if (focus?.hit.kind === "prop") focusField(focus.hit.dom, focus.hit.raw);
+    if (focus?.hit.kind === "slot") focusField("slot-note");
+  }, [focus]);
+  const resolve = (id: string, target: Element, blockEl: Element) => {
+    const b = latest.current.find((x) => x.id === id);
+    return b ? resolveClick(target, blockEl, blockFields(b, content)) : null;
+  };
+
   const sel = items.find((b) => b.id === selected);
   const selDef = sel ? DEFS[sel.type] : undefined;
   const status =
@@ -709,7 +821,7 @@ function PageBuilder({ page, content, reload, notify }: { page: PageId; content:
         {!sel ? (
           <div className="border border-line bg-white">
             <div className="flex items-center justify-between gap-3 border-b border-line p-4">
-              <p className="text-[13px] text-ink-2">Top to bottom. Drag or use the arrows to reorder; click a block (here or in the preview) to edit it.</p>
+              <p className="text-[13px] text-ink-2">Top to bottom. Drag or use the arrows to reorder; click a block here, or anything in the preview, to edit it.</p>
               <button className="btn !shrink-0 !px-4 !py-2.5" onClick={() => setAdding(true)}>
                 + Add
               </button>
@@ -815,6 +927,8 @@ function PageBuilder({ page, content, reload, notify }: { page: PageId; content:
                 {panel === "content" && selDef?.kind === "feature" && (
                   <FeatureContent
                     def={selDef}
+                    focus={focus}
+                    openTab={openTab}
                     content={content}
                     reload={async () => {
                       await reload();
@@ -832,7 +946,7 @@ function PageBuilder({ page, content, reload, notify }: { page: PageId; content:
 
       <div className="flex min-w-0 flex-col gap-3 xl:sticky xl:top-36 xl:h-[calc(100vh-10rem)]">
         <div className="flex items-center justify-between gap-3 text-[13px]">
-          <span className="text-muted">Preview with your unpublished changes · click a block to edit it</span>
+          <span className="text-muted">Preview with your unpublished changes · click any words or photo to edit them</span>
           <span className="flex gap-1">
             {(["desktop", "phone"] as const).map((d) => (
               <button key={d} onClick={() => setDevice(d)} className={`chip !py-1 !text-[12px] ${device === d ? "!border-ink !bg-ink !text-white" : ""}`}>
@@ -847,9 +961,8 @@ function PageBuilder({ page, content, reload, notify }: { page: PageId; content:
             version={version}
             device={device}
             selected={selected}
-            onPick={(id) => {
-              setSelected(id);
-            }}
+            onPick={pick}
+            resolve={resolve}
           />
         </div>
       </div>
@@ -902,7 +1015,19 @@ function AddPicker({ page, onPick, onClose }: { page: PageId; onPick: (type: str
 // ---------------------------------------------------------------------------
 
 /** Pages: lay out each page block by block, style each block, preview, then publish. */
-export default function BuilderTab({ content, side, reload, notify }: { content: SiteContent; side: SideFilter; reload: () => Promise<void>; notify: (m: string) => void }) {
+export default function BuilderTab({
+  content,
+  side,
+  reload,
+  notify,
+  openTab,
+}: {
+  content: SiteContent;
+  side: SideFilter;
+  reload: () => Promise<void>;
+  notify: (m: string) => void;
+  openTab: (tab: "images") => void;
+}) {
   const pages = PAGE_IDS.filter((p) => side === "all" || PAGES[p].side === side);
   const [page, setPage] = useState<PageId>(pages[0]);
   const current = pages.includes(page) ? page : pages[0];
@@ -925,7 +1050,7 @@ export default function BuilderTab({ content, side, reload, notify }: { content:
           );
         })}
       </div>
-      <PageBuilder key={current} page={current} content={content} reload={reload} notify={notify} />
+      <PageBuilder key={current} page={current} content={content} reload={reload} notify={notify} openTab={openTab} />
     </div>
   );
 }

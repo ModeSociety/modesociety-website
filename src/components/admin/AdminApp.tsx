@@ -285,7 +285,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         {tab === "enquiries" && <EnquiriesTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}
-        {tab === "pages" && content && <BuilderTab content={content} side={side} reload={loadContent} notify={notify} />}
+        {tab === "pages" && content && <BuilderTab content={content} side={side} reload={loadContent} notify={notify} openTab={setTab} />}
         {tab === "pages" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading the pages…</p>}
         {tab === "copy" && content && <CopyTab content={content} side={side} reload={loadContent} notify={notify} />}
         {tab === "copy" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading the site&apos;s wording…</p>}

@@ -1,8 +1,8 @@
 /**
- * Blocks the team adds to a page themselves (admin panel → Pages & text → a page → Blocks):
- * text, images, image + text, galleries, videos and quotes, each with its own animation,
- * dropped in at one of the page's spots. A page's blocks are saved together in the Content
- * tab of the Sheet as "blocks.<page>" (JSON); their photos live in Drive like any upload.
+ * The site's pages, and the blocks added the first way (before the page builder): text, images,
+ * galleries, videos and quotes dropped in at one of a page's spots, saved as "blocks.<page>" in the
+ * Content tab. They are read only to carry them into a page's layout (see builder.ts
+ * defaultLayout); once a page's layout is published they are part of it.
  */
 import type { CopySide } from "./copy";
 
@@ -54,9 +54,6 @@ export type Block = {
   /** Drive file IDs */
   photos: string[];
 };
-
-/** As the page gets it: photos with their URLs. */
-export type ShownBlock = Omit<Block, "photos"> & { photos: { fileId: string; src: string }[] };
 
 type Page = { side: CopySide; label: string; path: string; spots: [string, string][] };
 

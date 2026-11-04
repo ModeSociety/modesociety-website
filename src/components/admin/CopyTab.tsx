@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { postJson } from "@/lib/upload";
-import { BLOCK_PAGE_IDS, BLOCK_PAGES } from "@/lib/blocks";
-import BlocksPanel from "./BlocksPanel";
 import { SECTIONS, SECTION_IDS, type Field, type SectionDef, type SectionId } from "@/lib/copy";
 import type { SideFilter } from "@/lib/side";
 import type { SiteContent } from "@/lib/slots";
@@ -230,8 +228,6 @@ export default function CopyTab({ content, side, reload, notify }: { content: Si
   const current = pages.includes(page) ? page : pages[0];
   const edited = new Set(content.copyEdited);
   const sideName = (k: string) => (k.startsWith("tech:") ? "ModeSociety Tech" : "Mode Society");
-  // the page's own blocks (Shared sections has none)
-  const blockPage = BLOCK_PAGE_IDS.find((p) => `${BLOCK_PAGES[p].side}:${BLOCK_PAGES[p].label}` === current);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
@@ -276,7 +272,9 @@ export default function CopyTab({ content, side, reload, notify }: { content: Si
             </a>
           )}
         </div>
-        {blockPage && <BlocksPanel key={blockPage} page={blockPage} blocks={content.blocks[blockPage]} reload={reload} notify={notify} />}
+        <p className="mb-4 max-w-2xl border-l-2 border-ink pl-3 text-sm text-ink-2">
+          To add blocks, move or hide sections, or change a section&apos;s colours, fonts or animation, use the <strong>Pages</strong> tab.
+        </p>
         <p className="mb-6 max-w-2xl text-sm text-ink-2">
           Open a section to change its wording, then <strong>Save</strong>. It&apos;s live on the site within a few seconds. Delete a line or a card by
           emptying it or with <em>Delete</em>, switch a whole section off with <em>Show this section</em>, and <em>Reset to original</em> brings back the

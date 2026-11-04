@@ -3,7 +3,6 @@ import { unstable_cache } from "next/cache";
 import { draftMode } from "next/headers";
 import { resolveCopy, isSectionId } from "./copy";
 import { parseTheme } from "./theme";
-import { readBlocks } from "./blocks";
 import { readLayouts } from "./builder";
 import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
@@ -140,9 +139,6 @@ export function buildContent(raw: RawSite | null, preview = false): SiteContent 
     press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: photo(fileId) })) })),
     copy: resolveCopy(raw?.content),
     copyEdited: Object.keys(raw?.content ?? {}).filter(isSectionId),
-    blocks: Object.fromEntries(
-      Object.entries(readBlocks(raw?.content)).map(([page, list]) => [page, list.map((b) => ({ ...b, photos: b.photos.map((fileId) => ({ fileId, src: photo(fileId) })) }))]),
-    ) as SiteContent["blocks"],
     ...(() => {
       const { layouts, drafts, saved } = readLayouts(raw?.content);
       return { layouts, layoutDrafts: drafts, layoutSaved: saved };

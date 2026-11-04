@@ -269,7 +269,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           <p className="mt-2 max-w-2xl text-ink-2">{TABS.find((t) => t.id === tab)?.about}</p>
         </div>
 
-        {(tab === "pages" || tab === "copy" || tab === "roster") && side !== "talent" && content && (
+        {(tab === "copy" || tab === "roster") && side !== "talent" && content && (
           <TechLaunch launched={content.settings.techLaunched} reload={loadContent} notify={notify} />
         )}
 

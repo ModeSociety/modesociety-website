@@ -1,4 +1,3 @@
-import type { BlockPage, ShownBlock } from "./blocks";
 import type { LayoutBlock, PageId } from "./builder";
 import type { SectionId, SiteCopy } from "./copy";
 import type { PressItem } from "./press";
@@ -316,8 +315,6 @@ export type SiteContent = {
   copy: SiteCopy;
   /** sections whose wording has been changed in the admin panel */
   copyEdited: SectionId[];
-  /** blocks added in the admin panel, per page (hidden ones too; pages show the visible ones) */
-  blocks: Record<BlockPage, ShownBlock[]>;
   /** every page's blocks, top to bottom: as built in the admin panel, or the page as designed */
   layouts: Record<PageId, LayoutBlock[]>;
   /** unpublished changes to a page's layout, shown only in an admin's preview */

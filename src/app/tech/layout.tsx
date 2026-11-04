@@ -5,6 +5,7 @@ import TechFooter from "@/components/tech/TechFooter";
 import TechNav from "@/components/tech/TechNav";
 import TechShell from "@/components/tech/TechShell";
 import JsonLd from "@/components/site/JsonLd";
+import PreviewBar from "@/components/site/PreviewBar";
 import { getSiteContent } from "@/lib/backend";
 import { techOrganizationJsonLd } from "@/lib/seo";
 import { techMode } from "@/lib/techMode";
@@ -41,6 +42,7 @@ export default async function TechLayout({ children }: { children: React.ReactNo
             </Link>
           </div>
         )}
+        {preview && launched && <PreviewBar />}
         <TechNav landing={landing} />
         <main>{children}</main>
         <TechFooter landing={landing} copy={copy["tech.footer"]} cta={copy["tech.cta"]} />

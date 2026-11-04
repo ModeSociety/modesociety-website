@@ -1,4 +1,5 @@
 import type { BlockPage, ShownBlock } from "./blocks";
+import type { LayoutBlock, PageId } from "./builder";
 import type { SectionId, SiteCopy } from "./copy";
 import type { PressItem } from "./press";
 import type { Theme } from "./theme";
@@ -317,6 +318,14 @@ export type SiteContent = {
   copyEdited: SectionId[];
   /** blocks added in the admin panel, per page (hidden ones too; pages show the visible ones) */
   blocks: Record<BlockPage, ShownBlock[]>;
+  /** every page's blocks, top to bottom: as built in the admin panel, or the page as designed */
+  layouts: Record<PageId, LayoutBlock[]>;
+  /** unpublished changes to a page's layout, shown only in an admin's preview */
+  layoutDrafts: Partial<Record<PageId, LayoutBlock[]>>;
+  /** pages whose layout has been changed in the admin panel */
+  layoutSaved: PageId[];
+  /** an admin is previewing (draft mode): content is fresh and drafts are shown */
+  preview: boolean;
   /** ModeSociety Tech key numbers set in the admin panel ("" = not set) */
   techStats: { views: string; campaigns: string };
   /** uploads are link-viewable, so they load straight from Google (see Code.gs publishUploads) */

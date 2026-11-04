@@ -1,7 +1,10 @@
+import { cache } from "react";
 import { unstable_cache } from "next/cache";
+import { draftMode } from "next/headers";
 import { resolveCopy, isSectionId } from "./copy";
 import { parseTheme } from "./theme";
 import { readBlocks } from "./blocks";
+import { readLayouts } from "./builder";
 import type { PressItem } from "./press";
 import type { RosterMember } from "./tech";
 import {
@@ -114,7 +117,7 @@ function parseSettings(raw: Record<string, string> = {}): SiteSettings {
   };
 }
 
-export function buildContent(raw: RawSite | null): SiteContent {
+export function buildContent(raw: RawSite | null, preview = false): SiteContent {
   // uploads come straight from Google once the backend has made them link-viewable; until then through /media
   const photo = raw?.uploadsPublic ? driveImage : mediaUrl;
   const images: Record<string, SiteImage[]> = {};
@@ -140,6 +143,11 @@ export function buildContent(raw: RawSite | null): SiteContent {
     blocks: Object.fromEntries(
       Object.entries(readBlocks(raw?.content)).map(([page, list]) => [page, list.map((b) => ({ ...b, photos: b.photos.map((fileId) => ({ fileId, src: photo(fileId) })) }))]),
     ) as SiteContent["blocks"],
+    ...(() => {
+      const { layouts, drafts, saved } = readLayouts(raw?.content);
+      return { layouts, layoutDrafts: drafts, layoutSaved: saved };
+    })(),
+    preview,
     techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },
     uploadsPublic: Boolean(raw?.uploadsPublic),
     logoSvg: sanitizeLogoSvg(raw?.logoSvg || "") || sanitizeLogoSvg(DEFAULT_LOGO_SVG),
@@ -156,9 +164,21 @@ const fetchSiteCached = unstable_cache(
   { tags: [SITE_TAG], revalidate: 600 },
 );
 
+/** What an admin previewing the site sees: fetched fresh (once per request), unpublished page drafts included. */
+const fetchSitePreview = cache(async () => buildContent(await callBackend<RawSite>("getSite"), true));
+
+async function previewing() {
+  try {
+    return (await draftMode()).isEnabled;
+  } catch {
+    return false; // outside a request (build time)
+  }
+}
+
 /** Public site content. Falls back to defaults if the backend is missing or down. */
 export async function getSiteContent(): Promise<SiteContent> {
   try {
+    if (backendConfigured() && (await previewing())) return await fetchSitePreview();
     return buildContent(await fetchSiteCached());
   } catch (err) {
     console.error("[mode-society] could not load site content:", err);

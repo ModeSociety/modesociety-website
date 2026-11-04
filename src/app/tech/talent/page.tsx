@@ -1,62 +1,20 @@
 import type { Metadata } from "next";
-import BlockSlot from "@/components/blocks/BlockSlot";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import PageRender from "@/components/builder/PageRender";
 import JsonLd from "@/components/site/JsonLd";
-import PageHead from "@/components/tech/PageHead";
-import RosterGrid from "@/components/tech/RosterGrid";
-import { SampleTag } from "@/components/tech/ui";
 import { getSiteContent } from "@/lib/backend";
 import { techMode } from "@/lib/techMode";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
-import { compact, rosterFor, totalFollowers } from "@/lib/tech";
 
 export const metadata: Metadata = pageMetadata("techTalent");
 
 export default async function TechTalent() {
   // not public until ModeSociety Tech is launched (admins can preview it)
   if ((await techMode()).landing) redirect("/tech");
-  const { roster, copy, blocks } = await getSiteContent();
-  const hero = copy["techTalent.hero"];
-  const { members, sample } = rosterFor(roster);
-  const total = members.reduce((s, m) => s + totalFollowers(m), 0);
-
   return (
     <>
       <JsonLd data={breadcrumbJsonLd("techTalent")} />
-      <PageHead eyebrow={hero.eyebrow} title={hero.heading} ghost={hero.ghost} lead={hero.lead}>
-        <div className="flex flex-wrap items-center gap-6 text-[14px] text-t2">
-          <span>
-            <span className="tech-display text-[28px] text-t">{members.length}</span> {members.length === 1 ? "creator" : "creators"}
-          </span>
-          {total > 0 && (
-            <span>
-              <span className="tech-display text-[28px] text-t">{compact(total)}</span> combined followers
-            </span>
-          )}
-          {sample && (
-            <span className="flex items-center gap-2">
-              <SampleTag /> Sample cards for layout, not real creators.
-            </span>
-          )}
-        </div>
-      </PageHead>
-      <BlockSlot blocks={blocks.techTalent} spot="hero" side="tech" />
-      <section className="wrap pb-24 md:pb-32">
-        <RosterGrid members={members} sample={sample} />
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-tline pt-8">
-          <p className="text-[15px] text-t2">{hero.cta}</p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/tech/contact?as=brand" className="btn">
-              Brand enquiry
-            </Link>
-            <Link href="/tech/contact?as=creator" className="btn ghost">
-              Apply to sign
-            </Link>
-          </div>
-        </div>
-      </section>
-      <BlockSlot blocks={blocks.techTalent} spot="end" side="tech" />
+      <PageRender page="techTalent" content={await getSiteContent()} />
     </>
   );
 }

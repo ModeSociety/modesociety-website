@@ -20,11 +20,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <JsonLd data={organizationJsonLd()} />
       <ChromeStyles content={content} side="talent" />
       <ChromeRoot root="nav">
-        <Nav />
+        <Nav words={copy["site.nav"]} />
       </ChromeRoot>
       <main>{children}</main>
       <ChromeRoot root="footer">
-        <Footer style={settings.footerStyle} copy={copy["site.footer"]} />
+        <Footer style={settings.footerStyle} copy={copy["site.footer"]} nav={copy["site.nav"]} />
       </ChromeRoot>
       {preview && <PreviewBar />}
     </SiteShell>

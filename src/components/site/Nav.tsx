@@ -4,13 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { INSTAGRAM_URL, MENU } from "@/lib/content";
+import type { SectionCopy } from "@/lib/copy";
+import { menuName } from "@/lib/nav";
 import Logo from "./Logo";
 import SideSwitch from "./SideSwitch";
 
 // the Tech side has its own switch next to Contact us
 const INLINE = MENU.filter((m) => m.href !== "/get-in-touch" && m.href !== "/tech");
 
-export default function Nav() {
+
+export default function Nav({ words }: { words: SectionCopy<"site.nav"> }) {
+  const name = (l: { href: string; label: string }) => menuName(words, l);
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -59,12 +63,12 @@ export default function Nav() {
                 href={l.href}
                 className={`link-underline font-mono text-[11.5px] font-medium uppercase tracking-[0.04em] ${pathname === l.href ? "bg-[length:100%_1px]" : ""}`}
               >
-                {l.label}
+                {name(l)}
               </Link>
             ))}
             <SideSwitch current="talent" />
             <Link href="/get-in-touch" className="btn !py-3">
-              Contact us <span className="arrow">↗</span>
+              {words.contactButton} <span className="arrow">↗</span>
             </Link>
           </nav>
           <button
@@ -82,8 +86,8 @@ export default function Nav() {
       {open && (
         <div className="fixed inset-0 z-[99] flex flex-col overflow-y-auto bg-ink px-[var(--gutter)] pb-8 pt-20 text-white">
           <div className="flex justify-between border-t border-white/30 pt-3 font-mono text-[11px] uppercase tracking-[0.04em] text-white/70">
-            <span>Index</span>
-            <span>Melbourne → worldwide</span>
+            <span>{words.menuLabel}</span>
+            <span>{words.menuNote}</span>
           </div>
           <nav className="mt-4 flex flex-1 flex-col">
             {[{ href: "/", label: "Home" }, ...MENU].map((l, i) => (
@@ -94,7 +98,7 @@ export default function Nav() {
                 onClick={() => setOpen(false)}
               >
                 <span className="menu-link flex items-baseline justify-between gap-4" style={{ animationDelay: `${i * 45}ms` }}>
-                  <span className="font-display leading-[1.05] transition-transform duration-500 group-hover:translate-x-2">{l.label}</span>
+                  <span className="font-display leading-[1.05] transition-transform duration-500 group-hover:translate-x-2">{name(l)}</span>
                 </span>
               </Link>
             ))}
@@ -103,7 +107,7 @@ export default function Nav() {
             <SideSwitch current="talent" tone="dark" />
           </div>
           <div className="mt-8 flex items-end justify-between font-mono text-[12px] uppercase tracking-[0.04em] text-white/80">
-            <Link href="/get-in-touch">Make an enquiry →</Link>
+            <Link href="/get-in-touch">{words.menuEnquiry}</Link>
             <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer">
               Instagram ↗
             </a>

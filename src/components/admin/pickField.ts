@@ -152,10 +152,11 @@ export function resolveClick(target: Element, blockEl: Element, fields: ReturnTy
 
 export const slotLabel = (id: string) => SLOTS.find((s) => s.id === id)?.label ?? id;
 
-/** The nav's and footer's words (only the footer has wording to edit; the nav's links are the page names). */
+/** The nav's and footer's words. */
 export function chromeFields(side: "talent" | "tech", root: "nav" | "footer", content: SiteContent) {
   const texts: Candidate[] = [];
-  const ids: SectionId[] = root === "nav" ? [] : side === "tech" ? ["tech.footer", "tech.cta"] : ["site.footer"];
+  const ids: SectionId[] =
+    root === "nav" ? (side === "tech" ? ["tech.words"] : ["site.nav"]) : side === "tech" ? ["tech.footer", "tech.cta", "tech.words"] : ["site.footer", "site.nav"];
   for (const id of ids) copyCandidates(id, content.copy[id] as unknown as Record<string, unknown>, texts);
   return { texts, photos: new Map<string, Hit>(), slots: [] as string[] };
 }

@@ -52,7 +52,7 @@ export default function Frame({
   // a block left as designed: no wrapper box at all (display: contents), only its id for the admin preview
   if (kind === "none" && !styled({ ...s, hideOn: "", animation: "" })) {
     return (
-      <div data-block={id} className={`contents ${hide}`}>
+      <div data-block={id} data-root={id} className={`contents ${hide}`}>
         {children}
       </div>
     );
@@ -166,11 +166,11 @@ export default function Frame({
         </>
       )}
       {kind === "none" ? (
-        <div className="bf-in" style={inner as React.CSSProperties}>
+        <div className="bf-in" style={inner as React.CSSProperties} data-root={id}>
           {children}
         </div>
       ) : (
-        <Animated kind={kind} className="bf-in" style={inner as React.CSSProperties}>
+        <Animated kind={kind} className="bf-in" style={inner as React.CSSProperties} rootId={id}>
           {children}
         </Animated>
       )}

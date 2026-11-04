@@ -13,12 +13,15 @@ export default function Animated({
   from = "left",
   className = "",
   style,
+  rootId,
   children,
 }: {
   kind: Animation;
   from?: "left" | "right";
   className?: string;
   style?: React.CSSProperties;
+  /** the page builder's element styles hang off this (see builder.ts elementCss) */
+  rootId?: string;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -47,7 +50,7 @@ export default function Animated({
     { scope: ref, dependencies: [kind] },
   );
   return (
-    <div ref={ref} className={className} style={style}>
+    <div ref={ref} className={className} style={style} data-root={rootId}>
       {children}
     </div>
   );

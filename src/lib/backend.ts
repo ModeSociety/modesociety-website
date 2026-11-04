@@ -140,8 +140,8 @@ export function buildContent(raw: RawSite | null, preview = false): SiteContent 
     copy: resolveCopy(raw?.content),
     copyEdited: Object.keys(raw?.content ?? {}).filter(isSectionId),
     ...(() => {
-      const { layouts, drafts, saved } = readLayouts(raw?.content);
-      return { layouts, layoutDrafts: drafts, layoutSaved: saved };
+      const { layouts, drafts, saved, chrome, chromeDrafts } = readLayouts(raw?.content);
+      return { layouts, layoutDrafts: drafts, layoutSaved: saved, chrome, chromeDrafts };
     })(),
     preview,
     techStats: { views: raw?.settings?.techViews || "", campaigns: raw?.settings?.techCampaigns || "" },

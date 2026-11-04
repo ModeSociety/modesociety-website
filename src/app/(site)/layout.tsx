@@ -3,12 +3,14 @@ import JsonLd from "@/components/site/JsonLd";
 import Nav from "@/components/site/Nav";
 import Footer from "@/components/site/Footer";
 import PreviewBar from "@/components/site/PreviewBar";
+import { ChromeRoot, ChromeStyles } from "@/components/builder/Chrome";
 import { getSiteContent } from "@/lib/backend";
 import { organizationJsonLd } from "@/lib/seo";
 import { talentThemeCss } from "@/lib/theme";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const { settings, logoSvg, copy, preview } = await getSiteContent();
+  const content = await getSiteContent();
+  const { settings, logoSvg, copy, preview } = content;
   const theme = talentThemeCss(settings.theme);
   return (
     <SiteShell settings={settings} logoSvg={logoSvg}>
@@ -16,9 +18,14 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       {theme.href && <link rel="stylesheet" href={theme.href} precedence="theme" />}
       {theme.css && <style>{theme.css}</style>}
       <JsonLd data={organizationJsonLd()} />
-      <Nav />
+      <ChromeStyles content={content} side="talent" />
+      <ChromeRoot root="nav">
+        <Nav />
+      </ChromeRoot>
       <main>{children}</main>
-      <Footer style={settings.footerStyle} copy={copy["site.footer"]} />
+      <ChromeRoot root="footer">
+        <Footer style={settings.footerStyle} copy={copy["site.footer"]} />
+      </ChromeRoot>
       {preview && <PreviewBar />}
     </SiteShell>
   );

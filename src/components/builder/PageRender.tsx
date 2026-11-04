@@ -1,4 +1,4 @@
-import { DEFS, fontById, PAGES, type PageId } from "@/lib/builder";
+import { DEFS, elementCss, elFonts, fontById, PAGES, type PageId } from "@/lib/builder";
 import { fontHref } from "@/lib/theme";
 import type { SiteContent } from "@/lib/slots";
 import Frame, { wantsLightText } from "./Frame";
@@ -41,13 +41,16 @@ export default function PageRender({
   ctx.has = (type) => types.has(type);
 
   const fonts = new Set<string>();
-  for (const b of shown) for (const id of [b.style.headingFont, b.style.bodyFont]) if (id) fonts.add(id);
+  for (const b of shown) for (const id of [b.style.headingFont, b.style.bodyFont, ...elFonts(b.els)]) if (id) fonts.add(id);
   const href = fontHref([...fonts].map(fontById));
+  // single elements styled in the builder (a button's colours, a label's font…)
+  const css = shown.map((b) => elementCss(b.id, b.els)).join("");
 
   return (
     <>
       {/* fonts chosen for single blocks */}
       {href && <link rel="stylesheet" href={href} precedence="theme" />}
+      {css && <style>{css}</style>}
       {shown.map((b) => {
         const def = DEFS[b.type];
         if (def.kind === "generic") {

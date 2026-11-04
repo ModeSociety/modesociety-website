@@ -111,7 +111,122 @@ export type Props = {
 };
 export const BLANK_PROPS: Props = { heading: "", text: "", buttonLabel: "", buttonUrl: "", button2Label: "", button2Url: "", caption: "", videoUrl: "", imageSide: "left", photos: [], items: [], form: "", size: "m", columns: "3" };
 
-export type LayoutBlock = { id: string; type: string; hidden: boolean; style: Style; props: Props };
+export type LayoutBlock = { id: string; type: string; hidden: boolean; style: Style; props: Props; els: ElRule[] };
+
+// ---------------------------------------------------------------------------
+// Single elements inside a block (a button, a line, a small label, a heading…)
+// ---------------------------------------------------------------------------
+
+export const EL_SIZES = [
+  { id: "", label: "As designed" },
+  { id: "60", label: "Much smaller" },
+  { id: "80", label: "Smaller" },
+  { id: "120", label: "Larger" },
+  { id: "150", label: "Much larger" },
+  { id: "200", label: "Twice the size" },
+] as const;
+export const EL_WEIGHTS = [
+  { id: "", label: "As designed" },
+  { id: "400", label: "Regular" },
+  { id: "600", label: "Semi-bold" },
+  { id: "800", label: "Bold" },
+] as const;
+export const EL_CASES = [
+  { id: "", label: "As designed" },
+  { id: "upper", label: "CAPITALS" },
+  { id: "none", label: "As typed" },
+] as const;
+export const EL_STYLES = [
+  { id: "", label: "As designed" },
+  { id: "italic", label: "Italic" },
+  { id: "normal", label: "Not italic" },
+] as const;
+
+export type ElStyle = {
+  color: string;
+  bg: string;
+  border: string;
+  font: string;
+  size: (typeof EL_SIZES)[number]["id"];
+  weight: (typeof EL_WEIGHTS)[number]["id"];
+  case: (typeof EL_CASES)[number]["id"];
+  italic: (typeof EL_STYLES)[number]["id"];
+  hidden: boolean;
+};
+export const BLANK_EL: ElStyle = { color: "", bg: "", border: "", font: "", size: "", weight: "", case: "", italic: "", hidden: false };
+/**
+ * One element's own style. `sel` is where it sits inside its block, as a chain of
+ * "tag:nth-child(n)" steps from the block's content (e.g. "section:nth-child(1)>div:nth-child(2)>a:nth-child(1)");
+ * `label` is how the admin panel names it ("Button", "Small label").
+ */
+export type ElRule = { sel: string; label: string; style: ElStyle; /** for the nav and footer: which one */ root?: "nav" | "footer" };
+
+const SEL = /^[a-z][a-z0-9]{0,9}:nth-child\(\d{1,3}\)(>[a-z][a-z0-9]{0,9}:nth-child\(\d{1,3}\)){0,30}$/;
+
+export function cleanEls(raw: unknown): ElRule[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: ElRule[] = [];
+  for (const x of raw.slice(0, 80)) {
+    const r = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
+    const sel = String(r.sel ?? "");
+    const root = r.root === "nav" || r.root === "footer" ? r.root : undefined;
+    if (!SEL.test(sel) || seen.has(`${root}:${sel}`)) continue;
+    seen.add(`${root}:${sel}`);
+    const st = (r.style && typeof r.style === "object" ? r.style : {}) as Record<string, unknown>;
+    const hex = (v: unknown) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v : "");
+    const style: ElStyle = {
+      color: hex(st.color),
+      bg: hex(st.bg),
+      border: hex(st.border),
+      font: fontById(String(st.font)) ? String(st.font) : "",
+      size: pickEl(st.size, EL_SIZES),
+      weight: pickEl(st.weight, EL_WEIGHTS),
+      case: pickEl(st.case, EL_CASES),
+      italic: pickEl(st.italic, EL_STYLES),
+      hidden: st.hidden === true,
+    };
+    if (elStyled(style)) out.push({ sel, label: String(r.label ?? "").slice(0, 60), style, ...(root ? { root } : {}) });
+  }
+  return out;
+}
+const pickEl = <T extends string>(v: unknown, list: readonly { id: T }[]): T => (list.some((o) => o.id === v) ? (v as T) : list[0].id);
+export const elStyled = (s: ElStyle) => (Object.keys(BLANK_EL) as (keyof ElStyle)[]).some((k) => s[k] !== BLANK_EL[k]);
+
+/**
+ * The CSS for a block's (or the nav's, or the footer's) element styles. Buttons take their colours
+ * through the site's button variables, so their hover still works.
+ */
+export function elementCss(root: string, rules: ElRule[]) {
+  if (!/^[\w-]{1,40}$/.test(root)) return "";
+  const imp = (d: string[]) => d.map((x) => `${x} !important`).join(";");
+  return rules
+    .filter((r) => SEL.test(r.sel))
+    .map((r) => {
+      const s = r.style;
+      const at = `[data-root="${root}"]>${r.sel}`;
+      if (s.hidden) return `${at}{display:none !important}`;
+      // what the words inside take on too (they carry the site's own colour and type classes)
+      const all: string[] = [];
+      if (s.border) all.push(`border-color:${s.border}`);
+      const f = fontById(s.font);
+      if (f) all.push(`font-family:"${f.family}",sans-serif`);
+      if (s.weight) all.push(`font-weight:${s.weight}`);
+      if (s.case) all.push(`text-transform:${s.case === "upper" ? "uppercase" : "none"}`);
+      if (s.italic) all.push(`font-style:${s.italic}`);
+      let css = all.length ? `${at},${at} *{${imp(all)}}` : "";
+      // a button fills and colours itself from variables (so its hover still swaps them); anything else directly
+      const plain = `${at}:not(.btn)`;
+      if (s.color) css += `${plain},${plain} *{${imp([`color:${s.color}`, `-webkit-text-fill-color:${s.color}`])}}${at}.btn{--fg:${s.color} !important}`;
+      if (s.bg) css += `${plain}{background:${s.bg} !important}${at}.btn{--bg:${s.bg} !important;border-color:${s.border || s.bg} !important}`;
+      if (s.size) css += `${at}{zoom:${Number(s.size) / 100} !important}`;
+      return css;
+    })
+    .join("");
+}
+
+/** Fonts used by element styles (for the page to load). */
+export const elFonts = (rules: ElRule[]) => rules.map((r) => r.style.font).filter(Boolean);
 
 type FeatureDef = {
   kind: "feature";
@@ -249,6 +364,7 @@ function fromLegacy(b: LegacyBlock): LayoutBlock {
       ...(b.tone === "tint" ? { bg: "tint" } : b.tone === "brand" ? { bg: "brand" } : {}),
     },
     props: { ...BLANK_PROPS, heading: b.heading, text: b.text, buttonLabel: b.buttonLabel, buttonUrl: b.buttonUrl, caption: b.caption, videoUrl: b.videoUrl, imageSide: b.imageSide, photos: b.photos },
+    els: [],
   };
 }
 
@@ -257,7 +373,7 @@ export function defaultLayout(page: PageId, content: Record<string, unknown> = {
   const legacy = readBlocks(content)[page];
   const out: LayoutBlock[] = [];
   for (const [type, spot] of DEFAULTS[page]) {
-    out.push({ id: `d-${type.replace(/\W/g, "")}`, type, hidden: false, style: { ...BLANK_STYLE }, props: { ...BLANK_PROPS } });
+    out.push({ id: `d-${type.replace(/\W/g, "")}`, type, hidden: false, style: { ...BLANK_STYLE }, props: { ...BLANK_PROPS }, els: [] });
     if (spot) for (const b of legacy.filter((x) => x.spot === spot)) out.push(fromLegacy(b));
   }
   for (const b of legacy.filter((x) => x.spot === "end" || !DEFAULTS[page].some(([, s]) => s === x.spot))) out.push(fromLegacy(b));
@@ -338,7 +454,7 @@ export function cleanBlock(raw: unknown, side: Side): LayoutBlock | null {
   if (!def || (def.kind === "feature" && def.side !== side)) return null;
   const id = /^[\w-]{3,32}$/.test(String(r.id ?? "")) ? String(r.id) : "";
   if (!id) return null;
-  return { id, type, hidden: r.hidden === true, style: cleanStyle(r.style), props: cleanProps(r.props) };
+  return { id, type, hidden: r.hidden === true, style: cleanStyle(r.style), props: cleanProps(r.props), els: cleanEls(r.els) };
 }
 
 /** A page's saved layout ("layout.home"), or its unpublished draft ("layoutDraft.home"); null when there's none. */
@@ -359,6 +475,12 @@ export function addable(page: PageId) {
   return Object.entries(DEFS).filter(([, d]) => d.kind === "generic" || (d.side === side && (!d.page || d.page === page)));
 }
 
+/** The nav's and footer's element styles for a side ("chrome.talent"), or its draft ("chromeDraft.talent"). */
+export function readChrome(side: Side, content: Record<string, unknown> = {}, draft = false): ElRule[] | null {
+  const raw = content[`${draft ? "chromeDraft" : "chrome"}.${side}`] as { items?: unknown } | undefined;
+  return raw && Array.isArray(raw.items) ? cleanEls(raw.items) : null;
+}
+
 /** Every page's live layout and any unpublished drafts. */
 export function readLayouts(content: Record<string, unknown> = {}) {
   const layouts = {} as Record<PageId, LayoutBlock[]>;
@@ -371,7 +493,10 @@ export function readLayouts(content: Record<string, unknown> = {}) {
     const draft = savedLayout(page, content, true);
     if (draft) drafts[page] = draft;
   }
-  return { layouts, drafts, saved };
+  const sides: Side[] = ["talent", "tech"];
+  const chrome = Object.fromEntries(sides.map((sd) => [sd, readChrome(sd, content) ?? []])) as Record<Side, ElRule[]>;
+  const chromeDrafts = Object.fromEntries(sides.flatMap((sd) => (readChrome(sd, content, true) ? [[sd, readChrome(sd, content, true)!]] : []))) as Partial<Record<Side, ElRule[]>>;
+  return { layouts, drafts, saved, chrome, chromeDrafts };
 }
 
 /** The Drive photo's address: straight from Google once uploads are link-viewable, otherwise through the site. */

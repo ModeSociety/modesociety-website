@@ -1,4 +1,4 @@
-import type { LayoutBlock, PageId } from "./builder";
+import type { ElRule, LayoutBlock, PageId, Side } from "./builder";
 import type { SectionId, SiteCopy } from "./copy";
 import type { PressItem } from "./press";
 import type { Theme } from "./theme";
@@ -321,6 +321,9 @@ export type SiteContent = {
   layoutDrafts: Partial<Record<PageId, LayoutBlock[]>>;
   /** pages whose layout has been changed in the admin panel */
   layoutSaved: PageId[];
+  /** the nav's and footer's element styles on each side, and their unpublished drafts */
+  chrome: Record<Side, ElRule[]>;
+  chromeDrafts: Partial<Record<Side, ElRule[]>>;
   /** an admin is previewing (draft mode): content is fresh and drafts are shown */
   preview: boolean;
   /** ModeSociety Tech key numbers set in the admin panel ("" = not set) */

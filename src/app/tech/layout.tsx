@@ -6,6 +6,7 @@ import TechNav from "@/components/tech/TechNav";
 import TechShell from "@/components/tech/TechShell";
 import JsonLd from "@/components/site/JsonLd";
 import PreviewBar from "@/components/site/PreviewBar";
+import { ChromeRoot, ChromeStyles } from "@/components/builder/Chrome";
 import { getSiteContent } from "@/lib/backend";
 import { techOrganizationJsonLd } from "@/lib/seo";
 import { techMode } from "@/lib/techMode";
@@ -23,7 +24,8 @@ export const metadata: Metadata = {
 
 export default async function TechLayout({ children }: { children: React.ReactNode }) {
   const { launched, preview, landing } = await techMode();
-  const { copy, settings } = await getSiteContent();
+  const content = await getSiteContent();
+  const { copy, settings } = content;
   const theme = techThemeCss(settings.theme);
   return (
     <div className={`tech-root ${anybody.variable} ${instrumentSans.variable} ${martianMono.variable}`}>
@@ -43,9 +45,14 @@ export default async function TechLayout({ children }: { children: React.ReactNo
           </div>
         )}
         {preview && launched && <PreviewBar />}
-        <TechNav landing={landing} />
+        <ChromeStyles content={content} side="tech" />
+        <ChromeRoot root="nav">
+          <TechNav landing={landing} />
+        </ChromeRoot>
         <main>{children}</main>
-        <TechFooter landing={landing} copy={copy["tech.footer"]} cta={copy["tech.cta"]} />
+        <ChromeRoot root="footer">
+          <TechFooter landing={landing} copy={copy["tech.footer"]} cta={copy["tech.cta"]} />
+        </ChromeRoot>
       </TechShell>
     </div>
   );

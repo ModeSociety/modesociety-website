@@ -8,7 +8,19 @@ import type { Animation } from "@/lib/blocks";
  * Plays a block's animation as it scrolls into view (once), or, for parallax, ties its photos
  * to the scroll. Photos are marked `data-photo`; nothing moves for people who prefer less motion.
  */
-export default function Animated({ kind, from = "left", className = "", children }: { kind: Animation; from?: "left" | "right"; className?: string; children: React.ReactNode }) {
+export default function Animated({
+  kind,
+  from = "left",
+  className = "",
+  style,
+  children,
+}: {
+  kind: Animation;
+  from?: "left" | "right";
+  className?: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   useGSAP(
     () => {
@@ -35,7 +47,7 @@ export default function Animated({ kind, from = "left", className = "", children
     { scope: ref, dependencies: [kind] },
   );
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} style={style}>
       {children}
     </div>
   );

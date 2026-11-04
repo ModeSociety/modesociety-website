@@ -13,7 +13,12 @@ import { embedFor } from "@/lib/video";
 import { photoSrc, type LayoutBlock, type Props, type Side } from "@/lib/builder";
 import type { SiteContent } from "@/lib/slots";
 
-type P = { b: LayoutBlock; side: Side; light: boolean; c: SiteContent };
+/**
+ * light: the block sits on something dark. On Mode Society the frame turns the site's own colours
+ * light for the block (so forms and buttons follow), and `light` here is only for the Tech side,
+ * whose white panels keep their dark text. onDark is set on both sides.
+ */
+type P = { b: LayoutBlock; side: Side; light: boolean; onDark: boolean; c: SiteContent };
 
 const isExternal = (url: string) => /^https?:\/\//i.test(url);
 
@@ -80,7 +85,7 @@ const COLS: Record<string, string> = { "1": "", "2": "md:grid-cols-2", "3": "md:
 const BANNER: Record<string, string> = { s: "min-h-[40vh]", m: "min-h-[60vh]", l: "min-h-[80vh]", xl: "min-h-[100svh]", line: "min-h-[60vh]" };
 const SPACE: Record<string, string> = { s: "h-8 md:h-12", m: "h-16 md:h-24", l: "h-24 md:h-40", xl: "h-40 md:h-64", line: "" };
 
-function Body({ b, side, light, c }: P) {
+function Body({ b, side, light, onDark, c }: P) {
   const p = b.props;
   const src = (id: string) => photoSrc(id, c.uploadsPublic);
   const center = b.style.align === "center";
@@ -211,7 +216,7 @@ function Body({ b, side, light, c }: P) {
           )}
           <div className={p.heading || p.text ? "md:col-span-8" : "md:col-span-12"}>
             <Accordion
-              tone={light ? "dark" : "light"}
+              tone={onDark ? "dark" : "light"}
               titleClassName={side === "tech" ? "text-[17px] font-medium" : "font-serif text-[clamp(22px,2.1vw,30px)] leading-snug"}
               items={items.map((it) => ({ title: it.title, body: <RichText text={it.text} className={light ? lightText : ""} /> }))}
             />
@@ -238,7 +243,7 @@ function Body({ b, side, light, c }: P) {
               {row.map((l, i) => (
                 <span key={`${l.src}-${i}`} className="mx-6 flex h-[clamp(48px,6vw,84px)] w-[clamp(120px,14vw,200px)] shrink-0 items-center justify-center md:mx-10">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={l.src} alt={l.alt} loading="lazy" draggable={false} className={`max-h-full max-w-full object-contain ${light ? "brightness-0 invert" : side === "tech" ? "opacity-70 brightness-0" : "mix-blend-multiply"}`} />
+                  <img src={l.src} alt={l.alt} loading="lazy" draggable={false} className={`max-h-full max-w-full object-contain ${onDark ? "brightness-0 invert" : side === "tech" ? "opacity-70 brightness-0" : "mix-blend-multiply"}`} />
                 </span>
               ))}
             </Marquee>
@@ -272,7 +277,8 @@ function Body({ b, side, light, c }: P) {
 }
 
 /** A general block: its content inside the page margins, spaced like the site's own sections. */
-export default function Generic(props: P) {
+export default function Generic({ light: dark, ...rest }: Omit<P, "onDark">) {
+  const props: P = { ...rest, onDark: dark, light: dark && rest.side === "tech" };
   const { b, light } = props;
   if (b.type === "spacer") {
     return (
@@ -287,6 +293,9 @@ export default function Generic(props: P) {
       </section>
     );
   }
+  // nothing to show (no logos yet, no form chosen): no empty band either
+  if (b.type === "logos" && !(props.c.images[props.side === "tech" ? "tech.clients" : "home.clients"] ?? []).length) return null;
+  if (b.type === "form" && !b.props.form) return null;
   const filled = Boolean(b.style.bg || b.style.bgImage);
   const narrow = b.style.width === "narrow" ? "mx-auto max-w-4xl" : "";
   return (

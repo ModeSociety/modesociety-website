@@ -77,8 +77,28 @@ export default function Frame({
     }
   }
 
+  // a Mode Society block on something dark: the site's colours turn light inside it, so headings,
+  // text, forms and buttons all read (buttons go light with the background colour as their text)
+  const inner: Record<string, string> = {};
+  const lightBlock = generic && !tech && wantsLightText(s);
+  if (lightBlock) {
+    const fg = s.text || "#ffffff";
+    v["--bf-bg"] = s.bg === "brand" ? "var(--ink)" : /^#/.test(s.bg) ? s.bg : "#141010";
+    Object.assign(inner, {
+      color: fg,
+      "--ink": fg,
+      "--ink-2": mix(fg, 86, "transparent"),
+      "--muted": mix(fg, 68, "transparent"),
+      "--line": mix(fg, 30, "transparent"),
+      "--espresso": fg,
+      "--pin": fg,
+      "--paper": "var(--bf-bg)",
+      "--white": "var(--bf-bg)",
+    });
+  }
+
   // text
-  if (s.text) {
+  if (s.text && !lightBlock) {
     v.color = s.text;
     if (dark || (generic && wantsLightText(s))) {
       v["--color-white"] = s.text;
@@ -145,7 +165,15 @@ export default function Frame({
           {s.overlay > 0 && <div aria-hidden className="absolute inset-0 -z-10 bg-black" style={{ opacity: s.overlay / 100 }} />}
         </>
       )}
-      {kind === "none" ? <div className="bf-in">{children}</div> : <Animated kind={kind} className="bf-in">{children}</Animated>}
+      {kind === "none" ? (
+        <div className="bf-in" style={inner as React.CSSProperties}>
+          {children}
+        </div>
+      ) : (
+        <Animated kind={kind} className="bf-in" style={inner as React.CSSProperties}>
+          {children}
+        </Animated>
+      )}
     </div>
   );
 }

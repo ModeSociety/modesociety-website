@@ -13,12 +13,12 @@ const num = (v: string) => parseFloat(String(v).replace(/,/g, "").match(/-?\d+(\
 // follows the site's main colour once it's changed in the admin panel (theme.ts sets --chart-mode)
 const MODE = "var(--chart-mode, #A3242B)";
 const IN_HOUSE = "#A9822F";
-type Series = { key: "mode" | "inHouse"; label: string; color: string };
+type Series = { key: "mode" | "inHouse"; label: string; short: string; color: string };
 const HEX = /^#[0-9a-f]{6}$/i;
 /** the two series as named and coloured in the admin panel (Pages & text → The numbers) */
 const seriesOf = (c: SectionCopy<"site.numbers">): Series[] => [
-  { key: "mode", label: c.modeLabel, color: HEX.test(c.modeColour.trim()) ? c.modeColour.trim() : MODE },
-  { key: "inHouse", label: c.inHouseLabel, color: HEX.test(c.inHouseColour.trim()) ? c.inHouseColour.trim() : IN_HOUSE },
+  { key: "mode", label: c.modeLabel, short: c.modeShort, color: HEX.test(c.modeColour.trim()) ? c.modeColour.trim() : MODE },
+  { key: "inHouse", label: c.inHouseLabel, short: c.inHouseShort, color: HEX.test(c.inHouseColour.trim()) ? c.inHouseColour.trim() : IN_HOUSE },
 ];
 /** "100, 118, 141" → [100, 118, 141] */
 const numbers = (v: string) => v.split(/[,;\s]+/).map((x) => parseFloat(x)).filter((x) => Number.isFinite(x));
@@ -109,7 +109,7 @@ function SalesLine({ on, series, months, mode, inHouse }: { on: boolean; series:
                 fill="#5e1a1c"
                 style={{ opacity: on ? 1 : 0, transition: "opacity .6s 1.6s" }}
               >
-                {s.key === "mode" ? "Mode" : "In-house"}
+                {s.short}
               </text>
             </g>
           );

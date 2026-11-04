@@ -13,10 +13,12 @@ export default function TechFooter({
   landing = false,
   copy,
   cta,
+  words,
 }: {
   landing?: boolean;
   copy: SectionCopy<"tech.footer">;
   cta: SectionCopy<"tech.cta">;
+  words: SectionCopy<"tech.words">;
 }) {
   return (
     <footer className="relative overflow-hidden border-t border-tline pt-16 md:pt-24">
@@ -34,8 +36,8 @@ export default function TechFooter({
           <nav className="grid grid-cols-2 gap-x-6 gap-y-3 text-[14px] md:col-span-4" aria-label="ModeSociety Tech">
             {(landing
               ? [
-                  { href: "/tech#enquire", label: "Brand enquiry" },
-                  { href: "/tech#apply", label: "Apply to sign" },
+                  { href: "/tech#enquire", label: words.brandEnquiry },
+                  { href: "/tech#apply", label: words.applyToSign },
                 ]
               : [{ href: "/tech", label: "Home" }, ...TECH_MENU]
             ).map((m) => (
@@ -45,7 +47,7 @@ export default function TechFooter({
             ))}
           </nav>
           <div className="md:col-span-3 md:justify-self-end">
-            <p className="tech-mono mb-3 text-[11px] uppercase text-t3">Mode Society</p>
+            <p className="tech-mono mb-3 text-[11px] uppercase text-t3">{words.footerSide}</p>
             <SideSwitch current="tech" tone="tech" />
           </div>
         </div>

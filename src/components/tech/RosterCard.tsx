@@ -1,5 +1,7 @@
 "use client";
 
+import { useTechWords } from "./words";
+
 import { useRef } from "react";
 import { responsive } from "@/lib/img";
 import { PLATFORMS, compact, parseFollowers, totalFollowers, type RosterMember } from "@/lib/tech";
@@ -21,6 +23,7 @@ export default function RosterCard({
   compactLayout?: boolean;
   heading?: "h2" | "h3";
 }) {
+  const words = useTechWords();
   const ref = useRef<HTMLElement>(null);
   const total = totalFollowers(m);
   const channels = PLATFORMS.filter((p) => m.platforms[p.id]);
@@ -65,7 +68,7 @@ export default function RosterCard({
         <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-2">
           <div>
             <span className="tech-display block text-[clamp(32px,3vw,40px)] text-taccent">{total ? <CountUp value={total} /> : "—"}</span>
-            <span className="tech-mono text-[10px] uppercase text-t2">Total followers</span>
+            <span className="tech-mono text-[10px] uppercase text-t2">{words.totalFollowers}</span>
           </div>
           {sample && <SampleTag />}
         </div>

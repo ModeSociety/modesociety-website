@@ -1,5 +1,7 @@
 "use client";
 
+import { useTechWords } from "./words";
+
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
@@ -15,6 +17,7 @@ import { SampleTag } from "./ui";
  * It cycles on its own until someone picks.
  */
 export default function CharacterSelect({ members, sample }: { members: RosterMember[]; sample: boolean }) {
+  const words = useTechWords();
   const list = members.slice(0, 8);
   const [i, setI] = useState(0);
   const [auto, setAuto] = useState(true);
@@ -68,7 +71,7 @@ export default function CharacterSelect({ members, sample }: { members: RosterMe
           {/* scanline sweep on change */}
           <div aria-hidden className="pointer-events-none absolute inset-0 animate-[cs-scan_.7s_ease-out_both] bg-[linear-gradient(180deg,transparent,rgba(137,178,253,0.35)_50%,transparent)] bg-[length:100%_30%] bg-no-repeat" />
           <div aria-hidden className="absolute inset-0 bg-[repeating-linear-gradient(0deg,rgba(11,20,56,0.06)_0_1px,transparent_1px_3px)] mix-blend-multiply" />
-          <span className="tech-mono absolute left-4 top-4 rounded-full bg-[#3e5ef1] px-2.5 py-1 text-[10px] uppercase text-white">P1 · Selected</span>
+          <span className="tech-mono absolute left-4 top-4 rounded-full bg-[#3e5ef1] px-2.5 py-1 text-[10px] uppercase text-white">{words.selected}</span>
           {sample && (
             <span className="absolute right-4 top-4">
               <SampleTag />
@@ -88,7 +91,7 @@ export default function CharacterSelect({ members, sample }: { members: RosterMe
           {m.niche && <p className="mt-3 text-[15px] text-t2">{m.niche}</p>}
 
           <div className="mt-7 flex items-end justify-between gap-4 border-t border-tline pt-5">
-            <span className="tech-mono text-[11px] uppercase text-t3">Power level · total followers</span>
+            <span className="tech-mono text-[11px] uppercase text-t3">{words.powerLevel}</span>
             <span className="tech-wide text-[clamp(34px,3.4vw,52px)] leading-none text-taccent">
               <CountUp key={m.id} value={totalFollowers(m)} />
             </span>
@@ -140,7 +143,7 @@ export default function CharacterSelect({ members, sample }: { members: RosterMe
       {/* select grid */}
       <div className="lg:col-span-4">
         <div className="mb-3 flex items-center justify-between">
-          <p className="tech-mono text-[11px] uppercase text-t3">Select creator</p>
+          <p className="tech-mono text-[11px] uppercase text-t3">{words.selectCreator}</p>
           <p className="tech-mono hidden text-[10.5px] uppercase text-t3 md:block">← → ↑ ↓</p>
         </div>
         <div role="group" aria-label="Select a creator" className="grid grid-cols-4 gap-2 lg:grid-cols-2">

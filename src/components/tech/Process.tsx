@@ -1,5 +1,7 @@
 "use client";
 
+import { useTechWords } from "./words";
+
 import { useRef } from "react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
@@ -9,6 +11,7 @@ import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
  * when it scrolls into view (so it's never caught half-done). Vertical on phones.
  */
 export default function Process({ steps }: { steps: { title: string; body: string }[] }) {
+  const words = useTechWords();
   const ref = useRef<HTMLDivElement>(null);
   useGSAP(
     () => {
@@ -45,7 +48,7 @@ export default function Process({ steps }: { steps: { title: string; body: strin
     <div ref={ref}>
       {/* XP bar */}
       <div className="mb-12 flex items-center gap-4">
-        <span className="tech-mono shrink-0 text-[11px] uppercase text-t3">Campaign XP</span>
+        <span className="tech-mono shrink-0 text-[11px] uppercase text-t3">{words.campaignXp}</span>
         <span className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-tblue/10 shadow-[inset_0_0_0_1px_rgba(10,18,56,0.08)]">
           <span className="q-xp absolute inset-0 origin-left rounded-full bg-[linear-gradient(90deg,#3e5ef1,#89b2fd,#d0e0ff)] shadow-[0_0_16px_rgba(137,178,253,0.7)]" />
         </span>

@@ -28,7 +28,7 @@ export function Categories({ items }: { items: { title: string; body: string }[]
 }
 
 /** The formats as a bento grid, each with a small animated drawing. */
-export function Formats({ items }: { items: { title: string; body: string }[] }) {
+export function Formats({ items, words }: { items: { title: string; body: string }[]; words: SectionCopy<"tech.words"> }) {
   // the five cards keep their drawings by position; an emptied title hides its card
   const [campaigns, ugc, streaming, events, management] = Array.from({ length: 5 }, (_, i) => items[i] ?? { title: "", body: "" });
   return (
@@ -110,7 +110,7 @@ export function Formats({ items }: { items: { title: string; body: string }[] })
         <FadeUp delay={0.05} className="t-panel t-foil flex min-h-[280px] flex-col justify-between p-7 md:col-span-2">
           <div aria-hidden className="flex h-28 items-center">
             <div className="relative flex h-16 w-full max-w-[280px] items-center justify-between rounded-[12px] bg-tsurface2 px-5 shadow-[inset_0_0_0_1px_rgba(10,18,56,0.12)] transition-transform duration-500 hover:-rotate-2">
-              <span className="tech-mono text-[11px] uppercase text-t2">Guest list</span>
+              <span className="tech-mono text-[11px] uppercase text-t2">{words.guestList}</span>
               <span className="tech-display text-[30px] text-taccent">+1</span>
               <span className="absolute -left-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-tground" />
               <span className="absolute -right-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-tground" />
@@ -129,11 +129,11 @@ export function Formats({ items }: { items: { title: string; body: string }[] })
           <p aria-hidden className="tech-display text-[26px] leading-[1] text-t/90">
             Creators.
             <br />
-            <span className="text-t/70">Streamers.</span>
+            <span className="text-t/70">{words.streamers}</span>
             <br />
-            <span className="text-t/50">Players.</span>
+            <span className="text-t/50">{words.players}</span>
             <br />
-            <span className="text-taccent">Teams.</span>
+            <span className="text-taccent">{words.teams}</span>
           </p>
           <div>
             <h3 className="tech-display text-[clamp(30px,3vw,44px)] text-t">{management.title}</h3>

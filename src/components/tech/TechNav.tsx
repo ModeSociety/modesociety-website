@@ -1,5 +1,7 @@
 "use client";
 
+import { useTechWords } from "./words";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,6 +11,7 @@ import { Wordmark } from "./Mark";
 
 /** `landing`: before launch /tech is one page, so the nav only offers the two forms on it. */
 export default function TechNav({ landing = false }: { landing?: boolean }) {
+  const words = useTechWords();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -107,7 +110,7 @@ export default function TechNav({ landing = false }: { landing?: boolean }) {
             </Link>
           </div>
           <div className="mt-auto pt-10">
-            <p className="tech-mono mb-3 text-[11px] uppercase text-t3">Also from Mode Society</p>
+            <p className="tech-mono mb-3 text-[11px] uppercase text-t3">{words.alsoFrom}</p>
             <SideSwitch current="tech" tone="tech" />
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Anybody, Instrument_Sans, Martian_Mono } from "next/font/google";
 import TechFooter from "@/components/tech/TechFooter";
 import TechNav from "@/components/tech/TechNav";
 import TechShell from "@/components/tech/TechShell";
+import { TechWordsProvider } from "@/components/tech/words";
 import JsonLd from "@/components/site/JsonLd";
 import PreviewBar from "@/components/site/PreviewBar";
 import { ChromeRoot, ChromeStyles } from "@/components/builder/Chrome";
@@ -33,6 +34,7 @@ export default async function TechLayout({ children }: { children: React.ReactNo
       {theme.href && <link rel="stylesheet" href={theme.href} precedence="theme" />}
       {theme.css && <style>{theme.css}</style>}
       <JsonLd data={techOrganizationJsonLd()} />
+      <TechWordsProvider words={copy["tech.words"]}>
       <TechShell>
         {preview && !launched && (
           <div className="fixed inset-x-0 bottom-0 z-[150] flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#0b1438] px-4 py-2.5 text-center text-[13px] text-white">
@@ -51,9 +53,10 @@ export default async function TechLayout({ children }: { children: React.ReactNo
         </ChromeRoot>
         <main>{children}</main>
         <ChromeRoot root="footer">
-          <TechFooter landing={landing} copy={copy["tech.footer"]} cta={copy["tech.cta"]} />
+          <TechFooter landing={landing} copy={copy["tech.footer"]} cta={copy["tech.cta"]} words={copy["tech.words"]} />
         </ChromeRoot>
       </TechShell>
+      </TechWordsProvider>
     </div>
   );
 }

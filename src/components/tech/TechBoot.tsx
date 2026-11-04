@@ -1,5 +1,7 @@
 "use client";
 
+import { useTechWords } from "./words";
+
 import { useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 import { setIntroPlaying } from "@/lib/intro";
@@ -13,6 +15,7 @@ const LINES = ["modesociety.tech // boot", "loading roster …… ok", "linking 
  * click or tap.
  */
 export default function TechBoot() {
+  const words = useTechWords();
   const [show, setShow] = useState(false);
   const [phase, setPhase] = useState(0); // lines shown, then 99 = leaving
 
@@ -73,7 +76,7 @@ export default function TechBoot() {
         <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-tblue/10">
           <div className="h-full rounded-full bg-[linear-gradient(90deg,#3e5ef1,#9b8cff)] shadow-[0_0_14px_rgba(62,94,241,0.6)] transition-[width] duration-[1500ms] ease-out" style={{ width: phase ? "100%" : "4%" }} />
         </div>
-        <p className="tech-wide t-live mt-8 text-center text-[clamp(22px,4vw,34px)] text-t">Press start</p>
+        <p className="tech-wide t-live mt-8 text-center text-[clamp(22px,4vw,34px)] text-t">{words.pressStart}</p>
       </div>
     </div>
   );

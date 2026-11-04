@@ -19,6 +19,7 @@ import TechHero from "@/components/tech/TechHero";
 import { Beams, Eyebrow, SampleTag, SectionTitle } from "@/components/tech/ui";
 import { compact, rosterFor, totalFollowers } from "@/lib/tech";
 import { embedFor } from "@/lib/video";
+import { countText } from "@/lib/count";
 import type { Ctx, Feature } from "./types";
 
 const filmShows = ({ c }: Ctx) => !c.copy["techHome.intro"].hidden && Boolean(embedFor(c.copy["techHome.intro"].videoUrl) || c.images["tech.intro"]?.[0]);
@@ -95,7 +96,7 @@ export const TECH: Record<string, Feature> = {
             <div className="flex items-center gap-4">
               {sample && (
                 <span className="flex items-center gap-2 text-[13px] text-t3">
-                  <SampleTag /> Sample cards for layout, not real creators.
+                  <SampleTag /> {c.copy["tech.words"].sampleNote}
                 </span>
               )}
               {talent.button && (
@@ -118,7 +119,7 @@ export const TECH: Record<string, Feature> = {
       return (
         <section className="wrap pb-20 md:pb-28">
           <SectionTitle title={run.heading} lead={run.lead} className="mb-10" />
-          <Formats items={c.copy["tech.formats"].items} />
+          <Formats items={c.copy["tech.formats"].items} words={c.copy["tech.words"]} />
         </section>
       );
     },
@@ -158,8 +159,8 @@ export const TECH: Record<string, Feature> = {
           heading={faq.heading}
           lead={faq.lead}
           groups={[
-            { label: "For brands", items: faq.brands.slice(0, 3) },
-            { label: "For creators", items: faq.creators.slice(0, 3) },
+            { label: c.copy["tech.words"].faqBrands, items: faq.brands.slice(0, 3) },
+            { label: c.copy["tech.words"].faqCreators, items: faq.creators.slice(0, 3) },
           ]}
         />
       );
@@ -187,9 +188,9 @@ export const TECH: Record<string, Feature> = {
       const followers = c.roster.reduce((s, m) => s + totalFollowers(m), 0);
       // only real numbers: roster followers, and what the team enters in the admin panel
       const stats = [
-        followers ? { value: followers as number | string, label: "Combined followers" } : null,
-        c.techStats.views ? { value: c.techStats.views, label: "Combined total views" } : null,
-        c.techStats.campaigns ? { value: c.techStats.campaigns, label: "Campaigns delivered" } : null,
+        followers ? { value: followers as number | string, label: c.copy["tech.words"].statFollowers } : null,
+        c.techStats.views ? { value: c.techStats.views, label: c.copy["tech.words"].statViews } : null,
+        c.techStats.campaigns ? { value: c.techStats.campaigns, label: c.copy["tech.words"].statCampaigns } : null,
       ].filter(Boolean) as { value: number | string; label: string }[];
       return (
         <section className="wrap pb-16 md:pb-24">
@@ -205,7 +206,7 @@ export const TECH: Record<string, Feature> = {
               ))}
             </div>
           ) : (
-            <p className="t-panel p-8 text-[15px] text-t2">Our key numbers (combined followers, views and campaigns delivered) appear here as the roster and first campaigns go live.</p>
+            <p className="t-panel p-8 text-[15px] text-t2">{c.copy["tech.words"].statsEmpty}</p>
           )}
         </section>
       );
@@ -232,7 +233,7 @@ export const TECH: Record<string, Feature> = {
       return (
         <section className="wrap py-20 md:py-28">
           <SectionTitle title={run.heading} lead={run.lead} className="mb-10" />
-          <Formats items={c.copy["tech.formats"].items} />
+          <Formats items={c.copy["tech.formats"].items} words={c.copy["tech.words"]} />
           <div className="mt-16">
             {run.categoriesTitle && <SectionTitle title={run.categoriesTitle} className="mb-8" />}
             <Categories items={c.copy["tech.categories"].items} />
@@ -246,7 +247,7 @@ export const TECH: Record<string, Feature> = {
     shows: ({ c }) => !c.copy["tech.faq"].hidden,
     render: ({ c }) => {
       const faq = c.copy["tech.faq"];
-      return <TechFaq heading={faq.heading} lead={faq.lead} groups={[{ label: "For brands", items: faq.brands }]} />;
+      return <TechFaq heading={faq.heading} lead={faq.lead} groups={[{ label: c.copy["tech.words"].faqBrands, items: faq.brands }]} />;
     },
   },
 
@@ -305,7 +306,7 @@ export const TECH: Record<string, Feature> = {
             <SectionTitle eyebrow={ex.eyebrow} title={ex.heading} />
             {sample && (
               <span className="flex items-center gap-2 text-[13px] text-t3">
-                <SampleTag /> Sample cards for layout, not real creators.
+                <SampleTag /> {c.copy["tech.words"].sampleNote}
               </span>
             )}
           </div>
@@ -370,7 +371,7 @@ export const TECH: Record<string, Feature> = {
     shows: ({ c }) => !c.copy["tech.faq"].hidden,
     render: ({ c }) => {
       const faq = c.copy["tech.faq"];
-      return <TechFaq heading={faq.heading} lead={faq.lead} groups={[{ label: "For creators", items: faq.creators }]} />;
+      return <TechFaq heading={faq.heading} lead={faq.lead} groups={[{ label: c.copy["tech.words"].faqCreators, items: faq.creators }]} />;
     },
   },
 
@@ -384,16 +385,16 @@ export const TECH: Record<string, Feature> = {
         <PageHead eyebrow={hero.eyebrow} title={hero.heading} ghost={hero.ghost} lead={hero.lead}>
           <div className="flex flex-wrap items-center gap-6 text-[14px] text-t2">
             <span>
-              <span className="tech-display text-[28px] text-t">{members.length}</span> {members.length === 1 ? "creator" : "creators"}
+              <span className="tech-display text-[28px] text-t">{members.length}</span> {countText(c.copy["tech.words"].creatorCount, members.length)}
             </span>
             {total > 0 && (
               <span>
-                <span className="tech-display text-[28px] text-t">{compact(total)}</span> combined followers
+                <span className="tech-display text-[28px] text-t">{compact(total)}</span> {c.copy["tech.words"].followersNote}
               </span>
             )}
             {sample && (
               <span className="flex items-center gap-2">
-                <SampleTag /> Sample cards for layout, not real creators.
+                <SampleTag /> {c.copy["tech.words"].sampleNote}
               </span>
             )}
           </div>
@@ -412,10 +413,10 @@ export const TECH: Record<string, Feature> = {
             <p className="text-[15px] text-t2">{c.copy["techTalent.hero"].cta}</p>
             <div className="flex flex-wrap gap-3">
               <Link href="/tech/contact?as=brand" className="btn">
-                Brand enquiry
+                {c.copy["tech.words"].brandEnquiry}
               </Link>
               <Link href="/tech/contact?as=creator" className="btn ghost">
-                Apply to sign
+                {c.copy["tech.words"].applyToSign}
               </Link>
             </div>
           </div>

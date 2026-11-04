@@ -118,7 +118,7 @@ function FieldInput({ f, value, onChange, id }: { f: Field; value: unknown; onCh
   );
 }
 
-function SectionEditor({
+export function SectionEditor({
   id,
   saved,
   edited,

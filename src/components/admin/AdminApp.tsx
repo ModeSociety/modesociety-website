@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
+import BuilderTab from "./BuilderTab";
 import CopyTab from "./CopyTab";
 import EnquiriesTab from "./EnquiriesTab";
 import PressTab from "./PressTab";
@@ -120,7 +121,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "schedule" | "enquiries" | "insights" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
+type Tab = "schedule" | "enquiries" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses: the roster is Tech only, Featured in and the animations are the talent site's. */
@@ -128,6 +129,7 @@ const TABS: { id: Tab; label: string; group: Group; sides: SideFilter[]; about: 
   { id: "schedule", label: "Schedule", group: "Day to day", sides: ["all", "talent", "tech"], about: "The team calendar: calls, meetings, shoots, events and deadlines." },
   { id: "enquiries", label: "Enquiries", group: "Day to day", sides: ["all", "talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to pr@modesociety.com.au." },
   { id: "insights", label: "Insights", group: "Day to day", sides: ["all", "talent", "tech"], about: "Who's visiting the site, where from, and how many enquiries it brings in." },
+  { id: "pages", label: "Pages", group: "Website", sides: ["all", "talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
   { id: "copy", label: "Pages & text", group: "Website", sides: ["all", "talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
   { id: "press", label: "Featured in", group: "Website", sides: ["all", "talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
   { id: "images", label: "Images & video", group: "Website", sides: ["all", "talent", "tech"], about: "Every photo, logo and video on the site, and the Drive folder each one reads from." },
@@ -267,7 +269,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           <p className="mt-2 max-w-2xl text-ink-2">{TABS.find((t) => t.id === tab)?.about}</p>
         </div>
 
-        {(tab === "copy" || tab === "roster") && side !== "talent" && content && (
+        {(tab === "pages" || tab === "copy" || tab === "roster") && side !== "talent" && content && (
           <TechLaunch launched={content.settings.techLaunched} reload={loadContent} notify={notify} />
         )}
 
@@ -283,6 +285,8 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         {tab === "enquiries" && <EnquiriesTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}
+        {tab === "pages" && content && <BuilderTab content={content} side={side} reload={loadContent} notify={notify} />}
+        {tab === "pages" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading the pages…</p>}
         {tab === "copy" && content && <CopyTab content={content} side={side} reload={loadContent} notify={notify} />}
         {tab === "copy" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading the site&apos;s wording…</p>}
         {tab === "theme" && content && (

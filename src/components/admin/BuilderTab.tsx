@@ -485,17 +485,12 @@ function Preview({
   const frame = useRef<HTMLIFrameElement>(null);
   const [width, setWidth] = useState(900);
   const [loading, setLoading] = useState(true);
-  // the first load turns preview on for this browser; later ones just reload the page
-  const [src, setSrc] = useState(`/api/admin/preview?to=${encodeURIComponent(path)}`);
-  const first = useRef(true);
+  // every load goes through the preview switch, so drafts always show (it then sends the frame to the page)
+  const src = `/api/admin/preview?to=${encodeURIComponent(`${path}${path.includes("?") ? "&" : "?"}preview=${version}`)}`;
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a new address is loading
     setLoading(true);
-    setSrc(`${path}${path.includes("?") ? "&" : "?"}preview=${version}`);
-  }, [path, version]);
+  }, [src]);
   useEffect(() => {
     const el = wrap.current;
     if (!el) return;

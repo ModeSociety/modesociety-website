@@ -920,3 +920,30 @@ html:has(.tech-root) body {
 .t-foil:hover::after {
   opacity: 1;
 }
+
+/* =========================================================================
+   Page builder (src/components/builder): a block's own spacing, width and background.
+   A designed section brings its own padding, so the block's spacing replaces that of its
+   first and last parts; its background replaces the section's own.
+   ========================================================================= */
+.bf[data-pt] > .bf-in > :first-child {
+  padding-top: var(--bf-pt) !important;
+}
+.bf[data-pb] > .bf-in > :last-child {
+  padding-bottom: var(--bf-pb) !important;
+}
+.bf[data-w="narrow"] .wrap {
+  max-width: 1000px;
+}
+.bf[data-w="wide"] .wrap {
+  max-width: 1760px;
+}
+.bf[data-w="full"] .wrap {
+  max-width: none;
+}
+/* a designed section on a coloured or photo background lets it show through */
+.bf[data-bgimg] > .bf-in > section.bg-ink,
+.bf[data-tinted] > .bf-in > section.bg-paper,
+.bf[data-tinted] > .bf-in > section.bg-white {
+  background: transparent;
+}

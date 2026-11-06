@@ -81,6 +81,9 @@ export const BLOCK_FONTS = (() => {
     { id: "inter-tight", label: "Inter Tight", family: "Inter Tight", google: "Inter+Tight:wght@400;500;600" },
     { id: "anybody", label: "Anybody", family: "Anybody", google: "Anybody:wdth,wght@50..150,700..800" },
     { id: "instrument-sans", label: "Instrument Sans", family: "Instrument Sans", google: "Instrument+Sans:wght@400;600" },
+    { id: "schibsted", label: "Schibsted Grotesk", family: "Schibsted Grotesk", google: "Schibsted+Grotesk:wght@400;500;700;900" },
+    { id: "martian-mono", label: "Martian Mono", family: "Martian Mono", google: "Martian+Mono:wght@400;500;700" },
+    { id: "press-start", label: "Press Start 2P", family: "Press Start 2P", google: "Press+Start+2P" },
   ];
   for (const f of [...originals, ...Object.values(FONTS).flat()]) if (f.id && !seen.has(f.id)) seen.set(f.id, { id: f.id, label: f.label.replace(" (original)", ""), family: f.family, google: f.google });
   return [...seen.values()].sort((a, b) => a.label.localeCompare(b.label));
@@ -302,29 +305,14 @@ export const DEFS: Record<string, BlockDef> = {
   "t.contactSocials": f("talent", "Contact: social links", "The line beside the social links", ["contact.hero"]),
 
   // ---- ModeSociety Tech's designed sections ----
-  "x.hero": f("tech", "Arena hero", "The 3D m on the grid floor, the two doors and the ticker", ["techHome.hero"]),
-  "x.intro": f("tech", "Intro film", "A landscape film with a heading", ["techHome.intro"], { slots: ["tech.intro"] }),
-  "x.who": f("tech", "Who are we?", "The big text and the category cards", ["techHome.who", "tech.categories"]),
-  "x.logos": f("tech", "Brand logos", "Brands our creators have worked with (shows once Tech is launched)", ["tech.logos"], { slots: ["tech.clients"] }),
-  "x.talent": f("tech", "Choose your creator", "The character select (shows once Tech is launched)", ["techHome.talent"]),
-  "x.run": f("tech", "What we run", "The formats bento", ["techHome.run", "tech.formats"]),
-  "x.policy": f("tech", "18+ policy", "The policy band and figures", ["tech.policy"]),
-  "x.landingForms": f("tech", "Enquiry forms (landing page)", "Both forms, on the landing page before launch", ["techHome.contact"], { page: "techHome" }),
-  "x.faqHome": f("tech", "Questions (both)", "The first three questions for brands and for creators", ["tech.faq"]),
-  "x.brandsHead": f("tech", "For brands: page title", "Why brands call us", ["techBrands.hero"]),
-  "x.numbers": f("tech", "Key numbers", "Followers, views and campaigns (set under Roster)", []),
-  "x.process": f("tech", "Our process", "The quest line", ["techBrands.process"]),
-  "x.brandsRun": f("tech", "What we run + who we work with", "Formats and categories", ["techBrands.run", "tech.formats", "tech.categories"]),
-  "x.faqBrands": f("tech", "Questions brands ask", "FAQ for brands", ["tech.faq"]),
-  "x.creatorsHead": f("tech", "For creators: page title", "Get signed", ["techCreators.hero"]),
-  "x.forYou": f("tech", "What we do for you", "Four cards", ["techCreators.forYou"]),
-  "x.examples": f("tech", "Who we look after", "Quotes and roster cards", ["techCreators.examples"]),
-  "x.join": f("tech", "Get on the roster", "Closing call", ["techCreators.join"]),
-  "x.faqCreators": f("tech", "Questions creators ask", "FAQ for creators", ["tech.faq"]),
-  "x.talentHead": f("tech", "Our talent: page title", "The roster, with the totals", ["techTalent.hero"]),
-  "x.roster": f("tech", "The roster", "Every creator, with filters", ["techTalent.hero"]),
-  "x.contactHead": f("tech", "Contact: page title", "Let's work together", ["techContact.hero"]),
-  "x.contactForms": f("tech", "Contact: forms", "I'm a brand / I'm a creator", ["techContact.hero"], { page: "techContact" }),
+  "x.hero": f("tech", "Hero", "Not just gaming: the chips, the headline and the Player 1 / Player 2 cards", ["techSite.hero"]),
+  "x.ticker": f("tech", "Ticker", "The two moving strips, lime and ink", ["techSite.ticker"]),
+  "x.who": f("tech", "Who we are", "The big statement and Quality over volume", ["techSite.who"]),
+  "x.campaigns": f("tech", "Campaigns", "Cobalt, with the four frosted glass objects", ["techSite.campaigns"], { dark: true }),
+  "x.run": f("tech", "What we run", "The bento grid on violet and magenta", ["techSite.run"], { dark: true }),
+  "x.rules": f("tech", "House rules", "18+, in-house briefs and the no-go list, on black glass", ["techSite.rules"], { dark: true }),
+  "x.contact": f("tech", "Get in touch", "Two ways in: the two-level form for brands and creators", ["techSite.contact"], { page: "techHome" }),
+  "x.faq": f("tech", "Questions", "For brands and for creators", ["techSite.faq"]),
 };
 
 export const isFeature = (type: string) => DEFS[type]?.kind === "feature";
@@ -339,11 +327,7 @@ const DEFAULTS: Record<PageId, [string, string?][]> = {
   work: [["t.workHero", "hero"], ["t.workGallery", "gallery"], ["t.workNext"]],
   press: [["t.pressHero", "hero"], ["t.pressList"], ["t.clients"]],
   contact: [["t.contactHero", "hero"], ["t.contactCards"], ["t.contactSocials"]],
-  techHome: [["x.hero", "hero"], ["x.intro", "intro"], ["x.who", "who"], ["x.logos"], ["x.talent", "talent"], ["x.run", "run"], ["x.policy", "policy"], ["x.landingForms"], ["x.faqHome"]],
-  techBrands: [["x.brandsHead", "hero"], ["x.numbers"], ["x.intro"], ["x.process", "process"], ["x.brandsRun", "run"], ["x.faqBrands"]],
-  techCreators: [["x.creatorsHead", "hero"], ["x.forYou", "forYou"], ["x.examples", "examples"], ["x.policy"], ["x.join"], ["x.faqCreators"]],
-  techTalent: [["x.talentHead", "hero"], ["x.roster"]],
-  techContact: [["x.contactHead"], ["x.contactForms"]],
+  techHome: [["x.hero", "hero"], ["x.ticker", "intro"], ["x.who", "who"], ["x.campaigns", "talent"], ["x.run", "run"], ["x.rules", "policy"], ["x.contact"], ["x.faq"]],
 };
 
 
@@ -456,6 +440,14 @@ export function cleanBlock(raw: unknown, side: Side): LayoutBlock | null {
 
 /** A page's saved layout ("layout.home"), or its unpublished draft ("layoutDraft.home"); null when there's none. */
 export function savedLayout(page: PageId, content: Record<string, unknown> = {}, draft = false): LayoutBlock[] | null {
+  const kept = savedLayoutRaw(page, content, draft);
+  if (!kept || page !== "techHome" || kept.some((b) => DEFS[b.type]?.kind === "feature")) return kept;
+  // saved before the Tech redesign (6 Nov 2026): its sections no longer exist, so the new design is
+  // drawn with any blocks the team added kept after it
+  return [...defaultLayout(page, content), ...kept];
+}
+
+function savedLayoutRaw(page: PageId, content: Record<string, unknown>, draft: boolean): LayoutBlock[] | null {
   const raw = content[`${draft ? "layoutDraft" : "layout"}.${page}`] as { items?: unknown } | undefined;
   if (!raw || !Array.isArray(raw.items)) return null;
   const side = BLOCK_PAGES[page].side;

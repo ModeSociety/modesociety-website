@@ -11,7 +11,7 @@ export const SITE_NAME = "Mode Society";
 
 export type PageKey =
   | "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact"
-  | "techHome" | "techBrands" | "techCreators" | "techTalent" | "techContact";
+  | "techHome";
 
 export const TECH_NAME = "ModeSociety Tech";
 
@@ -91,40 +91,6 @@ export const PAGES: Record<PageKey, { path: string; title: string; description: 
       "Talent and creator agency for streamers, content creators and esports athletes, running brand campaigns and events across gaming and tech worldwide.",
     og: "Not just gaming.",
     crumb: "ModeSociety Tech",
-  },
-  techBrands: {
-    path: "/tech/brands",
-    tech: true,
-    title: "Gaming Influencer Marketing for Brands | ModeSociety Tech",
-    description:
-      "Campaigns with streamers, creators and esports athletes for gaming gear, energy drinks, tech, telco and game publishers, with transparent reporting.",
-    og: "Run a campaign.",
-    crumb: "For brands",
-  },
-  techCreators: {
-    path: "/tech/creators",
-    tech: true,
-    title: "Management for Streamers & Gaming Creators | ModeSociety Tech",
-    description:
-      "Brand partnerships, emails, pitching, invoicing and growth for streamers, content creators and esports athletes. Every creator we sign is 18 or over.",
-    og: "Get signed.",
-    crumb: "For creators",
-  },
-  techTalent: {
-    path: "/tech/talent",
-    tech: true,
-    title: "Our Talent: Streamers & Gaming Creators | ModeSociety Tech",
-    description: "The ModeSociety Tech roster: streamers, content creators, esports athletes and teams, with their channels and audience size.",
-    og: "The roster.",
-    crumb: "Our talent",
-  },
-  techContact: {
-    path: "/tech/contact",
-    tech: true,
-    title: "Contact ModeSociety Tech | Brand Enquiry or Apply",
-    description: "Brands, tell us what you're launching. Streamers, creators and esports athletes, apply to sign with ModeSociety Tech.",
-    og: "Two ways in.",
-    crumb: "Contact",
   },
 };
 

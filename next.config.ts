@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
       { source: "/for-brands", destination: "/work-with-us", permanent: true },
       { source: "/for-talent", destination: "/apply-to-be-a-creator", permanent: true },
       { source: "/apply", destination: "/apply-to-be-a-creator", permanent: true },
+      // the Tech side became one page on 6 Nov 2026 (Asha's v3.5 design)
+      { source: "/tech/brands", destination: "/tech#campaigns", permanent: true },
+      { source: "/tech/creators", destination: "/tech#apply", permanent: true },
+      { source: "/tech/talent", destination: "/tech#who", permanent: true },
+      { source: "/tech/contact", destination: "/tech#contact", permanent: true },
       // partnerships were retired on 6 Nov 2026
       { source: "/partner-with-us", destination: "/get-in-touch", permanent: true },
     ];

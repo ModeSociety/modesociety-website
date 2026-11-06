@@ -14,18 +14,14 @@ const PRIORITY: Record<PageKey, number> = {
   contact: 0.6,
   press: 0.4,
   techHome: 0.9,
-  techBrands: 0.8,
-  techCreators: 0.8,
-  techTalent: 0.7,
-  techContact: 0.6,
 };
 
 /**
  * /sitemap.xml: every public page. "Featured in" joins once there's press on it, with a page per
- * feature, and the Tech sub-pages once ModeSociety Tech is launched.
+ * feature. ModeSociety Tech is one page, /tech.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { images, press, settings } = await getSiteContent();
+  const { images, press } = await getSiteContent();
   const hasPress = (images["press.logos"]?.length ?? 0) > 0 || press.length > 0;
   const now = new Date();
   const features: MetadataRoute.Sitemap = press.map((a) => ({
@@ -37,12 +33,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
   const pages: MetadataRoute.Sitemap = (Object.keys(PAGES) as PageKey[])
     .filter((k) => k !== "press" || hasPress)
-    // before launch, /tech is the only public Tech page
-    .filter((k) => settings.techLaunched || !PAGES[k].tech || k === "techHome")
     .map((k) => ({
       url: `${SITE_URL}${PAGES[k].path === "/" ? "" : PAGES[k].path}`,
       lastModified: now,
-      changeFrequency: k === "work" || k === "press" || k === "techTalent" ? "weekly" : "monthly",
+      changeFrequency: k === "work" || k === "press" ? "weekly" : "monthly",
       priority: PRIORITY[k],
     }));
   return [...pages, ...features];

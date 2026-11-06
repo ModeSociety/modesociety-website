@@ -156,7 +156,7 @@ export const slotLabel = (id: string) => SLOTS.find((s) => s.id === id)?.label ?
 export function chromeFields(side: "talent" | "tech", root: "nav" | "footer", content: SiteContent) {
   const texts: Candidate[] = [];
   const ids: SectionId[] =
-    root === "nav" ? (side === "tech" ? ["tech.words"] : ["site.nav"]) : side === "tech" ? ["tech.footer", "tech.cta", "tech.words"] : ["site.footer", "site.nav"];
+    root === "nav" ? (side === "tech" ? ["techSite.nav"] : ["site.nav"]) : side === "tech" ? ["techSite.footer", "techSite.nav"] : ["site.footer", "site.nav"];
   for (const id of ids) copyCandidates(id, content.copy[id] as unknown as Record<string, unknown>, texts);
   return { texts, photos: new Map<string, Hit>(), slots: [] as string[] };
 }

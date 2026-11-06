@@ -67,11 +67,7 @@ export const BLOCK_PAGES = {
   work: { side: "talent", label: "Our work", path: "/our-work", spots: [["hero", "Under the page title"], ["gallery", "After the gallery"], ["end", "At the end of the page"]] },
   press: { side: "talent", label: "Featured in", path: "/featured-in", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
   contact: { side: "talent", label: "Contact us", path: "/get-in-touch", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
-  techHome: { side: "tech", label: "Home", path: "/tech", spots: [["hero", "Under the hero"], ["intro", "After the intro film"], ["who", "After Who are we?"], ["talent", "After Choose your creator"], ["run", "After What we run"], ["policy", "After the 18+ policy"], ["end", "At the end of the page"]] },
-  techBrands: { side: "tech", label: "For brands", path: "/tech/brands", spots: [["hero", "Under the page title"], ["process", "After Our process"], ["run", "After What we run"], ["end", "At the end of the page"]] },
-  techCreators: { side: "tech", label: "For creators", path: "/tech/creators", spots: [["hero", "Under the page title"], ["forYou", "After What we do for you"], ["examples", "After Who we look after"], ["end", "At the end of the page"]] },
-  techTalent: { side: "tech", label: "Our talent", path: "/tech/talent", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
-  techContact: { side: "tech", label: "Contact", path: "/tech/contact", spots: [["end", "At the end of the page"]] },
+  techHome: { side: "tech", label: "Home", path: "/tech", spots: [["hero", "Under the hero"], ["intro", "After the ticker"], ["who", "After Who we are"], ["talent", "After Campaigns"], ["run", "After What we run"], ["policy", "After House rules"], ["end", "At the end of the page"]] },
 } satisfies Record<string, Page>;
 export type BlockPage = keyof typeof BLOCK_PAGES;
 export const BLOCK_PAGE_IDS = Object.keys(BLOCK_PAGES) as BlockPage[];

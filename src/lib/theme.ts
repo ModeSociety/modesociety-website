@@ -35,7 +35,7 @@ export const FONTS = {
     font("karla", "Karla", "Karla", "Karla:wght@400;500;600"),
   ],
   techDisplay: [
-    font("", "Anybody (original)", "Anybody", ""),
+    font("", "Schibsted Grotesk (original)", "Schibsted Grotesk", ""),
     font("archivo", "Archivo", "Archivo", "Archivo:wdth,wght@62..125,700..800"),
     font("big-shoulders", "Big Shoulders Display", "Big Shoulders Display", "Big+Shoulders+Display:wght@800"),
     font("chakra", "Chakra Petch", "Chakra Petch", "Chakra+Petch:wght@700"),
@@ -43,7 +43,7 @@ export const FONTS = {
     font("space-grotesk", "Space Grotesk", "Space Grotesk", "Space+Grotesk:wght@700"),
   ],
   techBody: [
-    font("", "Instrument Sans (original)", "Instrument Sans", ""),
+    font("", "Schibsted Grotesk (original)", "Schibsted Grotesk", ""),
     font("inter", "Inter", "Inter", "Inter:wght@400;500;600"),
     font("dm-sans", "DM Sans", "DM Sans", "DM+Sans:wght@400;500;600"),
     font("manrope", "Manrope", "Manrope", "Manrope:wght@400;500;600"),
@@ -64,9 +64,9 @@ export const THEME_FIELDS: ThemeField[] = [
   { key: "themeFontDisplay", side: "talent", kind: "font", label: "Headline font", hint: "The big condensed capitals", list: "display" },
   { key: "themeFontSerif", side: "talent", kind: "font", label: "Accent font", hint: "The italic words in headlines and quotes", list: "serif" },
   { key: "themeFontBody", side: "talent", kind: "font", label: "Body font", hint: "Paragraphs, buttons and forms", list: "body" },
-  { key: "techThemeBlue", side: "tech", kind: "colour", label: "Main colour", hint: "Buttons, links, highlights and the gradient type", original: "#3e5ef1" },
-  { key: "techThemeText", side: "tech", kind: "colour", label: "Text colour", hint: "Headlines and paragraphs", original: "#0b1438" },
-  { key: "techThemeGround", side: "tech", kind: "colour", label: "Background", hint: "The page itself", original: "#f7f9fe" },
+  { key: "techThemeBlue", side: "tech", kind: "colour", label: "Main colour", hint: "Royal blue: links, highlights, the menu numbers and the Campaigns glass", original: "#3e5ef0" },
+  { key: "techThemeText", side: "tech", kind: "colour", label: "Text colour", hint: "Headlines and paragraphs", original: "#0d1240" },
+  { key: "techThemeGround", side: "tech", kind: "colour", label: "Background", hint: "The page itself", original: "#ffffff" },
   { key: "techThemeFontDisplay", side: "tech", kind: "font", label: "Headline font", hint: "Headlines, condensed and wide", list: "techDisplay" },
   { key: "techThemeFontBody", side: "tech", kind: "font", label: "Body font", hint: "Paragraphs, buttons and forms", list: "techBody" },
 ];

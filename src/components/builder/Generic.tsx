@@ -6,7 +6,6 @@ import Accent from "@/components/site/Accent";
 import IntroVideo from "@/components/site/IntroVideo";
 import Marquee from "@/components/site/Marquee";
 import RichText from "@/components/site/RichText";
-import TechForms from "@/components/tech/TechForms";
 import { responsive } from "@/lib/img";
 import { embedFor } from "@/lib/video";
 import { photoSrc, type LayoutBlock, type Props, type Side } from "@/lib/builder";
@@ -255,7 +254,7 @@ function Body({ b, side, light, onDark, c }: P) {
       const form =
         p.form === "brands" ? <BrandForm intro={intros.brands} /> :
         p.form === "talent" ? <TalentForm intro={intros.talent} /> :
-        p.form === "tech" ? <TechForms onPage /> : null;
+        null;
       if (!form) return null;
       return (
         <div className="grid gap-10 md:grid-cols-12">
@@ -265,7 +264,7 @@ function Body({ b, side, light, onDark, c }: P) {
               {p.text && <RichText text={p.text} className={`mt-5 ${light ? lightText : ""}`} />}
             </div>
           )}
-          <div className={`${p.heading || p.text ? "md:col-span-7 md:col-start-6" : "md:col-span-12"} ${side === "tech" && p.form === "tech" ? "t-panel p-6 md:p-10" : ""} text-left`}>{form}</div>
+          <div className={`${p.heading || p.text ? "md:col-span-7 md:col-start-6" : "md:col-span-12"} text-left`}>{form}</div>
         </div>
       );
     }

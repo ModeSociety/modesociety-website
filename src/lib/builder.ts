@@ -399,7 +399,6 @@ export function cleanStyle(raw: unknown): Style {
 export const FORMS = [
   { id: "brands", label: "Brand enquiry (Mode Society)", side: "talent" },
   { id: "talent", label: "Talent application (Mode Society)", side: "talent" },
-  { id: "tech", label: "Brand enquiry / creator application (Tech)", side: "tech" },
 ] as const;
 
 export function cleanProps(raw: unknown): Props {

@@ -86,7 +86,7 @@ function starter(type: string, side: "talent" | "tech"): LayoutBlock {
       p.heading = "Brands we've worked with";
       break;
     case "form":
-      Object.assign(p, { heading: "Get in *touch*", form: side === "tech" ? "tech" : "brands" });
+      Object.assign(p, { heading: "Get in *touch*", form: "brands" });
       break;
     case "video":
       p.heading = "Watch";

@@ -3,7 +3,7 @@ import { assertSameOrigin, clean, cleanList } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
 import { ENQUIRY_KINDS, ENQUIRY_STATUSES, toEnquiries, type EnquiryKind, type SheetTable } from "@/lib/enquiries";
 
-/** All form submissions (talent, brand calls, partnerships), newest first. */
+/** All form submissions (talent, brand calls, Tech brands and creators), newest first. */
 export async function GET() {
   try {
     await requireAdmin();

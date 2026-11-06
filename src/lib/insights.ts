@@ -57,10 +57,9 @@ export type Stats = {
   forms: {
     talent: number;
     bookings: number;
-    partners: number;
     techBrands?: number;
     techCreators?: number;
-    previous: { talent: number; bookings: number; partners: number; techBrands?: number; techCreators?: number };
+    previous: { talent: number; bookings: number; techBrands?: number; techCreators?: number };
   };
   schedule: { upcoming: number; thisPeriod: number };
 };

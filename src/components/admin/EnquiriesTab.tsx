@@ -127,7 +127,7 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
 }
 
 /**
- * Talent applications, brand call bookings and partnership enquiries, read from the
+ * Talent applications, brand call bookings and Tech enquiries, read from the
  * Google Sheet. Status changes are written back to the Sheet.
  */
 export default function EnquiriesTab({

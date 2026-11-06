@@ -215,7 +215,6 @@ export default function InsightsTab({ disabled, side = "all" }: { disabled: bool
     ? ([
         ["Talent applications", stats.forms.talent, stats.forms.previous.talent, "talent"],
         ["Brand call bookings", stats.forms.bookings, stats.forms.previous.bookings, "talent"],
-        ["Partnership enquiries", stats.forms.partners, stats.forms.previous.partners, "talent"],
         ["Tech brand enquiries", stats.forms.techBrands ?? 0, stats.forms.previous.techBrands ?? 0, "tech"],
         ["Tech creator applications", stats.forms.techCreators ?? 0, stats.forms.previous.techCreators ?? 0, "tech"],
       ] as const)

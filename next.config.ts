@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
       { source: "/for-brands", destination: "/work-with-us", permanent: true },
       { source: "/for-talent", destination: "/apply-to-be-a-creator", permanent: true },
       { source: "/apply", destination: "/apply-to-be-a-creator", permanent: true },
+      // partnerships were retired on 6 Nov 2026
+      { source: "/partner-with-us", destination: "/get-in-touch", permanent: true },
     ];
   },
   images: {

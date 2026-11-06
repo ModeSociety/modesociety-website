@@ -12,7 +12,6 @@ const PRIORITY: Record<PageKey, number> = {
   work: 0.8,
   about: 0.7,
   contact: 0.6,
-  partner: 0.5,
   press: 0.4,
   techHome: 0.9,
   techBrands: 0.8,

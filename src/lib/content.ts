@@ -16,7 +16,6 @@ export const MENU = [
   { href: "/services", label: "Services" },
   { href: "/our-work", label: "Our work" },
   { href: "/featured-in", label: "Featured in" },
-  { href: "/partner-with-us", label: "Partner with us" },
   { href: "/tech", label: "ModeSociety Tech" },
   { href: "/get-in-touch", label: "Contact us" },
 ];
@@ -279,6 +278,4 @@ export const FORM_INTROS = {
     "Want Mode to represent you? Tell us a bit about you and your channels. We ask for your follower count and engagement screenshots for each channel so we can see how your audience actually shows up for you, not just how big it is.",
   brands:
     "Are you looking for an external agency to handle all your PR and social media marketing? That's where we come in. Tell us about your brand and what you need, and we'll email you to lock in a call.",
-  partner:
-    "Not booking our services, but want to work together? This form is for B2B partnerships: referral and affiliate programs, co-marketing, cross-promotions and strategic alliances. For example, a platform that refers its creators to us while we refer ours back, rather than paying us for a service.",
 };

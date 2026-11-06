@@ -66,7 +66,6 @@ export const BLOCK_PAGES = {
   services: { side: "talent", label: "Services", path: "/services", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
   work: { side: "talent", label: "Our work", path: "/our-work", spots: [["hero", "Under the page title"], ["gallery", "After the gallery"], ["end", "At the end of the page"]] },
   press: { side: "talent", label: "Featured in", path: "/featured-in", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
-  partner: { side: "talent", label: "Partner with us", path: "/partner-with-us", spots: [["end", "At the end of the page"]] },
   contact: { side: "talent", label: "Contact us", path: "/get-in-touch", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
   techHome: { side: "tech", label: "Home", path: "/tech", spots: [["hero", "Under the hero"], ["intro", "After the intro film"], ["who", "After Who are we?"], ["talent", "After Choose your creator"], ["run", "After What we run"], ["policy", "After the 18+ policy"], ["end", "At the end of the page"]] },
   techBrands: { side: "tech", label: "For brands", path: "/tech/brands", spots: [["hero", "Under the page title"], ["process", "After Our process"], ["run", "After What we run"], ["end", "At the end of the page"]] },

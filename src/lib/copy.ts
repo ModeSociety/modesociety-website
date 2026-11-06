@@ -205,7 +205,7 @@ export const SECTIONS = {
     path: "/get-in-touch",
     title: "Form introductions",
     hint: "The italic line at the top of each enquiry form, wherever the form appears.",
-    fields: { talent: area("Talent application"), brands: area("Brand enquiry"), partner: area("Partnership enquiry") },
+    fields: { talent: area("Talent application"), brands: area("Brand enquiry") },
     defaults: { ...FORM_INTROS },
   },
   "site.nav": {
@@ -222,7 +222,6 @@ export const SECTIONS = {
       servicesLink: text("Menu: Services"),
       workLink: text("Menu: Our work"),
       pressLink: text("Menu: Featured in"),
-      partnerLink: text("Menu: Partner with us"),
       techLink: text("Menu: ModeSociety Tech"),
       contactLink: text("Menu: Contact us"),
       contactButton: text("Contact button"),
@@ -238,7 +237,6 @@ export const SECTIONS = {
       servicesLink: "Services",
       workLink: "Our work",
       pressLink: "Featured in",
-      partnerLink: "Partner with us",
       techLink: "ModeSociety Tech",
       contactLink: "Contact us",
       contactButton: "Contact us",
@@ -614,7 +612,7 @@ export const SECTIONS = {
   },
 
   // =========================================================================
-  // Featured in, Partner with us, Contact
+  // Featured in, Contact
   // =========================================================================
   "press.hero": {
     side: "talent",
@@ -641,35 +639,25 @@ export const SECTIONS = {
       emptyButton: "Press enquiries",
     },
   },
-  "partner.hero": {
-    side: "talent",
-    page: "Partner with us",
-    path: "/partner-with-us",
-    title: "Page title",
-    hint: "The form's introduction is under Shared sections → Form introductions.",
-    fields: { tag, label, meta, heading: heading() },
-    defaults: { tag: "Partners", label: "B2B partnerships", meta: "Referrals · affiliates · co-marketing", heading: "Partner *with us.*" },
-  },
   "contact.hero": {
     side: "talent",
     page: "Contact us",
     path: "/get-in-touch",
     title: "Page title",
     fields: { tag, label, meta, heading: heading(), line: area("Line under the heading"), socials: text("Line beside the social links") },
-    defaults: { tag: "Contact", label: "Brands · talent · partners", meta: "Melbourne → worldwide", heading: "Get in *touch.*", line: GET_IN_TOUCH.line, socials: GET_IN_TOUCH.socials },
+    defaults: { tag: "Contact", label: "Brands · talent", meta: "Melbourne → worldwide", heading: "Get in *touch.*", line: GET_IN_TOUCH.line, socials: GET_IN_TOUCH.socials },
   },
   "contact.cards": {
     side: "talent",
     page: "Contact us",
     path: "/get-in-touch",
     title: "Who are you? cards",
-    hint: "The three cards that open each form. Keep them in this order: talent, brands, partners.",
+    hint: "The two cards that open each form. Keep them in this order: talent, brands.",
     fields: { cards: list("Cards", "card", { eyebrow: text("Label"), title: text("Headline"), body: text("Line"), cta: text("Button") }) },
     defaults: {
       cards: [
         { eyebrow: "For talent", title: "Want us to represent you?", body: "Models, influencers, UGC creators and streamers.", cta: "Apply now" },
         { eyebrow: "For brands", title: "Looking for an external PR team?", body: "Influencer campaigns, UGC, guest lists and funding.", cta: "Book a call" },
-        { eyebrow: "Partner with us", title: "Want to work together?", body: "Referrals, affiliates, co-marketing and cross-promotion.", cta: "Send" },
       ],
     },
   },

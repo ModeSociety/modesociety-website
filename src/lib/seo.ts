@@ -10,7 +10,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.modeso
 export const SITE_NAME = "Mode Society";
 
 export type PageKey =
-  | "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact" | "partner"
+  | "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact"
   | "techHome" | "techBrands" | "techCreators" | "techTalent" | "techContact";
 
 export const TECH_NAME = "ModeSociety Tech";
@@ -79,17 +79,9 @@ export const PAGES: Record<PageKey, { path: string; title: string; description: 
     path: "/get-in-touch",
     title: "Contact Mode Society | Book a Call or Apply",
     description:
-      "Get in touch with Mode Society: book a call about your next campaign, apply for representation as a creator, or propose a partnership.",
+      "Get in touch with Mode Society: book a call about your next campaign, or apply for representation as a creator.",
     og: "Get in touch",
     crumb: "Contact us",
-  },
-  partner: {
-    path: "/partner-with-us",
-    title: "Partner With Mode Society | Referral & Co-Marketing",
-    description:
-      "B2B partnerships with Mode Society: referral and affiliate programs, co-marketing, cross-promotion and strategic alliances with platforms and agencies.",
-    og: "Partner with us",
-    crumb: "Partner with us",
   },
   techHome: {
     path: "/tech",

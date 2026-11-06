@@ -10,7 +10,6 @@ const NAV_KEY: Record<string, keyof NavWords> = {
   "/services": "servicesLink",
   "/our-work": "workLink",
   "/featured-in": "pressLink",
-  "/partner-with-us": "partnerLink",
   "/tech": "techLink",
   "/get-in-touch": "contactLink",
 };

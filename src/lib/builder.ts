@@ -297,7 +297,6 @@ export const DEFS: Record<string, BlockDef> = {
   "t.workNext": f("talent", "Want to be next?", "Closing call on burgundy", ["work.next"], { dark: true }),
   "t.pressHero": f("talent", "Featured in: page title", "Featured in, over the blurred word", ["press.hero"]),
   "t.pressList": f("talent", "Featured in: logos and features", "Publication logos and every feature (or the message while there's none)", ["press.hero"], { slots: ["press.logos"] }),
-  "t.partner": f("talent", "Partner with us: title and form", "The heading and the partnership form", ["partner.hero", "site.forms"], { page: "partner" }),
   "t.contactHero": f("talent", "Contact: page title", "Get in touch, with the line under it", ["contact.hero"]),
   "t.contactCards": f("talent", "Contact: who are you?", "The three cards that open each form", ["contact.cards", "site.forms"], { page: "contact" }),
   "t.contactSocials": f("talent", "Contact: social links", "The line beside the social links", ["contact.hero"]),
@@ -339,7 +338,6 @@ const DEFAULTS: Record<PageId, [string, string?][]> = {
   services: [["t.servicesHero", "hero"], ["t.servicesShowcase"]],
   work: [["t.workHero", "hero"], ["t.workGallery", "gallery"], ["t.workNext"]],
   press: [["t.pressHero", "hero"], ["t.pressList"], ["t.clients"]],
-  partner: [["t.partner"]],
   contact: [["t.contactHero", "hero"], ["t.contactCards"], ["t.contactSocials"]],
   techHome: [["x.hero", "hero"], ["x.intro", "intro"], ["x.who", "who"], ["x.logos"], ["x.talent", "talent"], ["x.run", "run"], ["x.policy", "policy"], ["x.landingForms"], ["x.faqHome"]],
   techBrands: [["x.brandsHead", "hero"], ["x.numbers"], ["x.intro"], ["x.process", "process"], ["x.brandsRun", "run"], ["x.faqBrands"]],
@@ -417,7 +415,6 @@ export function cleanStyle(raw: unknown): Style {
 export const FORMS = [
   { id: "brands", label: "Brand enquiry (Mode Society)", side: "talent" },
   { id: "talent", label: "Talent application (Mode Society)", side: "talent" },
-  { id: "partner", label: "Partnership enquiry (Mode Society)", side: "talent" },
   { id: "tech", label: "Brand enquiry / creator application (Tech)", side: "tech" },
 ] as const;
 

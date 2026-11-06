@@ -13,7 +13,5 @@ export const BUDGETS = ["Under $5k", "$5k – $15k", "$15k – $50k", "$50k – 
 /** TODO (Mode Society): set the final timeline options. */
 export const TIMELINES = ["As soon as possible", "Within a month", "1–3 months", "3–6 months", "Just exploring"] as const;
 
-// Brand partnerships
-export const PARTNERSHIPS = ["Referral / affiliate program", "Co-marketing", "Cross-promotion", "Events", "Other"] as const;
 
 export const SUCCESS_MESSAGE = "Thanks! We'll be in touch.";

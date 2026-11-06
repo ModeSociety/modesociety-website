@@ -3,26 +3,23 @@
 import { useEffect, useRef, useState } from "react";
 import type { SectionCopy } from "@/lib/copy";
 import BrandForm from "./BrandForm";
-import PartnerForm from "./PartnerForm";
 import TalentForm from "./TalentForm";
 
-export type FormKey = "talent" | "brands" | "partner";
+export type FormKey = "talent" | "brands";
 
-const KEYS: FormKey[] = ["talent", "brands", "partner"];
+const KEYS: FormKey[] = ["talent", "brands"];
 
 /** Three cards; picking one opens its form underneath (only one at a time). */
 export default function GetInTouch({
   initial,
-  partnerTypeHint = "",
   cards: copy,
   intros,
 }: {
   initial: FormKey | null;
-  partnerTypeHint?: string;
   cards: SectionCopy<"contact.cards">;
   intros: SectionCopy<"site.forms">;
 }) {
-  // the cards are edited in the admin panel in the order talent, brands, partners
+  // the cards are edited in the admin panel in the order talent, brands
   const CARDS = KEYS.map((key, i) => ({ key, ...(copy.cards[i] ?? { eyebrow: "", title: key, body: "", cta: "" }) }));
   const [active, setActive] = useState<FormKey | null>(initial);
   const formRef = useRef<HTMLDivElement>(null);
@@ -41,7 +38,7 @@ export default function GetInTouch({
 
   return (
     <section className="wrap pb-10">
-      <div className="grid gap-4 md:grid-cols-3" role="tablist" aria-label="Who are you?">
+      <div className="grid gap-4 md:grid-cols-2" role="tablist" aria-label="Who are you?">
         {CARDS.map((c) => {
           const on = active === c.key;
           return (
@@ -73,7 +70,6 @@ export default function GetInTouch({
             <div className="md:col-span-8 md:col-start-3">
               {active === "talent" && <TalentForm intro={intros.talent} />}
               {active === "brands" && <BrandForm intro={intros.brands} />}
-              {active === "partner" && <PartnerForm intro={intros.partner} typeHint={partnerTypeHint} />}
             </div>
           </div>
         )}

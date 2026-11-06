@@ -6,7 +6,6 @@ import Link from "next/link";
 import { StrikeList } from "@/components/about/AboutFx";
 import BrandForm from "@/components/forms/BrandForm";
 import GetInTouch, { type FormKey } from "@/components/forms/GetInTouch";
-import PartnerForm from "@/components/forms/PartnerForm";
 import TalentForm from "@/components/forms/TalentForm";
 import Clients from "@/components/home/Clients";
 import DualCta from "@/components/home/DualCta";
@@ -35,7 +34,7 @@ import type { Feature } from "./types";
 
 /* a loose editorial rhythm of crops down the Our work grid; videos stay portrait */
 const SHAPES = ["aspect-[4/5]", "aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[2/3]", "aspect-[4/5]"];
-const FORM_KEYS: FormKey[] = ["talent", "brands", "partner"];
+const FORM_KEYS: FormKey[] = ["talent", "brands"];
 
 function ServiceBody({ text, label, href }: { text: string; label: string; href: string }) {
   return (
@@ -701,22 +700,6 @@ export const TALENT: Record<string, Feature> = {
     },
   },
 
-  // ---------------------------------------------------------------- partner with us
-  "t.partner": {
-    render: ({ c, q }) => {
-      const hero = c.copy["partner.hero"];
-      return (
-        <section className="wrap pb-24 pt-28 md:pb-32 md:pt-36">
-          <SectionHead index={hero.tag} label={hero.label} meta={hero.meta} />
-          <RiseLines as="h1" immediate delay={0.15} className="font-display mt-6 text-[clamp(62px,14vw,240px)] leading-[0.84] text-ink" lines={headingLines(hero.heading)} />
-          <div className="mt-12 max-w-4xl md:mt-16">
-            <PartnerForm intro={c.copy["site.forms"].partner} typeHint={q.for === "tech" ? "Tech company" : ""} />
-          </div>
-        </section>
-      );
-    },
-  },
-
   // ---------------------------------------------------------------- contact
   "t.contactHero": {
     render: ({ c }) => {
@@ -735,7 +718,6 @@ export const TALENT: Record<string, Feature> = {
     render: ({ c, q }) => (
       <GetInTouch
         initial={FORM_KEYS.find((k) => k === q.form) ?? null}
-        partnerTypeHint={q.for === "tech" ? "Tech company" : ""}
         cards={c.copy["contact.cards"]}
         intros={c.copy["site.forms"]}
       />

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import BrandForm from "@/components/forms/BrandForm";
-import PartnerForm from "@/components/forms/PartnerForm";
 import TalentForm from "@/components/forms/TalentForm";
 import { Accordion } from "@/components/sections/Blocks";
 import Accent from "@/components/site/Accent";
@@ -256,7 +255,6 @@ function Body({ b, side, light, onDark, c }: P) {
       const form =
         p.form === "brands" ? <BrandForm intro={intros.brands} /> :
         p.form === "talent" ? <TalentForm intro={intros.talent} /> :
-        p.form === "partner" ? <PartnerForm intro={intros.partner} /> :
         p.form === "tech" ? <TechForms onPage /> : null;
       if (!form) return null;
       return (

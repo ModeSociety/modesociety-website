@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { SITE_TAG } from "./backend";
 
 /** The pages rebuilt straight after an edit, so the next visitor gets them fresh. */
-const WARM = ["/about", "/work-with-us", "/apply-to-be-a-creator", "/services", "/our-work", "/featured-in", "/partner-with-us", "/get-in-touch", "/tech"];
+const WARM = ["/about", "/work-with-us", "/apply-to-be-a-creator", "/services", "/our-work", "/featured-in", "/get-in-touch", "/tech"];
 
 /**
  * After an edit in the admin panel. Visitors never wait on the backend: pages keep being served

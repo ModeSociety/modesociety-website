@@ -54,12 +54,6 @@ const ENQUIRY_COLUMNS = {
     row: (r) => [r.at, r.status || "New", r.name, r.handle, r.email, r.as,
       (r.channels || []).map((c) => `${c.platform}: ${c.handle} · ${c.followers}`).join("\n"), r.niche, r.region, r.adult ? "Yes" : "No", r.notes, r.reference],
   },
-  partners: {
-    store: "partners",
-    headers: ["Submitted At", "Status", "Business Name", "Type Of Business", "Website / Instagram", "Your Name", "Email",
-      "Type Of Partnership", "Partnership Idea", "Reference"],
-    row: (r) => [r.at, r.status || "New", r.business, r.type, r.website, r.name, r.email, (r.partnership || []).join(", "), r.idea, r.reference],
-  },
 };
 const MIME = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml", ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime" };
 mkdirSync(FILES, { recursive: true });
@@ -81,12 +75,16 @@ const empty = {
   admins: [],
   talent: [],
   bookings: [],
-  partners: [],
   schedule: [],
   visits: [],
   files: {}, // id -> { mimeType, folder }
 };
-const load = () => (existsSync(DB) ? JSON.parse(readFileSync(DB, "utf8")) : structuredClone(empty));
+const load = () => {
+  const db = existsSync(DB) ? JSON.parse(readFileSync(DB, "utf8")) : structuredClone(empty);
+  // partnerships were retired on 6 Nov 2026: like Code.gs, the old partnership enquiries are dropped
+  delete db.partners;
+  return db;
+};
 const save = (db) => writeFileSync(DB, JSON.stringify(db, null, 2));
 const id = () => randomUUID().replace(/-/g, "") + "mock";
 const ref = (p) => `${p}-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${randomUUID().slice(0, 4).toUpperCase()}`;
@@ -160,11 +158,6 @@ const actions = {
   submitBooking: (db, p) => {
     const reference = ref("B");
     (db.bookings ||= []).push({ at: new Date().toISOString(), reference, ...p.fields });
-    return { reference };
-  },
-  submitPartner: (db, p) => {
-    const reference = ref("P");
-    (db.partners ||= []).push({ at: new Date().toISOString(), reference, ...p.fields });
     return { reference };
   },
 
@@ -336,9 +329,9 @@ function stats(db, days, side = "all") {
     countries: top(count(ss.filter((s) => s.country), (s) => s.country), 8),
     side,
     forms: {
-      talent: forms("talent", from, to), bookings: forms("bookings", from, to), partners: forms("partners", from, to),
+      talent: forms("talent", from, to), bookings: forms("bookings", from, to),
       techBrands: forms("techBrands", from, to), techCreators: forms("techCreators", from, to),
-      previous: { talent: forms("talent", prevFrom, from, true), bookings: forms("bookings", prevFrom, from, true), partners: forms("partners", prevFrom, from, true), techBrands: forms("techBrands", prevFrom, from, true), techCreators: forms("techCreators", prevFrom, from, true) },
+      previous: { talent: forms("talent", prevFrom, from, true), bookings: forms("bookings", prevFrom, from, true), techBrands: forms("techBrands", prevFrom, from, true), techCreators: forms("techCreators", prevFrom, from, true) },
     },
     schedule: { upcoming: sched.filter((a) => a.date >= to).length, thisPeriod: sched.filter((a) => a.date >= from && a.date <= to).length },
   };

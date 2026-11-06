@@ -30,11 +30,6 @@ var TABS = {
     headers: ['Submitted At', 'Status', 'Brand Name', 'Website / Instagram', 'Your Name', 'Email', 'Services',
       'About The Project', 'Budget', 'Timeline', 'Notes', 'Reference'],
   },
-  partners: {
-    name: 'Partnerships',
-    headers: ['Submitted At', 'Status', 'Business Name', 'Type Of Business', 'Website / Instagram', 'Your Name', 'Email',
-      'Type Of Partnership', 'Partnership Idea', 'Reference'],
-  },
   schedule: {
     name: 'Schedule',
     headers: ['ID', 'Title', 'Type', 'Date', 'Start', 'End', 'Client / Brand', 'Talent', 'Location / Link', 'Notes',
@@ -114,7 +109,7 @@ var MAX_ATTACH_BYTES = 20 * 1024 * 1024;
 var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
 
 /** The form tabs the admin panel reads back (panel name → TABS key). */
-var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', partners: 'partners', techBrands: 'techBrands', techCreators: 'techCreators' };
+var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', techBrands: 'techBrands', techCreators: 'techCreators' };
 
 var DEFAULT_SETTINGS = {
   heroMode: 'gravity',
@@ -169,7 +164,7 @@ function setup() {
       sheet.getRange(1, have + 1, 1, def.headers.length - have).setValues([def.headers.slice(have)])
         .setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
     }
-    if (key === 'talent' || key === 'bookings' || key === 'partners' || key === 'techBrands' || key === 'techCreators') {
+    if (key === 'talent' || key === 'bookings' || key === 'techBrands' || key === 'techCreators') {
       var rule = SpreadsheetApp.newDataValidation().requireValueInList(STATUSES, true).build();
       sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
     }
@@ -177,6 +172,7 @@ function setup() {
     if (key === 'schedule') sheet.getRange('D:F').setNumberFormat('@');
     if (key === 'visits') sheet.getRange('B:B').setNumberFormat('@');
   });
+  retirePartnerships_();
   var stray = ss.getSheetByName('Sheet1');
   if (stray && ss.getSheets().length > 1) ss.deleteSheet(stray);
 
@@ -256,8 +252,28 @@ function doGet() {
 var SITE_WRITES = ['setSettings', 'setSlot', 'saveRosterMember', 'deleteRosterMember', 'setRosterOrder', 'savePressItem',
   'deletePressItem', 'setPressOrder', 'setContent', 'resetContent'];
 
+/**
+ * Partnerships were retired on 6 Nov 2026 (Asha's request). The partnership offers already received
+ * live in the "Partnerships" tab: it is deleted once, on the first request after this version is
+ * deployed (or when setup() runs), and a script property records that it's done. The copies of those
+ * enquiries in the pr@ inbox are kept.
+ */
+function retirePartnerships_() {
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty('PARTNERSHIPS_RETIRED')) return;
+  withLock_(function () {
+    if (props.getProperty('PARTNERSHIPS_RETIRED')) return;
+    var ss = spreadsheet_();
+    var tab = ss.getSheetByName('Partnerships');
+    if (tab) ss.deleteSheet(tab);
+    props.setProperty('PARTNERSHIPS_RETIRED', new Date().toISOString());
+  });
+  siteCacheClear_();
+}
+
 function doPost(e) {
   try {
+    retirePartnerships_();
     var body = JSON.parse(e.postData.contents || '{}');
     var secret = PropertiesService.getScriptProperties().getProperty('SHARED_SECRET');
     if (!secret || body.secret !== secret) return json_({ ok: false, error: 'unauthorised' });
@@ -475,20 +491,6 @@ var ACTIONS = {
       ['Brand', f.brand], ['Website / Instagram', f.website], ['Name', f.name], ['Email', f.email],
       ['Services', (f.services || []).join(', ')], ['About the project', f.project], ['Budget', f.budget],
       ['Timeline', f.timeline], ['Notes', f.notes],
-    ]);
-    return { reference: ref };
-  },
-
-  submitPartner: function (p) {
-    var f = p.fields || {};
-    var ref = reference_('P');
-    withLock_(function () {
-      sheet_('partners').appendRow([new Date(), 'New', f.business, f.type, f.website, f.name, f.email,
-        (f.partnership || []).join(', '), f.idea, ref]);
-    });
-    notify_('New partnership enquiry: ' + (f.business || f.name || 'Unnamed'), ref, f.email, [
-      ['Business', f.business], ['Type of business', f.type], ['Website / Instagram', f.website], ['Name', f.name],
-      ['Email', f.email], ['Type of partnership', (f.partnership || []).join(', ')], ['Partnership idea', f.idea],
     ]);
     return { reference: ref };
   },
@@ -855,11 +857,10 @@ var ACTIONS = {
       countries: top_(cur.countries, 8),
       side: side,
       forms: {
-        talent: countSince_('talent', from, to), bookings: countSince_('bookings', from, to), partners: countSince_('partners', from, to),
+        talent: countSince_('talent', from, to), bookings: countSince_('bookings', from, to),
         techBrands: countSince_('techBrands', from, to), techCreators: countSince_('techCreators', from, to),
         previous: {
           talent: countSince_('talent', prevFrom, from, true), bookings: countSince_('bookings', prevFrom, from, true),
-          partners: countSince_('partners', prevFrom, from, true),
           techBrands: countSince_('techBrands', prevFrom, from, true), techCreators: countSince_('techCreators', prevFrom, from, true),
         },
       },

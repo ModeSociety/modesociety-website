@@ -307,6 +307,7 @@ export const DEFS: Record<string, BlockDef> = {
   // ---- ModeSociety Tech's designed sections ----
   "x.hero": f("tech", "Hero", "Not just gaming: the chips, the headline and the Player 1 / Player 2 cards", ["techSite.hero"]),
   "x.ticker": f("tech", "Ticker", "The two moving strips, lime and ink", ["techSite.ticker"]),
+  "x.film": f("tech", "Welcome film", "The film under the hero, in a frosted glass frame", ["techSite.film"]),
   "x.who": f("tech", "Who we are", "The big statement and Quality over volume", ["techSite.who"]),
   "x.campaigns": f("tech", "Campaigns", "Cobalt, with the four frosted glass objects", ["techSite.campaigns"], { dark: true }),
   "x.run": f("tech", "What we run", "The bento grid on violet and magenta", ["techSite.run"], { dark: true }),
@@ -327,7 +328,7 @@ const DEFAULTS: Record<PageId, [string, string?][]> = {
   work: [["t.workHero", "hero"], ["t.workGallery", "gallery"], ["t.workNext"]],
   press: [["t.pressHero", "hero"], ["t.pressList"], ["t.clients"]],
   contact: [["t.contactHero", "hero"], ["t.contactCards"], ["t.contactSocials"]],
-  techHome: [["x.hero", "hero"], ["x.ticker", "intro"], ["x.who", "who"], ["x.campaigns", "talent"], ["x.run", "run"], ["x.rules", "policy"], ["x.contact"], ["x.faq"]],
+  techHome: [["x.hero", "hero"], ["x.ticker", "intro"], ["x.film"], ["x.who", "who"], ["x.campaigns", "talent"], ["x.run", "run"], ["x.rules", "policy"], ["x.contact"], ["x.faq"]],
 };
 
 

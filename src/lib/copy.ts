@@ -719,6 +719,25 @@ export const SECTIONS = {
       ],
     },
   },
+  "techSite.film": {
+    side: "tech",
+    page: "Home",
+    path: "/tech",
+    title: "Welcome film",
+    hint: "The film under the hero. It plays muted as a preview; the button plays it with sound.",
+    hideable: true,
+    fields: {
+      videoUrl: text("Video link", "The welcome film is built in (/tech/welcome-1080.mp4). To change it, paste a YouTube or Vimeo link, an .mp4 address, or a Google Drive link (shared with anyone with the link; it plays in Drive's own player)"),
+      label: text("Small label above it", "Leave empty to hide it"),
+      play: text("Play button"),
+    },
+    defaults: {
+      // Asha's film (Drive: MST_Welcome_to_Mode_Society_Tech_16x9_CGI.mp4), re-encoded and served by the site
+      videoUrl: "/tech/welcome-1080.mp4",
+      label: "",
+      play: "Play with sound",
+    },
+  },
   "techSite.who": {
     side: "tech",
     page: "Home",

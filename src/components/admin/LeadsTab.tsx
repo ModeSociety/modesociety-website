@@ -6,8 +6,6 @@ import { CLOSED_STATUSES, ENQUIRY_KINDS, statusesFor, type Enquiry, type Enquiry
 import type { Side } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
-/** a lead type, or "declined": every declined lead, wherever it came from */
-type View = EnquiryKind | "declined";
 
 const STATUS_STYLE: Record<string, string> = {
   New: "bg-ink text-white",
@@ -149,8 +147,8 @@ export default function LeadsTab({
   const [items, setItems] = useState<Items | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [kind, setKind] = useState<View>(kinds[0].id);
-  const [status, setStatus] = useState("all");
+  const [kind, setKind] = useState<EnquiryKind>(kinds[0].id);
+  const [status, setStatus] = useState<string>("New");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState("");
   const [saving, setSaving] = useState("");
@@ -176,23 +174,15 @@ export default function LeadsTab({
     load();
   }, [load]);
 
-  // declined and lost leads leave their own list for the Declined & lost view, where they can be deleted
-  const declined = useMemo(
-    () =>
-      kinds
-        .flatMap((k) => (items?.[k.id] || []).filter((e) => CLOSED_STATUSES.has(e.status)))
-        .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)),
-    [items, kinds],
-  );
+  // one tab per status of the open lead type; search looks inside the open tab
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const pool = kind === "declined" ? declined : (items?.[kind] || []).filter((e) => !CLOSED_STATUSES.has(e.status));
-    return pool.filter(
-      (e) =>
-        (kind === "declined" || status === "all" || (status === "open" ? e.status !== "Signed" && e.status !== "Won" : e.status === status)) &&
-        (!q || [e.title, e.subtitle, e.email, e.reference, ...e.fields.map((f) => f.value)].join(" ").toLowerCase().includes(q)),
+    return (items?.[kind] || []).filter(
+      (e) => e.status === status && (!q || [e.title, e.subtitle, e.email, e.reference, ...e.fields.map((f) => f.value)].join(" ").toLowerCase().includes(q)),
     );
-  }, [items, kind, status, query, declined]);
+  }, [items, kind, status, query]);
+  const count = (k: EnquiryKind, st: string) => items?.[k].filter((e) => e.status === st).length ?? 0;
+  const closed = CLOSED_STATUSES.has(status);
   const kindLabel = (k: EnquiryKind) => ENQUIRY_KINDS.find((x) => x.id === k)!.label;
 
   const setEnquiryStatus = async (e: Enquiry, next: string) => {
@@ -203,13 +193,9 @@ export default function LeadsTab({
     setSaving(e.reference);
     try {
       await postJson("/api/admin/enquiries", { kind: e.kind, reference: e.reference, status: next });
-      if (CLOSED_STATUSES.has(next)) {
-        setOpen("");
-        notify(`${e.title} moved to Declined & lost`);
-      } else if (CLOSED_STATUSES.has(prev)) {
-        setOpen("");
-        notify(`${e.title} moved back to ${kindLabel(e.kind)}`);
-      } else notify(`Marked ${next.toLowerCase()}`);
+      // the lead moves to its new tab straight away
+      setOpen("");
+      notify(`${e.title} moved to ${next}`);
     } catch (err) {
       patch(prev);
       notify((err as Error).message);
@@ -223,7 +209,7 @@ export default function LeadsTab({
     const ask =
       list.length === 1
         ? `Delete ${list[0].title}'s ${list[0].kind === "talent" || list[0].kind === "techCreators" ? "application" : "lead"} for good? It's removed from the Sheet${list[0].files.length || list[0].folderUrl ? ", and their screenshots go to the Drive bin" : ""}.`
-        : `Delete all ${list.length} declined leads for good? They're removed from the Sheet, and any talent screenshots go to the Drive bin.`;
+        : `Delete all ${list.length} ${list[0].status.toLowerCase()} leads for good? They're removed from the Sheet, and any talent screenshots go to the Drive bin.`;
     if (!confirm(ask)) return;
     const gone = new Set<string>();
     for (const e of list) {
@@ -246,56 +232,36 @@ export default function LeadsTab({
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Lead type">
           {kinds.map((k) => {
-            const fresh = items?.[k.id].filter((e) => e.status === "New").length || 0;
-            const count = items ? items[k.id].filter((e) => !CLOSED_STATUSES.has(e.status)).length : "–";
+            const fresh = count(k.id, "New");
             return (
               <button
                 key={k.id}
                 onClick={() => {
                   setKind(k.id);
+                  if (!statusesFor(k.id).includes(status)) setStatus("New");
                   setOpen("");
                 }}
                 className="chip"
                 aria-pressed={kind === k.id}
               >
                 {k.label}
-                <span className="text-[12px] opacity-70">{count}</span>
                 {fresh > 0 && <span className="rounded-full bg-red px-1.5 text-[11px] font-semibold text-white">{fresh} new</span>}
               </button>
             );
           })}
-          <button
-            onClick={() => {
-              setKind("declined");
-              setOpen("");
-            }}
-            className="chip"
-            aria-pressed={kind === "declined"}
-          >
-            Declined &amp; lost
-            <span className="text-[12px] opacity-70">{items ? declined.length : "–"}</span>
-          </button>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search names, emails, answers…"
+            placeholder={`Search ${status.toLowerCase()}…`}
+            aria-label={`Search the ${status} tab`}
             className="w-56 border border-line bg-white px-3 py-2"
           />
-          {kind !== "declined" && (
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-line bg-white px-3 py-2" aria-label="Filter by status">
-              <option value="all">All statuses</option>
-              <option value="open">Still open</option>
-              {statusesFor(kind).filter((s) => !CLOSED_STATUSES.has(s)).map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          )}
           <button className="chip" onClick={load} disabled={loading}>
             {loading ? "Refreshing…" : "↻ Refresh"}
           </button>
@@ -307,15 +273,38 @@ export default function LeadsTab({
         </div>
       </div>
 
+      {/* one tab per status, each with its count */}
+      <div role="tablist" aria-label="Status" className="mb-5 flex gap-1 overflow-x-auto border-b border-line">
+        {statusesFor(kind).map((st) => (
+          <button
+            key={st}
+            role="tab"
+            aria-selected={status === st}
+            onClick={() => {
+              setStatus(st);
+              setOpen("");
+            }}
+            className={`-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-[14px] transition-colors ${
+              status === st ? "border-ink font-medium text-ink" : "border-transparent text-muted hover:text-ink"
+            }`}
+          >
+            {st}
+            <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${status === st ? "bg-ink text-paper" : "bg-paper-2 text-ink-2"}`}>
+              {items ? count(kind, st) : "–"}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {error && <p className="mb-4 border-l-2 border-pin bg-paper-2 p-4 text-sm text-ink-2">Couldn&apos;t load leads: {error}</p>}
       {!items && !error && <p className="text-muted">Loading leads…</p>}
 
-      {items && kind === "declined" && (
+      {items && closed && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-2">
-          <p>Every creator marked Declined and every brand marked Lost. Change its status to move it back, or delete it for good.</p>
-          {declined.length > 1 && (
-            <button className="text-pin underline underline-offset-4" disabled={Boolean(saving)} onClick={() => remove(declined)}>
-              Delete all {declined.length} declined
+          <p>Change a lead&apos;s status to move it back, or delete it for good.</p>
+          {list.length > 1 && (
+            <button className="text-pin underline underline-offset-4" disabled={Boolean(saving)} onClick={() => remove(list)}>
+              Delete all {list.length} {status.toLowerCase()}
             </button>
           )}
         </div>
@@ -325,13 +314,7 @@ export default function LeadsTab({
         <ul className="border border-line bg-white">
           {list.length === 0 && (
             <li className="p-8 text-center text-muted">
-              {kind === "declined"
-                ? declined.length
-                  ? "Nothing matches that search."
-                  : "Nothing here. Leads you mark Declined or Lost move here."
-                : items[kind].some((e) => !CLOSED_STATUSES.has(e.status))
-                  ? "Nothing matches that search or filter."
-                  : `No ${kindLabel(kind).toLowerCase()} yet.`}
+              {count(kind, status) ? "Nothing in this tab matches that search." : `No ${status.toLowerCase()} ${kindLabel(kind).toLowerCase()}.`}
             </li>
           )}
           {list.map((e) => {
@@ -351,7 +334,6 @@ export default function LeadsTab({
                     <span className="block truncate text-[13px] text-muted md:hidden">{e.subtitle || e.email}</span>
                   </span>
                   <span className="hidden min-w-0 truncate text-[14px] text-ink-2 md:block">
-                    {kind === "declined" && <span className="text-muted">{kindLabel(e.kind)} · </span>}
                     {e.subtitle}
                     {e.subtitle && e.email ? " · " : ""}
                     {e.email}

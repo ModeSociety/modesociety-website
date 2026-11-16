@@ -607,6 +607,25 @@ textarea.input {
    behind sections. Everything is scoped to .tech-root, and the shared tokens are
    re-pointed so the shared form components (fields, chips, buttons) follow along.
    ========================================================================= */
+/* the admin panel while Tech is open: the Tech palette (Asha's v3.5 design) on the shared tokens,
+   so it is clear at a glance which business is being edited; the admin's own type stays */
+.admin-tech {
+  --paper: #ffffff;
+  --paper-2: #f2f6ff;
+  --ink: #0d1240;
+  --ink-2: #3a4372;
+  --ink-deep: #0b1438;
+  --muted: #5a6390;
+  --line: #dce3f7;
+  --pin: #3e5ef0;
+  --red: #3e5ef0;
+  --espresso: #0d1240;
+}
+.admin-tech ::selection {
+  background: #3e5ef0;
+  color: #fff;
+}
+
 html:has(.tech-root),
 html:has(.tech-root) body {
   background: #f7f9fe;

@@ -142,6 +142,25 @@ const LINKS_KEY = "ms-admin-links";
 /** at this width and up the menu sits beside the page; below it, it covers the page */
 const WIDE = "(min-width: 1024px)";
 
+/** The open business's logo and name, so it is clear at a glance which one is being edited. */
+function SideLogo({ side }: { side: Side }) {
+  return side === "tech" ? (
+    <span className="flex shrink-0 items-center gap-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/tech/logom-gradient.png" alt="" className="h-7 w-auto" />
+      <span className="hidden whitespace-nowrap text-[13px] font-extrabold uppercase tracking-[0.02em] sm:inline">
+        ModeSociety <span className="text-[#3e5ef0]">Tech</span>
+      </span>
+    </span>
+  ) : (
+    <span className="flex shrink-0 items-center gap-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand/logo.svg" alt="" className="h-6 w-auto" />
+      <span className="hidden font-display text-sm sm:inline">MODE SOCIETY</span>
+    </span>
+  );
+}
+
 /** The ☰ button: three bars that turn into × while the menu is open. */
 function MenuButton({ open, onClick }: { open: boolean; onClick: () => void }) {
   return (
@@ -283,12 +302,12 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
   };
 
   return (
-    <div className="pb-24">
+    <div className={`min-h-screen bg-paper pb-24 text-ink transition-colors duration-300 ${side === "tech" ? "admin-tech" : ""}`}>
       <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
         <div className="flex h-16 items-center justify-between gap-3 px-4 md:px-6">
           <div className="flex min-w-0 items-center gap-3 md:gap-4">
             <MenuButton open={menuOpen} onClick={() => toggleMenu()} />
-            <span className="hidden font-display text-sm sm:inline">MODE SOCIETY</span>
+            <SideLogo side={side} />
             <span className="eyebrow hidden lg:inline">Admin</span>
             <SidePicker side={side} onChange={setSide} />
           </div>

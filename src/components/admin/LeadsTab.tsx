@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { postJson } from "@/lib/upload";
 import { CLOSED_STATUSES, ENQUIRY_KINDS, statusesFor, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
 import { parseChannels } from "@/lib/channels";
+import LeadImages from "./LeadImages";
 import type { Side } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
@@ -89,27 +90,6 @@ function Channels({ text }: { text: string }) {
   );
 }
 
-/**
- * A talent screenshot from Drive, shown through the admin-only route: the list shows the small kept
- * thumbnail, and the full file loads only when opened. PDFs fall back to a link.
- */
-function Shot({ id, n }: { id: string; n: number }) {
-  const [broken, setBroken] = useState(false);
-  const src = `/api/admin/enquiries/file/${id}`;
-  if (broken)
-    return (
-      <a href={src} target="_blank" rel="noreferrer" className="grid aspect-[3/4] place-items-center border border-line bg-paper-2 text-sm text-ink-2 underline">
-        File {n} ↗
-      </a>
-    );
-  return (
-    <a href={src} target="_blank" rel="noreferrer" className="block aspect-[3/4] overflow-hidden border border-line bg-paper-2" title="Open full size">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`${src}?size=thumb`} alt={`Screenshot ${n}`} loading="lazy" decoding="async" onError={() => setBroken(true)} className="h-full w-full object-cover object-top" />
-    </a>
-  );
-}
-
 function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: string) => void; onDelete?: () => void; saving: boolean }) {
   const subject = encodeURIComponent(`Mode Society — ${e.kind === "talent" ? "your application" : "your enquiry"} (${e.reference})`);
   return (
@@ -128,11 +108,7 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
         {e.files.length > 0 && (
           <div className="mt-8">
             <p className="eyebrow mb-3">Engagement screenshots ({e.files.length})</p>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-              {e.files.map((id, i) => (
-                <Shot key={id} id={id} n={i + 1} />
-              ))}
-            </div>
+            <LeadImages ids={e.files} label="Screenshot" />
           </div>
         )}
       </div>

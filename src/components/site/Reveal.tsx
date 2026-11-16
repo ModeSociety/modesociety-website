@@ -18,7 +18,7 @@ export function ScrubText({ text, className = "" }: { text: string; className?: 
           duration: 0.6,
           stagger: 0.025,
           ease: "power1.out",
-          scrollTrigger: { trigger: ref.current, start: "top 80%", once: true },
+          scrollTrigger: { trigger: ref.current, start: "top 80%", toggleActions: "play none none none" },
         },
       );
     },

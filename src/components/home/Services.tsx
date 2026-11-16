@@ -20,7 +20,7 @@ export default function Services({ copy, quote, index }: { copy: SectionCopy<"si
         const cards = gsap.utils.toArray<HTMLElement>(".svc-card");
         const mid = (cards.length - 1) / 2;
         gsap
-          .timeline({ scrollTrigger: { trigger: ref.current, start: "top 65%", once: true } })
+          .timeline({ scrollTrigger: { trigger: ref.current, start: "top 65%", toggleActions: "play none none none" } })
           .from(".svc-heading .reveal-line > span", { yPercent: 110, duration: 1.1, stagger: 0.1, ease: "expo.out" })
           .from(
             cards,
@@ -29,7 +29,7 @@ export default function Services({ copy, quote, index }: { copy: SectionCopy<"si
           );
       });
       mm.add("(max-width: 899px)", () => {
-        gsap.from(".svc-card", { y: 60, opacity: 0, stagger: 0.08, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ref.current, start: "top 75%", once: true } });
+        gsap.from(".svc-card", { y: 60, opacity: 0, stagger: 0.08, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ref.current, start: "top 75%", toggleActions: "play none none none" } });
       });
     },
     { scope: ref },

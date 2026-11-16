@@ -14,7 +14,7 @@ export function StrikeList({ items }: { items: string[] }) {
         // plays once as the row comes into view, so it's never caught half-drawn
         const txt = li.querySelector(".txt");
         gsap
-          .timeline({ scrollTrigger: { trigger: li, start: "top 82%", once: true } })
+          .timeline({ scrollTrigger: { trigger: li, start: "top 82%", toggleActions: "play none none none" } })
           .fromTo(txt, { backgroundSize: "0% 0.08em" }, { backgroundSize: "100% 0.08em", duration: 0.7, ease: "power2.inOut" })
           .fromTo(txt, { color: inkCss(1) }, { color: inkCss(0.3), duration: 0.5, ease: "none" }, "-=0.3");
       });

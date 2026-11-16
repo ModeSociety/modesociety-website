@@ -30,7 +30,7 @@ export default function Animated({
       const el = ref.current;
       if (!el || kind === "none" || prefersReducedMotion()) return;
       const photos = el.querySelectorAll("[data-photo]");
-      const trigger = { trigger: el, start: "top 85%", once: true };
+      const trigger = { trigger: el, start: "top 85%", toggleActions: "play none none none" };
       // the transform is cleared afterwards, so pinned and sticky parts inside still work
       const done = { clearProps: "transform,opacity" };
       if (kind === "fade") gsap.from(el.children, { y: 40, opacity: 0, duration: 1.1, ease: "expo.out", stagger: 0.08, scrollTrigger: trigger, ...done });

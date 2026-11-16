@@ -4,6 +4,7 @@ import { Suspense, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import { handleSectionLinks, scrollToSection } from "@/lib/anchor";
 import type { SiteSettings } from "@/lib/slots";
 import Intro from "./Intro";
 import NavProgress from "./NavProgress";
@@ -35,10 +36,12 @@ export default function SiteShell({
     };
   }, []);
 
+  useEffect(() => handleSectionLinks(), []);
+
   useEffect(() => {
     // Respect #anchors (e.g. "Apply now" → #apply); otherwise start each page at the top.
     const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-    if (target) setTimeout(() => target.scrollIntoView({ behavior: "smooth" }), 300);
+    if (target) setTimeout(() => scrollToSection(target), 300);
     else window.scrollTo(0, 0);
     const id = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(id);

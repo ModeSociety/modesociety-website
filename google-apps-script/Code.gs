@@ -98,7 +98,7 @@ var MEDIA_FOLDERS = [
  */
 var NOTIFY_DEFAULTS = {
   talent: 'pr@modesociety.com.au',
-  bookings: 'pr@modesociety.com.au',
+  bookings: 'brands@modesociety.com.au', // brand leads (Asha's brief, section 2); creator leads stay on pr@
   techBrands: 'techadmin@modesociety.com.au, patrick@modesociety.com.au',
   techCreators: 'techadmin@modesociety.com.au, patrick@modesociety.com.au',
 };

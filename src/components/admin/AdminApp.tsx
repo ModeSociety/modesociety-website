@@ -122,16 +122,17 @@ function Centered({ children }: { children: React.ReactNode }) {
 type Tab = "leads" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
-/** Which tabs each side uses: the roster is Tech only, Featured in and the animations are the talent site's. */
+/** Which tabs each side uses (the roster is Tech only, Featured in and the animations are the talent site's),
+ * in order of importance: what the team uses most comes first. */
 const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string }[] = [
   { id: "leads", label: "Leads", group: "Day to day", sides: ["talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to the team." },
   { id: "insights", label: "Insights", group: "Day to day", sides: ["talent", "tech"], about: "Who's visiting the site, where from, and how many leads it brings in." },
-  { id: "pages", label: "Pages", group: "Website", sides: ["talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
   { id: "copy", label: "Pages & text", group: "Website", sides: ["talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
-  { id: "press", label: "Featured in", group: "Website", sides: ["talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
   { id: "images", label: "Images & video", group: "Website", sides: ["talent", "tech"], about: "Every photo, logo and video on the site, and the Drive folder each one reads from." },
-  { id: "theme", label: "Colours & fonts", group: "Website", sides: ["talent", "tech"], about: "The brand colours and the fonts, for each side. Nothing changes until you save, and each one can go back to the original." },
+  { id: "pages", label: "Pages", group: "Website", sides: ["talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
+  { id: "press", label: "Featured in", group: "Website", sides: ["talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
   { id: "roster", label: "Roster", group: "Website", sides: ["tech"], about: "The creators on ModeSociety Tech, with their channels and follower counts." },
+  { id: "theme", label: "Colours & fonts", group: "Website", sides: ["talent", "tech"], about: "The brand colours and the fonts, for each side. Nothing changes until you save, and each one can go back to the original." },
   { id: "animations", label: "Animations", group: "Website", sides: ["talent"], about: "How the home page hero, the intro and the footer logo move." },
   { id: "access", label: "Access", group: "Team", sides: ["talent", "tech"], about: "The Google accounts that can sign in to this panel." },
 ];

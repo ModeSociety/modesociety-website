@@ -67,7 +67,10 @@ function Linkified({ text }: { text: string }) {
   );
 }
 
-/** A talent screenshot from Drive, shown through the admin-only route; PDFs fall back to a link. */
+/**
+ * A talent screenshot from Drive, shown through the admin-only route: the list shows the small kept
+ * thumbnail, and the full file loads only when opened. PDFs fall back to a link.
+ */
 function Shot({ id, n }: { id: string; n: number }) {
   const [broken, setBroken] = useState(false);
   const src = `/api/admin/enquiries/file/${id}`;
@@ -80,7 +83,7 @@ function Shot({ id, n }: { id: string; n: number }) {
   return (
     <a href={src} target="_blank" rel="noreferrer" className="block aspect-[3/4] overflow-hidden border border-line bg-paper-2" title="Open full size">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={`Screenshot ${n}`} loading="lazy" onError={() => setBroken(true)} className="h-full w-full object-cover object-top" />
+      <img src={`${src}?size=thumb`} alt={`Screenshot ${n}`} loading="lazy" decoding="async" onError={() => setBroken(true)} className="h-full w-full object-cover object-top" />
     </a>
   );
 }

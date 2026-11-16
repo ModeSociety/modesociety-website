@@ -75,7 +75,6 @@ const empty = {
   admins: [],
   talent: [],
   bookings: [],
-  schedule: [],
   visits: [],
   files: {}, // id -> { mimeType, folder }
 };
@@ -256,23 +255,6 @@ const actions = {
     });
     return { ok: true };
   },
-  listAppointments: (db, p) => ({
-    items: (db.schedule ||= [])
-      .filter((a) => a.date >= (p.from || "0") && a.date <= (p.to || "9"))
-      .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start)),
-  }),
-  saveAppointment: (db, p) => {
-    const list = (db.schedule ||= []);
-    const item = { ...p.item, side: p.item?.side === "tech" ? "tech" : "talent" };
-    const i = item.id ? list.findIndex((a) => a.id === item.id) : -1;
-    if (i >= 0) list[i] = { ...list[i], ...item };
-    else list.push({ ...item, id: randomUUID().slice(0, 8), createdBy: p.by });
-    return { item: i >= 0 ? list[i] : list.at(-1) };
-  },
-  deleteAppointment: (db, p) => {
-    db.schedule = (db.schedule || []).filter((a) => a.id !== p.id);
-    return { ok: true };
-  },
   track: (db, p) => {
     (db.visits ||= []).push({ ...p, date: day(new Date()) });
     return { ok: true };
@@ -316,7 +298,6 @@ function stats(db, days, side = "all") {
     return o;
   });
   const forms = (k, a, b, excl) => (db[k] || []).filter((x) => x.at.slice(0, 10) >= a && (excl ? x.at.slice(0, 10) < b : x.at.slice(0, 10) <= b)).length;
-  const sched = (db.schedule || []).filter((a) => a.status !== "Cancelled" && (side === "all" || (a.side || "talent") === side));
   return {
     range: { from, to, days },
     totals: cur.totals,
@@ -333,7 +314,6 @@ function stats(db, days, side = "all") {
       techBrands: forms("techBrands", from, to), techCreators: forms("techCreators", from, to),
       previous: { talent: forms("talent", prevFrom, from, true), bookings: forms("bookings", prevFrom, from, true), techBrands: forms("techBrands", prevFrom, from, true), techCreators: forms("techCreators", prevFrom, from, true) },
     },
-    schedule: { upcoming: sched.filter((a) => a.date >= to).length, thisPeriod: sched.filter((a) => a.date >= from && a.date <= to).length },
   };
 }
 

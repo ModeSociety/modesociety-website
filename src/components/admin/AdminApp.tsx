@@ -11,7 +11,6 @@ import RosterTab from "./RosterTab";
 import ThemeTab from "./ThemeTab";
 import type { SideFilter } from "@/lib/side";
 import InsightsTab from "./InsightsTab";
-import ScheduleTab from "./ScheduleTab";
 import {
   CTA_STYLES,
   FOOTER_STYLES,
@@ -120,12 +119,11 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "schedule" | "enquiries" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
+type Tab = "enquiries" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses: the roster is Tech only, Featured in and the animations are the talent site's. */
 const TABS: { id: Tab; label: string; group: Group; sides: SideFilter[]; about: string }[] = [
-  { id: "schedule", label: "Schedule", group: "Day to day", sides: ["all", "talent", "tech"], about: "The team calendar: calls, meetings, shoots, events and deadlines." },
   { id: "enquiries", label: "Enquiries", group: "Day to day", sides: ["all", "talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to pr@modesociety.com.au." },
   { id: "insights", label: "Insights", group: "Day to day", sides: ["all", "talent", "tech"], about: "Who's visiting the site, where from, and how many enquiries it brings in." },
   { id: "pages", label: "Pages", group: "Website", sides: ["all", "talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
@@ -165,7 +163,7 @@ function SidePicker({ side, onChange }: { side: SideFilter; onChange: (s: SideFi
 }
 
 function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
-  const [tab, setTab] = useState<Tab>("schedule");
+  const [tab, setTab] = useState<Tab>("enquiries");
   const [side, setSideState] = useState<SideFilter>("all");
   useEffect(() => {
     try {
@@ -183,7 +181,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
     } catch {
       /* storage blocked */
     }
-    if (!TABS.find((t) => t.id === tab)?.sides.includes(s)) setTab("schedule");
+    if (!TABS.find((t) => t.id === tab)?.sides.includes(s)) setTab("enquiries");
   };
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -269,15 +267,6 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         </div>
 
 
-        {tab === "schedule" && (
-          <ScheduleTab
-            me={me.session!.email}
-            team={[...new Set([me.owner, me.backendOwner, ...(me.admins || [])].filter((e): e is string => Boolean(e)))]}
-            disabled={!me.backendConfigured}
-            notify={notify}
-            side={side}
-          />
-        )}
         {tab === "enquiries" && <EnquiriesTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}

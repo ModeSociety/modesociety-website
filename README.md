@@ -61,9 +61,8 @@ Top to bottom: the loader; the nav (logo, the 20-segment XP meter, a keycap **ME
 
 Sign in with Google. Only approved accounts get in.
 
-The panel is shared, so everyone can see everything, but **All · Talent · Tech** at the top narrows it to one side, and each browser remembers its choice. On *Tech*, Enquiries shows only Tech brands and Tech creators, Schedule only Tech appointments, Insights only `/tech` traffic and Tech enquiries, and Images only the Tech slots. The Roster tab is Tech-only; Animations is talent-only.
+The panel is shared, so everyone can see everything, but **All · Talent · Tech** at the top narrows it to one side, and each browser remembers its choice. On *Tech*, Enquiries shows only Tech brands and Tech creators, Insights only `/tech` traffic and Tech enquiries, and Images only the Tech slots. The Roster tab is Tech-only; Animations is talent-only.
 
-- **Schedule:** the team calendar for calls, meetings, shoots, events and deadlines, stored in the *Schedule* tab of the Google Sheet. It has a month view with appointments colour-coded by type, and a *Coming up* list for the next 30 days (or a chosen day). Add an appointment with **+ New appointment**, or double-click a day. Each one can hold a time (or all day), client/brand, talent, location or meeting link, notes, status (Scheduled / Done / Cancelled), who it's assigned to, and which side it belongs to (Mode Society or ModeSociety Tech). **All / Mine** filters to your own, and **Add to Google Calendar** copies an appointment into anyone's calendar.
 - **Pages & text:** the wording of every section on both sites, page by page, under *Mode Society* and *ModeSociety Tech* (*Shared sections* holds the ones that appear on several pages: the services cards, the pull quote, the footer, the form introductions…). Open a section, change it and **Save**; it's live within a few seconds. In headings, each line is a line of the heading and words in `*stars*` get the accent style (the italic serif on the talent site, blue gradient type on Tech). Lists (FAQs, cards, steps, services) can be added to, reordered and deleted; most sections can be switched off with *Show this section on the site*; **Reset to original** brings back the first wording. Saved in the *Content* tab of the Sheet; everything not edited keeps the wording in `src/lib/copy.ts`.
 - **Pages (the page builder):** every page on both sites is a list of blocks, top to bottom, laid out like Squarespace. Pick a page, then:
   - **Add** a block: a general one (banner, text, image, image + text, gallery, video, quote, cards, numbers, questions, buttons, brand logos, an enquiry form, space or a line) or any of that side's *designed sections* (the polaroid hero, the flip cards, the character select…), which can also be placed on other pages. Drag or use the arrows to reorder; hide, duplicate or delete with the icons.
@@ -82,7 +81,7 @@ The panel is shared, so everyone can see everything, but **All · Talent · Tech
   - **Organic search visits** (visits from Google, Bing and other search engines without ads), visitors, visits, page views and enquiries as a share of visits.
   - A daily chart of visits by source (organic search, social, direct, referral, campaign/ads), with a hover breakdown and a table view.
   - Top pages, top referring sites, devices and countries.
-  - **Business:** talent applications, brand call bookings and appointments.
+  - **Business:** talent applications and brand call bookings (Tech: brand enquiries and creator applications).
 
 - **Images:** every image slot is listed with the Drive folder it reads from. Files dropped into that folder appear automatically (marked *from Drive*), and anything uploaded in the panel takes priority. You can upload, reorder, describe (**Aa**) or clear images. Brand logos have their white backgrounds removed on upload. Videos go straight into the Drive folders, because they're too large to upload through the site.
 - **Animations:** the hero mode (or *rotate*), the Let's work together style, the footer logo and the page intro.
@@ -112,7 +111,7 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | --- | --- |
 | **Talent** | One row per application: each channel's handle and follower count, links to the screenshots, and a **Status** dropdown. |
 | **Book a Call** | Brand bookings: services, project, budget and timeline. |
-| **Schedule** | The team calendar (admin panel → Schedule). It can be edited in the Sheet too: keep the *ID* column. |
+| **Schedule** | No longer used (the admin panel's Schedule was removed on 16 Nov 2026). Its rows are kept; nothing reads them. |
 | **Visits** | One row per page view (time, page, source, referring site, campaign, anonymous session/visitor ids, device, country). Rows older than ~13 months are removed automatically. |
 | **Tech Brand Enquiries** | ModeSociety Tech brand enquiries: category, formats, the campaign, budget and timeline, with a **Status** dropdown. Blue header and tab. |
 | **Tech Creator Applications** | ModeSociety Tech creator applications: handle, what they're applying as, channels with follower counts, niche, region and the 18+ confirmation. |
@@ -144,7 +143,7 @@ Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_
 
 ### 2. Deploy the backend (Google Apps Script)
 
-> **Updating an existing backend?** Paste the new `Code.gs` (and `appsscript.json` if it changed: it lists the permissions, e.g. sending the enquiry emails), run `setup` again and approve any new permission (it adds any missing tabs, folders and columns, such as the *Tech* tabs, the *Tech Brands*, *Tech Video* and *Intro Video* folders, the *Content* and *Featured In* tabs and the Schedule's *Side* column, without touching existing data; the one exception: the retired *Partnerships* tab and the partnership offers in it are deleted once), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
+> **Updating an existing backend?** Paste the new `Code.gs` (and `appsscript.json` if it changed: it lists the permissions, e.g. sending the enquiry emails), run `setup` again and approve any new permission (it adds any missing tabs, folders and columns, such as the *Tech* tabs, the *Tech Brands*, *Tech Video* and *Intro Video* folders, the *Content* and *Featured In* tabs without touching existing data; the one exception: the retired *Partnerships* tab and the partnership offers in it are deleted once), then use **Deploy → Manage deployments → ✎ → Version: New version** so the URL stays the same.
 
 Do this **signed in as the owner of that Drive**.
 
@@ -287,7 +286,7 @@ src/components/home/wall/engines.ts   The four hero modes
 src/components/services/              The Services page showcase (pinwheel + animated steps)
 src/components/work/, press/          Our work gallery/teaser and Featured in (press logos, feature cards)
 src/components/site/Editorial.tsx     Editorial pieces: section rules, red marker strokes, fit-to-width type
-src/components/admin/                 Admin panel (Schedule, Enquiries, Insights, Pages, Pages & text, Featured in, Images, Colours & fonts, Roster, Animations, Access)
+src/components/admin/                 Admin panel (Enquiries, Insights, Pages, Pages & text, Featured in, Images, Colours & fonts, Roster, Animations, Access)
 src/lib/builder.ts                    Page builder: block types, block styles, each page's designed layout
 src/components/builder/               Draws a page from its blocks: PageRender, Frame (a block's style), Generic (general blocks), talent.tsx / tech.tsx (designed sections)
 src/app/tech/, src/components/tx/     ModeSociety Tech (/tech): one page in Asha's v3.5 design (tx.css), its sections and form

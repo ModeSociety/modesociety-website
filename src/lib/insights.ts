@@ -61,7 +61,6 @@ export type Stats = {
     techCreators?: number;
     previous: { talent: number; bookings: number; techBrands?: number; techCreators?: number };
   };
-  schedule: { upcoming: number; thisPeriod: number };
 };
 
 type Totals = { pageviews: number; sessions: number; visitors: number; newVisitors: number; organic: number; pagesPerSession: number };

@@ -30,11 +30,6 @@ var TABS = {
     headers: ['Submitted At', 'Status', 'Brand Name', 'Website / Instagram', 'Your Name', 'Email', 'Services',
       'About The Project', 'Budget', 'Timeline', 'Notes', 'Reference'],
   },
-  schedule: {
-    name: 'Schedule',
-    headers: ['ID', 'Title', 'Type', 'Date', 'Start', 'End', 'Client / Brand', 'Talent', 'Location / Link', 'Notes',
-      'Status', 'Assigned To', 'Created By', 'Updated At', 'Side'],
-  },
   visits: {
     name: 'Visits',
     headers: ['Time', 'Date', 'Path', 'Source', 'Referrer', 'Campaign', 'Session', 'Visitor', 'New Visitor', 'Device', 'Country'],
@@ -70,10 +65,6 @@ var ROSTER_FIELDS = ['id', 'order', 'name', 'handle', 'type', 'niche', 'region',
 /** Featured in columns, in Sheet order. Photos are Drive file IDs, comma-separated; the first is the cover. */
 var PRESS_FIELDS = ['id', 'order', 'slug', 'outlet', 'title', 'date', 'excerpt', 'body', 'href', 'photos', 'visible'];
 
-/** Schedule columns, in sheet order (keep in sync with TABS.schedule.headers). */
-var SCHEDULE_FIELDS = ['id', 'title', 'type', 'date', 'start', 'end', 'client', 'talent', 'location', 'notes', 'status', 'assignee'];
-/** Column 15 of Schedule: which side an appointment belongs to ('talent' | 'tech'; blank = talent). */
-var SCHEDULE_SIDE_COL = 15;
 var VISITS_KEEP_DAYS = 400;
 
 var FOLDERS = {
@@ -159,7 +150,7 @@ function setup() {
       sheet.setFrozenRows(1);
       if (tech) sheet.setTabColor('#3e5ef1');
     } else if (sheet.getLastColumn() < def.headers.length) {
-      // a newer version added columns at the end (e.g. Schedule → Side): add their headers
+      // a newer version added columns at the end: add their headers
       var have = sheet.getLastColumn();
       sheet.getRange(1, have + 1, 1, def.headers.length - have).setValues([def.headers.slice(have)])
         .setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
@@ -169,7 +160,6 @@ function setup() {
       sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
     }
     // keep dates and times as plain text so Sheets doesn't turn them into date values
-    if (key === 'schedule') sheet.getRange('D:F').setNumberFormat('@');
     if (key === 'visits') sheet.getRange('B:B').setNumberFormat('@');
   });
   retirePartnerships_();
@@ -741,46 +731,6 @@ var ACTIONS = {
     return { mimeType: blob.getContentType(), name: file.getName(), data: Utilities.base64Encode(blob.getBytes()) };
   },
 
-  // ---- schedule ----------------------------------------------------------
-
-  /** Appointments whose date falls within [from, to] (yyyy-MM-dd, inclusive), sorted by date and time. */
-  listAppointments: function (p) {
-    var from = p.from || '0000-00-00';
-    var to = p.to || '9999-99-99';
-    return { items: readSchedule_().filter(function (a) { return a.date >= from && a.date <= to; }) };
-  },
-
-  /** Creates (no id) or updates an appointment. */
-  saveAppointment: function (p) {
-    var item = p.item || {};
-    return withLock_(function () {
-      var sheet = sheet_('schedule');
-      var values = sheet.getDataRange().getValues();
-      var row = -1;
-      if (item.id) for (var i = 1; i < values.length; i++) if (String(values[i][0]) === item.id) row = i + 1;
-      if (!item.id || row < 0) item.id = Utilities.getUuid().slice(0, 8);
-      var cells = SCHEDULE_FIELDS.map(function (k) { return item[k] || ''; });
-      var side = item.side === 'tech' ? 'tech' : 'talent';
-      if (row > 0) {
-        cells.push(values[row - 1][12] || p.by || '', new Date(), side);
-        sheet.getRange(row, 1, 1, cells.length).setValues([cells]);
-      } else {
-        cells.push(p.by || '', new Date(), side);
-        sheet.appendRow(cells);
-      }
-      return { item: item };
-    });
-  },
-
-  deleteAppointment: function (p) {
-    return withLock_(function () {
-      var sheet = sheet_('schedule');
-      var values = sheet.getDataRange().getValues();
-      for (var i = values.length - 1; i >= 1; i--) if (String(values[i][0]) === String(p.id)) sheet.deleteRow(i + 1);
-      return { ok: true };
-    });
-  },
-
   // ---- insights ----------------------------------------------------------
 
   /** One row per page view (the site has already classified the source and stripped anything personal). */
@@ -844,7 +794,6 @@ var ACTIONS = {
     var prevOrganic = 0;
     Object.keys(prev.sessions).forEach(function (k) { if (prev.sessions[k] === 'organic') prevOrganic++; });
 
-    var schedule = readSchedule_().filter(function (a) { return side === 'all' || a.side === side; });
     return {
       range: { from: from, to: to, days: days },
       totals: summary_(cur, cur.sources.organic || 0),
@@ -863,10 +812,6 @@ var ACTIONS = {
           talent: countSince_('talent', prevFrom, from, true), bookings: countSince_('bookings', prevFrom, from, true),
           techBrands: countSince_('techBrands', prevFrom, from, true), techCreators: countSince_('techCreators', prevFrom, from, true),
         },
-      },
-      schedule: {
-        upcoming: schedule.filter(function (a) { return a.date >= to && a.status !== 'Cancelled'; }).length,
-        thisPeriod: schedule.filter(function (a) { return a.date >= from && a.date <= to && a.status !== 'Cancelled'; }).length,
       },
     };
   },
@@ -989,22 +934,6 @@ function readPress_() {
       return o;
     })
     .sort(function (a, b) { return a.order - b.order; });
-}
-
-function readSchedule_() {
-  var sheet = sheet_('schedule');
-  if (!sheet || sheet.getLastRow() < 2) return [];
-  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, SCHEDULE_SIDE_COL).getValues();
-  return values
-    .filter(function (r) { return r[0]; })
-    .map(function (r) {
-      var o = {};
-      SCHEDULE_FIELDS.forEach(function (k, i) { o[k] = r[i] instanceof Date ? (k === 'date' ? asDay_(r[i]) : timeString_(r[i])) : String(r[i]); });
-      o.createdBy = String(r[12] || '');
-      o.side = String(r[SCHEDULE_SIDE_COL - 1] || '') === 'tech' ? 'tech' : 'talent';
-      return o;
-    })
-    .sort(function (a, b) { return (a.date + a.start).localeCompare(b.date + b.start); });
 }
 
 function emptyTraffic_() {

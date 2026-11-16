@@ -358,20 +358,13 @@ export default function InsightsTab({ disabled, side = "all" }: { disabled: bool
                     </dd>
                   </div>
                 ))}
-                <div className="flex items-baseline justify-between gap-3 border-b border-line pb-2">
+                <div className="flex items-baseline justify-between gap-3">
                   <dt className="text-ink">All enquiries</dt>
                   <dd className="text-right">
                     <span className="font-display text-xl tabular-nums text-ink">{enquiries}</span>
                     <div>
                       <Delta now={enquiries} before={prevEnquiries} />
                     </div>
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-ink">Appointments</dt>
-                  <dd className="text-right text-ink-2">
-                    <span className="font-display text-xl tabular-nums text-ink">{stats.schedule.thisPeriod}</span> this period ·{" "}
-                    <span className="tabular-nums text-ink">{stats.schedule.upcoming}</span> coming up
                   </dd>
                 </div>
               </dl>

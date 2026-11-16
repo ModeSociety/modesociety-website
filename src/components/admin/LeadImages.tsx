@@ -19,10 +19,11 @@ type Hover = { id: string; x: number; y: number; px: number; py: number; w: numb
 /**
  * One lead's photos and screenshots. The grid shows small kept thumbnails; on a computer, a window
  * beside the cursor shows a zoomed view of the part under it (from the full file, loaded on first
- * hover).
+ * hover). A click opens the image large inside the panel.
  */
 export default function LeadImages({ ids, label }: { ids: string[]; label: string }) {
   const [hover, setHover] = useState<Hover | null>(null);
+  const [shown, setShown] = useState<number | null>(null);
   const [canHover, setCanHover] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- only known in the browser
@@ -39,10 +40,15 @@ export default function LeadImages({ ids, label }: { ids: string[]; label: strin
             n={i + 1}
             label={label}
             onHover={canHover ? (h) => setHover(h && { ...h, id }) : undefined}
+            onOpen={() => {
+              setHover(null);
+              setShown(i);
+            }}
           />
         ))}
       </div>
       {hover && <Lens hover={hover} />}
+      {shown !== null && <Viewer ids={ids} index={shown} label={label} onClose={() => setShown(null)} />}
     </>
   );
 }
@@ -52,11 +58,13 @@ function Thumb({
   n,
   label,
   onHover,
+  onOpen,
 }: {
   id: string;
   n: number;
   label: string;
   onHover?: (h: Omit<Hover, "id"> | null) => void;
+  onOpen: () => void;
 }) {
   const [broken, setBroken] = useState(false);
   const src = fileUrl(id);
@@ -72,7 +80,13 @@ function Thumb({
       target="_blank"
       rel="noreferrer"
       className="block aspect-[3/4] cursor-zoom-in overflow-hidden border border-line bg-paper-2"
-      title="Open full size"
+      title="Open large"
+      onClick={(e) => {
+        // a plain click opens it here; Ctrl/⌘-click still opens the file in a new tab
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        onOpen();
+      }}
       onMouseMove={(e) => {
         if (!onHover) return;
         const r = e.currentTarget.getBoundingClientRect();
@@ -134,6 +148,73 @@ function Lens({ hover }: { hover: Hover }) {
       style={{ left, top, width: LENS, height: LENS, ...style }}
     >
       {!natural && <span className="grid h-full place-items-center text-xs text-muted">Loading…</span>}
+    </div>
+  );
+}
+
+/**
+ * The image large, over the panel, in the same window. A click outside the image, the × button or
+ * Esc closes it. A file that isn't an image (a PDF) shows a link to open it instead.
+ */
+function Viewer({ ids, index, label, onClose }: { ids: string[]; index: number; label: string; onClose: () => void }) {
+  const id = ids[index];
+  const [failed, setFailed] = useState("");
+  const close = useRef<HTMLButtonElement>(null);
+  // the latest onClose, so the set-up below runs once per opening (not on every render)
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement | null;
+    close.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCloseRef.current();
+    addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      before?.focus();
+    };
+  }, []);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${label} ${index + 1} of ${ids.length}`}
+      className="fixed inset-0 z-[60] grid place-items-center bg-[#0b0b0b]/85 p-4 backdrop-blur-sm md:p-10"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <button
+        ref={close}
+        onClick={onClose}
+        aria-label="Close"
+        className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-2xl text-white hover:bg-white/20"
+      >
+        ×
+      </button>
+      {failed === id ? (
+        <a href={fileUrl(id)} target="_blank" rel="noreferrer" className="rounded-lg bg-white px-6 py-4 text-ink underline">
+          Open {label.toLowerCase()} {index + 1} ↗
+        </a>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={id}
+          src={fileUrl(id)}
+          alt={`${label} ${index + 1}`}
+          onError={() => setFailed(id)}
+          className="max-h-[86vh] max-w-full rounded-md object-contain shadow-2xl"
+        />
+      )}
+      <p className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 font-mono text-[12px] text-white/80">
+        {index + 1} / {ids.length} ·{" "}
+        <a href={fileUrl(id)} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+          open original ↗
+        </a>
+      </p>
     </div>
   );
 }

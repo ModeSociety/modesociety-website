@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { postJson } from "@/lib/upload";
 import { CLOSED_STATUSES, ENQUIRY_KINDS, statusesFor, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
 import type { Side } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
+
+/** The last list this browser saw, so coming back to Leads (or switching side) shows it at once. */
+let kept: Items | null = null;
 
 const STATUS_STYLE: Record<string, string> = {
   New: "bg-ink text-white",
@@ -144,35 +147,60 @@ export default function LeadsTab({
   side: Side;
 }) {
   const kinds = ENQUIRY_KINDS.filter((k) => k.side === side);
-  const [items, setItems] = useState<Items | null>(null);
+  const [items, setItems] = useState<Items | null>(kept);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // bumped by every status change or delete: a fresh list that left before it is out of date
+  const writes = useRef(0);
   const [kind, setKind] = useState<EnquiryKind>(kinds[0].id);
   const [status, setStatus] = useState<string>("New");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState("");
   const [saving, setSaving] = useState("");
 
-  const load = useCallback(async () => {
-    if (disabled) return;
-    setLoading(true);
-    setError("");
-    try {
-      const r = await fetch("/api/admin/enquiries", { cache: "no-store" });
-      const d = await r.json();
-      if (!d.ok) throw new Error(d.error);
-      setItems(d.items);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [disabled]);
+  /**
+   * The website's kept copy first (instant), then a fresh list from the Sheet in the background, swapped
+   * in when it arrives. A fresh list that left before a status change or delete is dropped and asked for
+   * again, so it never undoes what was just saved.
+   */
+  const load = useCallback(
+    async (onlyFresh = false) => {
+      if (disabled) return;
+      setError("");
+      const get = async (fresh: boolean) => {
+        const r = await fetch(`/api/admin/enquiries${fresh ? "?fresh=1" : ""}`, { cache: "no-store" });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error);
+        return d.items as Items;
+      };
+      try {
+        if (!onlyFresh && !kept) setItems((kept = await get(false)));
+        setLoading(true);
+        for (let tries = 0; tries < 3; tries++) {
+          const before = writes.current;
+          const fresh = await get(true);
+          if (writes.current === before) {
+            setItems((kept = fresh));
+            break;
+          }
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [disabled],
+  );
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on open
     load();
   }, [load]);
+  // keep this browser's copy in step with what's on screen (status changes, deletes)
+  useEffect(() => {
+    if (items) kept = items;
+  }, [items]);
 
   // one tab per status of the open lead type; search looks inside the open tab
   const list = useMemo(() => {
@@ -190,6 +218,7 @@ export default function LeadsTab({
     const patch = (s: string) =>
       setItems((cur) => cur && { ...cur, [e.kind]: cur[e.kind].map((x) => (x.reference === e.reference ? { ...x, status: s } : x)) });
     patch(next); // show it straight away; undo if the Sheet write fails
+    writes.current++;
     setSaving(e.reference);
     try {
       await postJson("/api/admin/enquiries", { kind: e.kind, reference: e.reference, status: next });
@@ -212,6 +241,7 @@ export default function LeadsTab({
         : `Delete all ${list.length} ${list[0].status.toLowerCase()} leads for good? They're removed from the Sheet, and any talent screenshots go to the Drive bin.`;
     if (!confirm(ask)) return;
     const gone = new Set<string>();
+    writes.current++;
     for (const e of list) {
       setSaving(e.reference);
       try {
@@ -262,8 +292,8 @@ export default function LeadsTab({
             aria-label={`Search the ${status} tab`}
             className="w-56 border border-line bg-white px-3 py-2"
           />
-          <button className="chip" onClick={load} disabled={loading}>
-            {loading ? "Refreshing…" : "↻ Refresh"}
+          <button className="chip" onClick={() => load(true)} disabled={loading}>
+            {loading ? "Updating…" : "↻ Refresh"}
           </button>
           {sheetUrl && (
             <a className="chip" href={sheetUrl} target="_blank" rel="noreferrer">

@@ -1,6 +1,7 @@
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanList, rateLimit } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
+import { leadsChanged } from "@/lib/leads";
 import { PLATFORMS, TECH_APPLY_AS, TECH_REGIONS } from "@/lib/tech";
 
 const PLATFORM_LABELS = PLATFORMS.map((p) => p.label);
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
     if (!channels.length) throw new HttpError(400, "Add at least one channel");
     if (!fields.adult) throw new HttpError(400, "Every creator we sign is 18 or over");
     const data = await callBackend<{ reference: string }>("submitTechCreator", { fields });
+    leadsChanged();
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

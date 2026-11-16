@@ -1,6 +1,7 @@
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanList, rateLimit } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
+import { leadsChanged } from "@/lib/leads";
 import { TECH_BUDGETS, TECH_CATEGORY_OPTIONS, TECH_FORMAT_OPTIONS, TECH_TIMELINES } from "@/lib/tech";
 
 /** ModeSociety Tech: brand enquiry ("Tech Brand Enquiries" tab). */
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
     }
     if (!fields.about) throw new HttpError(400, "Tell us a little about the campaign");
     const data = await callBackend<{ reference: string }>("submitTechBrand", { fields });
+    leadsChanged();
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

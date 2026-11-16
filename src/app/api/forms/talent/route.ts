@@ -1,6 +1,7 @@
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds, cleanList, rateLimit } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
+import { leadsChanged } from "@/lib/leads";
 import { NICHES, PLATFORMS, ROLES, SIGNED } from "@/lib/forms";
 
 export async function POST(req: Request) {
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
     }
     if (!fields.consent) throw new HttpError(400, "Please confirm you're 18 or over, or have a parent or guardian's consent");
     const data = await callBackend<{ reference: string }>("submitTalent", { fields });
+    leadsChanged();
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

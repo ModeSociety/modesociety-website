@@ -1,6 +1,7 @@
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanList, rateLimit } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
+import { leadsChanged } from "@/lib/leads";
 import { BUDGETS, SERVICES, TIMELINES } from "@/lib/forms";
 
 /** "Book a call" form. */
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
     }
     if (!fields.project || !fields.budget || !fields.timeline) throw new HttpError(400, "Tell us about the project, budget and timeline");
     const data = await callBackend<{ reference: string }>("submitBooking", { fields });
+    leadsChanged();
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

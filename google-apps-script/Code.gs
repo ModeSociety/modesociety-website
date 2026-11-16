@@ -97,7 +97,13 @@ var SITE_URL = 'https://www.modesociety.com.au';
 /** Gmail takes 25 MB of attachments per email; files past this are linked to in the application folder instead. */
 var MAX_ATTACH_BYTES = 20 * 1024 * 1024;
 
-var STATUSES = ['New', 'Reviewing', 'Contacted', 'Signed / Booked', 'Declined'];
+/** A creator lead's path to signing, and a brand lead's path to a deal (16 Nov 2026; keep in sync with src/lib/enquiries.ts). */
+var CREATOR_STATUSES = ['New', 'Reviewing', 'Contract sent', 'Signed', 'Declined'];
+var BRAND_STATUSES = ['New', 'Contacted', 'Proposal sent', 'Won', 'Lost'];
+var CREATOR_KINDS = { talent: true, techCreators: true };
+/** the end of the road: only these leads can be deleted */
+var CLOSED_STATUSES = ['Declined', 'Lost'];
+function statusesFor_(kind) { return CREATOR_KINDS[kind] ? CREATOR_STATUSES : BRAND_STATUSES; }
 
 /** The form tabs the admin panel reads back (panel name → TABS key). */
 var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', techBrands: 'techBrands', techCreators: 'techCreators' };
@@ -156,7 +162,8 @@ function setup() {
         .setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
     }
     if (key === 'talent' || key === 'bookings' || key === 'techBrands' || key === 'techCreators') {
-      var rule = SpreadsheetApp.newDataValidation().requireValueInList(STATUSES, true).build();
+      var rule = SpreadsheetApp.newDataValidation()
+        .requireValueInList(key === 'talent' || key === 'techCreators' ? CREATOR_STATUSES : BRAND_STATUSES, true).build();
       sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
     }
     // keep dates and times as plain text so Sheets doesn't turn them into date values
@@ -670,14 +677,14 @@ var ACTIONS = {
       });
       out[kind] = { headers: (values[0] || []).map(String), rows: rows.reverse() };
     });
-    return { enquiries: out, statuses: STATUSES };
+    return { enquiries: out };
   },
 
   /** Sets the Status cell of the row with this Reference (rows can be sorted or deleted in the Sheet). */
   setEnquiryStatus: function (p) {
     var key = ENQUIRY_TABS[p.kind];
     if (!key) throw new Error('Unknown enquiry type');
-    if (STATUSES.indexOf(p.status) < 0) throw new Error('Unknown status');
+    if (statusesFor_(p.kind).indexOf(p.status) < 0) throw new Error('Unknown status');
     return withLock_(function () {
       var sheet = sheet_(key);
       var values = sheet.getDataRange().getValues();
@@ -694,8 +701,8 @@ var ACTIONS = {
   },
 
   /**
-   * Deletes a declined enquiry: its Sheet row, and for a talent application its folder of screenshots
-   * (moved to the Drive bin, which keeps it for 30 days). Only rows whose Status is Declined can go.
+   * Deletes a declined or lost lead: its Sheet row, and for a talent application its folder of screenshots
+   * (moved to the Drive bin, which keeps it for 30 days). Only rows whose Status is Declined or Lost can go.
    */
   deleteEnquiry: function (p) {
     var key = ENQUIRY_TABS[p.kind];
@@ -708,7 +715,7 @@ var ACTIONS = {
       var folderCol = values[0].indexOf('Application Folder');
       for (var i = values.length - 1; i >= 1; i--) {
         if (!p.reference || String(values[i][refCol]) !== String(p.reference)) continue;
-        if (String(values[i][statusCol]) !== 'Declined') throw new Error('Only declined enquiries can be deleted');
+        if (CLOSED_STATUSES.indexOf(String(values[i][statusCol])) < 0) throw new Error('Only declined or lost leads can be deleted');
         var folderId = folderCol < 0 ? '' : (String(values[i][folderCol]).match(/folders\/([-\w]+)/) || [])[1];
         sheet.deleteRow(i + 1);
         if (folderId) {

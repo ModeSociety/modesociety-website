@@ -2,15 +2,37 @@
 
 export type EnquiryKind = "talent" | "brands" | "techBrands" | "techCreators";
 
-export const ENQUIRY_KINDS: { id: EnquiryKind; label: string; tab: string; side: "talent" | "tech" }[] = [
-  { id: "talent", label: "Talent", tab: "Talent", side: "talent" },
-  { id: "brands", label: "Brand calls", tab: "Book a Call", side: "talent" },
-  { id: "techBrands", label: "Tech brands", tab: "Tech Brand Enquiries", side: "tech" },
-  { id: "techCreators", label: "Tech creators", tab: "Tech Creator Applications", side: "tech" },
+/** creator: an application from a creator (signed with a contract); otherwise a brand lead */
+export const ENQUIRY_KINDS: { id: EnquiryKind; label: string; tab: string; side: "talent" | "tech"; creator: boolean }[] = [
+  { id: "talent", label: "Talent", tab: "Talent", side: "talent", creator: true },
+  { id: "brands", label: "Brand calls", tab: "Book a Call", side: "talent", creator: false },
+  { id: "techBrands", label: "Tech brands", tab: "Tech Brand Enquiries", side: "tech", creator: false },
+  { id: "techCreators", label: "Tech creators", tab: "Tech Creator Applications", side: "tech", creator: true },
 ];
 
-export const ENQUIRY_STATUSES = ["New", "Reviewing", "Contacted", "Signed / Booked", "Declined"] as const;
-export type EnquiryStatus = (typeof ENQUIRY_STATUSES)[number];
+/** A creator lead's path to signing, and a brand lead's path to a deal (Asha's brief, 16 Nov 2026). */
+export const CREATOR_STATUSES = ["New", "Reviewing", "Contract sent", "Signed", "Declined"] as const;
+export const BRAND_STATUSES = ["New", "Contacted", "Proposal sent", "Won", "Lost"] as const;
+export const ENQUIRY_STATUSES = [...new Set([...CREATOR_STATUSES, ...BRAND_STATUSES])];
+/** the end of the road: these leads can be deleted for good */
+export const CLOSED_STATUSES = new Set<string>(["Declined", "Lost"]);
+
+const isCreator = (kind: EnquiryKind) => ENQUIRY_KINDS.find((k) => k.id === kind)!.creator;
+export const statusesFor = (kind: EnquiryKind): readonly string[] => (isCreator(kind) ? CREATOR_STATUSES : BRAND_STATUSES);
+
+/** A status as the Sheet holds it, in this lead type's list; statuses from before 16 Nov 2026 map to the nearest. */
+export function normalStatus(kind: EnquiryKind, raw: string): string {
+  const s = raw.trim();
+  if (statusesFor(kind).includes(s)) return s;
+  const old: Record<string, [string, string]> = {
+    // [creator, brand]
+    Reviewing: ["Reviewing", "Contacted"],
+    Contacted: ["Reviewing", "Contacted"],
+    "Signed / Booked": ["Signed", "Won"],
+    Declined: ["Declined", "Lost"],
+  };
+  return old[s]?.[isCreator(kind) ? 0 : 1] ?? "New";
+}
 
 export type Enquiry = {
   kind: EnquiryKind;
@@ -51,7 +73,7 @@ export function toEnquiries(kind: EnquiryKind, table: SheetTable | undefined): E
     kind,
     reference: col(row, "Reference"),
     submittedAt: col(row, "Submitted At"),
-    status: col(row, "Status") || "New",
+    status: normalStatus(kind, col(row, "Status")),
     title: col(row, titleCol) || "Untitled",
     subtitle: col(row, subCol),
     email: col(row, "Email"),

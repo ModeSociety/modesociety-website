@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { postJson } from "@/lib/upload";
-import { ENQUIRY_KINDS, ENQUIRY_STATUSES, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
+import { CLOSED_STATUSES, ENQUIRY_KINDS, statusesFor, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
 import type { Side } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
@@ -13,8 +13,12 @@ const STATUS_STYLE: Record<string, string> = {
   New: "bg-ink text-white",
   Reviewing: "bg-[#f3e3c3] text-[#6b4a12]",
   Contacted: "bg-paper-2 text-ink-2",
-  "Signed / Booked": "bg-[#dcebe2] text-[#2f6b4f]",
+  "Contract sent": "bg-[#e3e8fb] text-[#2f3f8f]",
+  "Proposal sent": "bg-[#e3e8fb] text-[#2f3f8f]",
+  Signed: "bg-[#dcebe2] text-[#2f6b4f]",
+  Won: "bg-[#dcebe2] text-[#2f6b4f]",
   Declined: "bg-paper-2 text-muted line-through",
+  Lost: "bg-paper-2 text-muted line-through",
 };
 
 function when(iso: string) {
@@ -98,7 +102,7 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
             onChange={(ev) => onStatus(ev.target.value)}
             className="border border-line bg-white px-3 py-2 text-[15px] text-ink"
           >
-            {ENQUIRY_STATUSES.map((s) => (
+            {statusesFor(e.kind).map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
@@ -172,20 +176,20 @@ export default function LeadsTab({
     load();
   }, [load]);
 
-  // declined leads leave their own list for the Declined view, where they can be deleted
+  // declined and lost leads leave their own list for the Declined & lost view, where they can be deleted
   const declined = useMemo(
     () =>
       kinds
-        .flatMap((k) => (items?.[k.id] || []).filter((e) => e.status === "Declined"))
+        .flatMap((k) => (items?.[k.id] || []).filter((e) => CLOSED_STATUSES.has(e.status)))
         .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)),
     [items, kinds],
   );
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const pool = kind === "declined" ? declined : (items?.[kind] || []).filter((e) => e.status !== "Declined");
+    const pool = kind === "declined" ? declined : (items?.[kind] || []).filter((e) => !CLOSED_STATUSES.has(e.status));
     return pool.filter(
       (e) =>
-        (kind === "declined" || status === "all" || (status === "open" ? e.status !== "Signed / Booked" : e.status === status)) &&
+        (kind === "declined" || status === "all" || (status === "open" ? e.status !== "Signed" && e.status !== "Won" : e.status === status)) &&
         (!q || [e.title, e.subtitle, e.email, e.reference, ...e.fields.map((f) => f.value)].join(" ").toLowerCase().includes(q)),
     );
   }, [items, kind, status, query, declined]);
@@ -199,10 +203,10 @@ export default function LeadsTab({
     setSaving(e.reference);
     try {
       await postJson("/api/admin/enquiries", { kind: e.kind, reference: e.reference, status: next });
-      if (next === "Declined") {
+      if (CLOSED_STATUSES.has(next)) {
         setOpen("");
-        notify(`${e.title} moved to Declined`);
-      } else if (prev === "Declined") {
+        notify(`${e.title} moved to Declined & lost`);
+      } else if (CLOSED_STATUSES.has(prev)) {
         setOpen("");
         notify(`${e.title} moved back to ${kindLabel(e.kind)}`);
       } else notify(`Marked ${next.toLowerCase()}`);
@@ -246,7 +250,7 @@ export default function LeadsTab({
         <div className="flex flex-wrap gap-2" role="group" aria-label="Lead type">
           {kinds.map((k) => {
             const fresh = items?.[k.id].filter((e) => e.status === "New").length || 0;
-            const count = items ? items[k.id].filter((e) => e.status !== "Declined").length : "–";
+            const count = items ? items[k.id].filter((e) => !CLOSED_STATUSES.has(e.status)).length : "–";
             return (
               <button
                 key={k.id}
@@ -271,7 +275,7 @@ export default function LeadsTab({
             className="chip"
             aria-pressed={kind === "declined"}
           >
-            Declined
+            Declined &amp; lost
             <span className="text-[12px] opacity-70">{items ? declined.length : "–"}</span>
           </button>
         </div>
@@ -287,7 +291,7 @@ export default function LeadsTab({
             <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-line bg-white px-3 py-2" aria-label="Filter by status">
               <option value="all">All statuses</option>
               <option value="open">Still open</option>
-              {ENQUIRY_STATUSES.filter((s) => s !== "Declined").map((s) => (
+              {statusesFor(kind).filter((s) => !CLOSED_STATUSES.has(s)).map((s) => (
                 <option key={s}>{s}</option>
               ))}
             </select>
@@ -308,7 +312,7 @@ export default function LeadsTab({
 
       {items && kind === "declined" && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-2">
-          <p>Everything marked Declined, from every form. Change its status to move it back, or delete it for good.</p>
+          <p>Every creator marked Declined and every brand marked Lost. Change its status to move it back, or delete it for good.</p>
           {declined.length > 1 && (
             <button className="text-pin underline underline-offset-4" disabled={Boolean(saving)} onClick={() => remove(declined)}>
               Delete all {declined.length} declined
@@ -324,8 +328,8 @@ export default function LeadsTab({
               {kind === "declined"
                 ? declined.length
                   ? "Nothing matches that search."
-                  : "Nothing declined. Leads you mark Declined move here."
-                : items[kind].some((e) => e.status !== "Declined")
+                  : "Nothing here. Leads you mark Declined or Lost move here."
+                : items[kind].some((e) => !CLOSED_STATUSES.has(e.status))
                   ? "Nothing matches that search or filter."
                   : `No ${kindLabel(kind).toLowerCase()} yet.`}
             </li>
@@ -359,7 +363,7 @@ export default function LeadsTab({
                     e={e}
                     saving={saving === e.reference}
                     onStatus={(s) => setEnquiryStatus(e, s)}
-                    onDelete={e.status === "Declined" ? () => remove([e]) : undefined}
+                    onDelete={CLOSED_STATUSES.has(e.status) ? () => remove([e]) : undefined}
                   />
                 )}
               </li>
@@ -368,7 +372,7 @@ export default function LeadsTab({
         </ul>
       )}
       <p className="mt-3 text-xs text-muted">
-        Read from the Google Sheet (one tab per form). Status changes are saved there too; a declined lead stays in its tab, marked Declined, until
+        Read from the Google Sheet (one tab per form). Status changes are saved there too; a declined or lost lead stays in its tab, marked so, until
         it&apos;s deleted here.
       </p>
     </div>

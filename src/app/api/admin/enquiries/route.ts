@@ -1,7 +1,7 @@
 import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanList } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
-import { ENQUIRY_KINDS, ENQUIRY_STATUSES, toEnquiries, type EnquiryKind, type SheetTable } from "@/lib/enquiries";
+import { ENQUIRY_KINDS, statusesFor, toEnquiries, type EnquiryKind, type SheetTable } from "@/lib/enquiries";
 
 /** All form submissions (talent, brand calls, Tech brands and creators), newest first. */
 export async function GET() {
@@ -21,10 +21,10 @@ export async function POST(req: Request) {
     assertSameOrigin(req);
     await requireAdmin();
     const body = await req.json();
-    const kind = cleanList([body?.kind], ENQUIRY_KINDS.map((k) => k.id))[0];
-    const status = cleanList([body?.status], ENQUIRY_STATUSES)[0];
+    const kind = cleanList([body?.kind], ENQUIRY_KINDS.map((k) => k.id))[0] as EnquiryKind | undefined;
+    const status = kind && cleanList([body?.status], statusesFor(kind))[0];
     const reference = clean(body?.reference, 40);
-    if (!kind || !status || !reference) throw new HttpError(400, "Missing enquiry, type or status");
+    if (!kind || !status || !reference) throw new HttpError(400, "Missing lead, type or status");
     await callBackend("setEnquiryStatus", { kind, reference, status });
     return Response.json({ ok: true });
   } catch (err) {

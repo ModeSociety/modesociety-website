@@ -23,7 +23,9 @@ const MEDIA_FOLDERS = [
   "Home Page 1", "Home Page 2", "Home Page 3", "About Us 1", "Instagram",
   "Services", "Our Work", "Featured In", "Tech Brands", "Tech Video", "Intro Video",
 ];
-const STATUSES = ["New", "Reviewing", "Contacted", "Signed / Booked", "Declined"];
+const CREATOR_STATUSES = ["New", "Reviewing", "Contract sent", "Signed", "Declined"];
+const BRAND_STATUSES = ["New", "Contacted", "Proposal sent", "Won", "Lost"];
+const statusesFor = (kind) => (kind === "talent" || kind === "techCreators" ? CREATOR_STATUSES : BRAND_STATUSES);
 /** Same columns as the Sheet tabs in Code.gs, so the admin panel parses both the same way. */
 const ENQUIRY_COLUMNS = {
   talent: {
@@ -167,12 +169,11 @@ const actions = {
         { headers: c.headers, rows: [...(db[c.store] || [])].reverse().map((r) => c.row(r).map((v) => (v == null ? "" : String(v)))) },
       ]),
     ),
-    statuses: STATUSES,
   }),
   setEnquiryStatus: (db, p) => {
     const c = ENQUIRY_COLUMNS[p.kind];
     if (!c) throw new Error("Unknown enquiry type");
-    if (!STATUSES.includes(p.status)) throw new Error("Unknown status");
+    if (!statusesFor(p.kind).includes(p.status)) throw new Error("Unknown status");
     const rec = (db[c.store] || []).find((r) => r.reference === p.reference);
     if (!rec) throw new Error("That enquiry is no longer in the Sheet");
     rec.status = p.status;
@@ -184,7 +185,7 @@ const actions = {
     const list = db[c.store] || [];
     const rec = list.find((r) => r.reference === p.reference);
     if (!rec) throw new Error("That enquiry is no longer in the Sheet");
-    if (rec.status !== "Declined") throw new Error("Only declined enquiries can be deleted");
+    if (rec.status !== "Declined" && rec.status !== "Lost") throw new Error("Only declined or lost leads can be deleted");
     db[c.store] = list.filter((r) => r !== rec);
     return { ok: true };
   },

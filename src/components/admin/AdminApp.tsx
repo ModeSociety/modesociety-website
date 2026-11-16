@@ -138,6 +138,7 @@ const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string
 ];
 const SIDE_KEY = "ms-admin-side";
 const MENU_KEY = "ms-admin-menu";
+const LINKS_KEY = "ms-admin-links";
 /** at this width and up the menu sits beside the page; below it, it covers the page */
 const WIDE = "(min-width: 1024px)";
 
@@ -234,6 +235,23 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
   }, [menuOpen]);
+  const [linksOpen, setLinksOpen] = useState(false);
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore this admin's last choice
+      setLinksOpen(localStorage.getItem(LINKS_KEY) === "open");
+    } catch {
+      /* storage blocked */
+    }
+  }, []);
+  const toggleLinks = () => {
+    setLinksOpen(!linksOpen);
+    try {
+      localStorage.setItem(LINKS_KEY, linksOpen ? "closed" : "open");
+    } catch {
+      /* storage blocked */
+    }
+  };
   const open = (t: Tab) => {
     setTab(t);
     if (!matchMedia(WIDE).matches) setMenuOpen(false);
@@ -316,6 +334,38 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
               ))}
             </div>
           ))}
+          {me.info && (
+            <div>
+              <button
+                onClick={() => toggleLinks()}
+                aria-expanded={linksOpen}
+                aria-controls="admin-links"
+                className="flex w-full items-center justify-between px-3 pb-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted/70 hover:text-ink"
+              >
+                Links
+                <span aria-hidden className={`text-[12px] transition-transform ${linksOpen ? "rotate-180" : ""}`}>
+                  ▾
+                </span>
+              </button>
+              <div id="admin-links" hidden={!linksOpen}>
+                {[
+                  ["▦ Open Google Sheet", me.info.spreadsheetUrl],
+                  ["▤ Website folder", me.info.folderUrl],
+                  ...(side === "talent" ? [["▤ Talent applications", me.info.talentFolderUrl]] : []),
+                ].map(([label, href]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-lg px-3 py-2.5 text-[15px] text-ink-2 hover:bg-paper-2 hover:text-ink"
+                  >
+                    {label} <span className="text-muted">↗</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="grid gap-2 border-t border-line px-3 pt-5 text-sm sm:hidden">
             <a href="/" target="_blank" className="link-underline w-fit">View site ↗</a>
             <span className="truncate text-muted">{me.session!.email}</span>
@@ -333,14 +383,6 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           </Notice>
         )}
         {(me.backendError || loadError) && <Notice>Couldn&apos;t reach Google Drive: {me.backendError || loadError}</Notice>}
-        {me.info && (
-          <div className="mb-8 flex flex-wrap gap-2 text-sm">
-            <a className="chip" href={me.info.spreadsheetUrl} target="_blank" rel="noreferrer">▦ Open Google Sheet</a>
-            <a className="chip" href={me.info.folderUrl} target="_blank" rel="noreferrer">▤ Website folder</a>
-            {side !== "tech" && <a className="chip" href={me.info.talentFolderUrl} target="_blank" rel="noreferrer">▤ Talent applications</a>}
-          </div>
-        )}
-
         <div className="mb-8">
           <h1 className="font-display text-4xl md:text-5xl">{TABS.find((t) => t.id === tab)?.label}</h1>
           <p className="mt-2 max-w-2xl text-ink-2">{TABS.find((t) => t.id === tab)?.about}</p>

@@ -1246,7 +1246,7 @@ function PageBuilder({
         )}
       </div>
 
-      <div className="flex min-w-0 flex-col gap-3 xl:sticky xl:top-36 xl:h-[calc(100vh-10rem)]">
+      <div className="flex min-w-0 flex-col gap-3 xl:sticky xl:top-24 xl:h-[calc(100vh-7.5rem)]">
         <div className="flex items-center justify-between gap-3 text-[13px]">
           <span className="text-muted">Preview with your unpublished changes · click anything to edit it (Alt + click to use the page)</span>
           <span className="flex gap-1">

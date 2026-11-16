@@ -248,7 +248,7 @@ export default function CopyTab({ content, side, reload, notify }: { content: Si
 
   return (
     <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-      <nav aria-label="Pages" className="lg:sticky lg:top-36 lg:self-start">
+      <nav aria-label="Pages" className="lg:sticky lg:top-24 lg:self-start">
         {["talent", "tech"].map((sd) => {
           const list = pages.filter((p) => p.startsWith(`${sd}:`));
           if (!list.length) return null;

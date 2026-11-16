@@ -136,6 +136,33 @@ const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string
   { id: "access", label: "Access", group: "Team", sides: ["talent", "tech"], about: "The Google accounts that can sign in to this panel." },
 ];
 const SIDE_KEY = "ms-admin-side";
+const MENU_KEY = "ms-admin-menu";
+/** at this width and up the menu sits beside the page; below it, it covers the page */
+const WIDE = "(min-width: 1024px)";
+
+/** The ☰ button: three bars that turn into × while the menu is open. */
+function MenuButton({ open, onClick }: { open: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-expanded={open}
+      aria-controls="admin-menu"
+      aria-label={open ? "Close menu" : "Open menu"}
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line hover:border-ink"
+    >
+      <span className="relative block h-3 w-4" aria-hidden>
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className={`absolute left-0 h-[1.5px] w-4 bg-current transition-transform duration-300 ${
+              i === 0 ? (open ? "top-[5px] rotate-45" : "top-0") : i === 1 ? `top-[5px] ${open ? "scale-x-0" : ""}` : open ? "top-[5px] -rotate-45" : "top-[10px]"
+            }`}
+          />
+        ))}
+      </span>
+    </button>
+  );
+}
 
 /** Talent · Tech: the panel shows one business at a time, never both (the choice is remembered per browser). */
 function SidePicker({ side, onChange }: { side: Side; onChange: (s: Side) => void }) {
@@ -182,6 +209,34 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
     }
     if (!TABS.find((t) => t.id === tab)?.sides.includes(s)) setTab("leads");
   };
+  // the ☰ menu: on a wide screen it can stay open beside the page (remembered); on a phone it covers it
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore this admin's last choice
+      if (localStorage.getItem(MENU_KEY) === "open" && matchMedia(WIDE).matches) setMenuOpen(true);
+    } catch {
+      /* storage blocked */
+    }
+  }, []);
+  const toggleMenu = (next = !menuOpen) => {
+    setMenuOpen(next);
+    try {
+      if (matchMedia(WIDE).matches) localStorage.setItem(MENU_KEY, next ? "open" : "closed");
+    } catch {
+      /* storage blocked */
+    }
+  };
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !matchMedia(WIDE).matches && setMenuOpen(false);
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+  const open = (t: Tab) => {
+    setTab(t);
+    if (!matchMedia(WIDE).matches) setMenuOpen(false);
+  };
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loadError, setLoadError] = useState("");
   const [toast, setToast] = useState("");
@@ -211,39 +266,64 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
   return (
     <div className="pb-24">
       <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
-        <div className="wrap flex h-16 items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="font-display text-sm">MODE SOCIETY</span>
-            <span className="eyebrow hidden sm:inline">Admin</span>
+        <div className="flex h-16 items-center justify-between gap-3 px-4 md:px-6">
+          <div className="flex min-w-0 items-center gap-3 md:gap-4">
+            <MenuButton open={menuOpen} onClick={() => toggleMenu()} />
+            <span className="hidden font-display text-sm sm:inline">MODE SOCIETY</span>
+            <span className="eyebrow hidden lg:inline">Admin</span>
             <SidePicker side={side} onChange={setSide} />
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <a href="/" target="_blank" className="link-underline hidden sm:inline">View site ↗</a>
-            <span className="hidden text-muted md:inline">{me.session!.email}</span>
-            <button onClick={onLogout} className="btn ghost !px-4 !py-2">Sign out</button>
+            <button
+              onClick={() => open("leads")}
+              aria-current={tab === "leads" ? "page" : undefined}
+              className={`btn !px-4 !py-2 ${tab === "leads" ? "" : "ghost"}`}
+            >
+              Leads
+            </button>
+            <a href="/" target="_blank" className="link-underline hidden md:inline">View site ↗</a>
+            <span className="hidden text-muted xl:inline">{me.session!.email}</span>
+            <button onClick={onLogout} className="btn ghost hidden !px-4 !py-2 sm:inline-flex">Sign out</button>
           </div>
         </div>
-        <nav className="wrap flex gap-8 overflow-x-auto" aria-label="Admin sections">
-          {(["Day to day", "Website", "Team"] as Group[]).map((g) => (
-            <div key={g} className="shrink-0">
-              <p className="hidden pb-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted/70 md:block">{g}</p>
-              <div className="flex gap-5">
-                {TABS.filter((t) => t.group === g && t.sides.includes(side)).map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setTab(t.id)}
-                    aria-current={tab === t.id ? "page" : undefined}
-                    className={`whitespace-nowrap border-b-2 pb-3 text-[14px] ${tab === t.id ? "border-ink font-medium text-ink" : "border-transparent text-muted hover:text-ink"}`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
       </header>
 
+      {/* the ☰ menu: slides in from the left */}
+      {menuOpen && <div className="fixed inset-0 top-16 z-20 bg-ink/30 lg:hidden" onClick={() => toggleMenu(false)} aria-hidden />}
+      <aside
+        id="admin-menu"
+        inert={!menuOpen}
+        className={`fixed bottom-0 left-0 top-16 z-20 w-72 max-w-[85vw] overflow-y-auto border-r border-line bg-paper transition-transform duration-300 ease-out ${
+          menuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <nav aria-label="Admin sections" className="grid gap-6 px-4 py-6">
+          {(["Day to day", "Website", "Team"] as Group[]).map((g) => (
+            <div key={g}>
+              <p className="px-3 pb-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted/70">{g}</p>
+              {TABS.filter((t) => t.group === g && t.sides.includes(side)).map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => open(t.id)}
+                  aria-current={tab === t.id ? "page" : undefined}
+                  className={`block w-full rounded-lg px-3 py-2.5 text-left text-[15px] transition-colors ${
+                    tab === t.id ? "bg-ink font-medium text-paper" : "text-ink-2 hover:bg-paper-2 hover:text-ink"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          ))}
+          <div className="grid gap-2 border-t border-line px-3 pt-5 text-sm sm:hidden">
+            <a href="/" target="_blank" className="link-underline w-fit">View site ↗</a>
+            <span className="truncate text-muted">{me.session!.email}</span>
+            <button onClick={onLogout} className="w-fit text-left underline underline-offset-4">Sign out</button>
+          </div>
+        </nav>
+      </aside>
+
+      <div className={`transition-[padding] duration-300 ease-out ${menuOpen ? "lg:pl-72" : ""}`}>
       <div className="wrap mt-8">
         {!me.backendConfigured && (
           <Notice>
@@ -283,6 +363,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           <AnimationsTab key={JSON.stringify(content?.settings ?? null)} settings={content?.settings} disabled={!content} reload={loadContent} notify={notify} />
         )}
         {tab === "access" && <AccessTab me={me} reload={reloadMe} notify={notify} />}
+      </div>
       </div>
 
       {toast && (

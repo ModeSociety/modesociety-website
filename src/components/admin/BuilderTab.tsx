@@ -34,7 +34,7 @@ import {
   type Props,
   type Style,
 } from "@/lib/builder";
-import type { SideFilter } from "@/lib/side";
+import type { Side } from "@/lib/side";
 import { SLOTS, type SiteContent } from "@/lib/slots";
 import { SectionEditor } from "./CopyTab";
 import { focusField } from "./focusField";
@@ -1327,12 +1327,12 @@ export default function BuilderTab({
   openTab,
 }: {
   content: SiteContent;
-  side: SideFilter;
+  side: Side;
   reload: () => Promise<void>;
   notify: (m: string) => void;
   openTab: (tab: "images") => void;
 }) {
-  const pages = PAGE_IDS.filter((p) => side === "all" || PAGES[p].side === side);
+  const pages = PAGE_IDS.filter((p) => PAGES[p].side === side);
   const [page, setPage] = useState<PageId>(pages[0]);
   const current = pages.includes(page) ? page : pages[0];
   return (

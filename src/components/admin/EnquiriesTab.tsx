@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { postJson } from "@/lib/upload";
 import { ENQUIRY_KINDS, ENQUIRY_STATUSES, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
-import type { SideFilter } from "@/lib/side";
+import type { Side } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
 /** an enquiry type, or "declined": every declined enquiry, wherever it came from */
@@ -134,14 +134,14 @@ export default function EnquiriesTab({
   disabled,
   sheetUrl,
   notify,
-  side = "all",
+  side,
 }: {
   disabled: boolean;
   sheetUrl?: string;
   notify: (m: string) => void;
-  side?: SideFilter;
+  side: Side;
 }) {
-  const kinds = ENQUIRY_KINDS.filter((k) => side === "all" || k.side === side);
+  const kinds = ENQUIRY_KINDS.filter((k) => k.side === side);
   const [items, setItems] = useState<Items | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { focusField } from "./focusField";
 import { postJson } from "@/lib/upload";
 import { SECTIONS, SECTION_IDS, type Field, type SectionDef, type SectionId } from "@/lib/copy";
-import type { SideFilter } from "@/lib/side";
+import type { Side } from "@/lib/side";
 import type { SiteContent } from "@/lib/slots";
 
 type Value = Record<string, unknown>;
@@ -235,8 +235,8 @@ export function SectionEditor({
 }
 
 /** Pages & text: every section's wording, page by page, generated from src/lib/copy.ts. */
-export default function CopyTab({ content, side, reload, notify }: { content: SiteContent; side: SideFilter; reload: () => Promise<void>; notify: (m: string) => void }) {
-  const ids = SECTION_IDS.filter((id) => side === "all" || (SECTIONS[id] as SectionDef).side === side);
+export default function CopyTab({ content, side, reload, notify }: { content: SiteContent; side: Side; reload: () => Promise<void>; notify: (m: string) => void }) {
+  const ids = SECTION_IDS.filter((id) => (SECTIONS[id] as SectionDef).side === side);
   // page order as in copy.ts, with the sections shared between pages last
   const pages = Array.from(new Set(ids.map((id) => `${(SECTIONS[id] as SectionDef).side}:${(SECTIONS[id] as SectionDef).page}`))).sort(
     (a, b) => Number(a.endsWith(":Shared sections")) - Number(b.endsWith(":Shared sections")),

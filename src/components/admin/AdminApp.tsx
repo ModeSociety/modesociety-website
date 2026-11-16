@@ -9,7 +9,7 @@ import EnquiriesTab from "./EnquiriesTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
 import ThemeTab from "./ThemeTab";
-import type { SideFilter } from "@/lib/side";
+import type { Side } from "@/lib/side";
 import InsightsTab from "./InsightsTab";
 import {
   CTA_STYLES,
@@ -123,24 +123,23 @@ type Tab = "enquiries" | "insights" | "pages" | "copy" | "press" | "images" | "t
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses: the roster is Tech only, Featured in and the animations are the talent site's. */
-const TABS: { id: Tab; label: string; group: Group; sides: SideFilter[]; about: string }[] = [
-  { id: "enquiries", label: "Enquiries", group: "Day to day", sides: ["all", "talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to pr@modesociety.com.au." },
-  { id: "insights", label: "Insights", group: "Day to day", sides: ["all", "talent", "tech"], about: "Who's visiting the site, where from, and how many enquiries it brings in." },
-  { id: "pages", label: "Pages", group: "Website", sides: ["all", "talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
-  { id: "copy", label: "Pages & text", group: "Website", sides: ["all", "talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
-  { id: "press", label: "Featured in", group: "Website", sides: ["all", "talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
-  { id: "images", label: "Images & video", group: "Website", sides: ["all", "talent", "tech"], about: "Every photo, logo and video on the site, and the Drive folder each one reads from." },
-  { id: "theme", label: "Colours & fonts", group: "Website", sides: ["all", "talent", "tech"], about: "The brand colours and the fonts, for each side. Nothing changes until you save, and each one can go back to the original." },
-  { id: "roster", label: "Roster", group: "Website", sides: ["all", "tech"], about: "The creators on ModeSociety Tech, with their channels and follower counts." },
-  { id: "animations", label: "Animations", group: "Website", sides: ["all", "talent"], about: "How the home page hero, the intro and the footer logo move." },
-  { id: "access", label: "Access", group: "Team", sides: ["all", "talent", "tech"], about: "The Google accounts that can sign in to this panel." },
+const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string }[] = [
+  { id: "enquiries", label: "Enquiries", group: "Day to day", sides: ["talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to pr@modesociety.com.au." },
+  { id: "insights", label: "Insights", group: "Day to day", sides: ["talent", "tech"], about: "Who's visiting the site, where from, and how many enquiries it brings in." },
+  { id: "pages", label: "Pages", group: "Website", sides: ["talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
+  { id: "copy", label: "Pages & text", group: "Website", sides: ["talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
+  { id: "press", label: "Featured in", group: "Website", sides: ["talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
+  { id: "images", label: "Images & video", group: "Website", sides: ["talent", "tech"], about: "Every photo, logo and video on the site, and the Drive folder each one reads from." },
+  { id: "theme", label: "Colours & fonts", group: "Website", sides: ["talent", "tech"], about: "The brand colours and the fonts, for each side. Nothing changes until you save, and each one can go back to the original." },
+  { id: "roster", label: "Roster", group: "Website", sides: ["tech"], about: "The creators on ModeSociety Tech, with their channels and follower counts." },
+  { id: "animations", label: "Animations", group: "Website", sides: ["talent"], about: "How the home page hero, the intro and the footer logo move." },
+  { id: "access", label: "Access", group: "Team", sides: ["talent", "tech"], about: "The Google accounts that can sign in to this panel." },
 ];
 const SIDE_KEY = "ms-admin-side";
 
-/** All · Talent · Tech: everyone sees everything, but each team can narrow the panel to its side. */
-function SidePicker({ side, onChange }: { side: SideFilter; onChange: (s: SideFilter) => void }) {
-  const opts: { id: SideFilter; label: string }[] = [
-    { id: "all", label: "All" },
+/** Talent · Tech: the panel shows one business at a time, never both (the choice is remembered per browser). */
+function SidePicker({ side, onChange }: { side: Side; onChange: (s: Side) => void }) {
+  const opts: { id: Side; label: string }[] = [
     { id: "talent", label: "Talent" },
     { id: "tech", label: "Tech" },
   ];
@@ -164,17 +163,17 @@ function SidePicker({ side, onChange }: { side: SideFilter; onChange: (s: SideFi
 
 function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>("enquiries");
-  const [side, setSideState] = useState<SideFilter>("all");
+  const [side, setSideState] = useState<Side>("talent");
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SIDE_KEY);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- restore this admin's last choice
-      if (saved === "talent" || saved === "tech" || saved === "all") setSideState(saved);
+      if (saved === "talent" || saved === "tech") setSideState(saved);
     } catch {
       /* storage blocked */
     }
   }, []);
-  const setSide = (s: SideFilter) => {
+  const setSide = (s: Side) => {
     setSideState(s);
     try {
       localStorage.setItem(SIDE_KEY, s);
@@ -301,8 +300,8 @@ function Notice({ children }: { children: React.ReactNode }) {
 // Images
 // ---------------------------------------------------------------------------
 
-function ImagesTab({ content, reload, notify, side }: { content: SiteContent; reload: () => Promise<void>; notify: (m: string) => void; side: SideFilter }) {
-  const slots = SLOTS.filter((s) => !s.hidden && (side === "all" || (s.side ?? "talent") === side));
+function ImagesTab({ content, reload, notify, side }: { content: SiteContent; reload: () => Promise<void>; notify: (m: string) => void; side: Side }) {
+  const slots = SLOTS.filter((s) => !s.hidden && ((s.side ?? "talent") === side));
   const pages = Array.from(new Set(slots.map((s) => s.page)));
   return (
     <div className="grid gap-14">

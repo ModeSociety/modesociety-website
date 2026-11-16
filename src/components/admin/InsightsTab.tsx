@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { SideFilter } from "@/lib/side";
+import type { Side } from "@/lib/side";
 import { SOURCE_COLORS, SOURCE_LABELS, SOURCES, type Source, type Stats } from "@/lib/insights";
 
 const RANGES = [7, 30, 90] as const;
@@ -174,7 +174,7 @@ function DailyChart({ daily }: { daily: Stats["daily"] }) {
   );
 }
 
-export default function InsightsTab({ disabled, side = "all" }: { disabled: boolean; side?: SideFilter }) {
+export default function InsightsTab({ disabled, side }: { disabled: boolean; side: Side }) {
   const [days, setDays] = useState<(typeof RANGES)[number]>(30);
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
@@ -218,7 +218,7 @@ export default function InsightsTab({ disabled, side = "all" }: { disabled: bool
         ["Tech brand enquiries", stats.forms.techBrands ?? 0, stats.forms.previous.techBrands ?? 0, "tech"],
         ["Tech creator applications", stats.forms.techCreators ?? 0, stats.forms.previous.techCreators ?? 0, "tech"],
       ] as const)
-        .filter((r) => side === "all" || r[3] === side)
+        .filter((r) => r[3] === side)
         .map((r) => [r[0], r[1], r[2]])
     : [];
   const enquiries = businessRows.reduce((s, r) => s + r[1], 0);

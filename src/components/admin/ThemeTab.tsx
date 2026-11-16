@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { postJson } from "@/lib/upload";
 import { FONTS, fontHref, HEX, THEME_FIELDS, type ThemeField } from "@/lib/theme";
-import type { SideFilter } from "@/lib/side";
+import type { Side } from "@/lib/side";
 
 type Values = Record<string, string>;
 
@@ -71,11 +71,11 @@ function Preview({ side, v }: { side: "talent" | "tech"; v: Values }) {
 }
 
 /** Colours & fonts: the brand colours and a choice of fonts, per side. Only what's changed is applied. */
-export default function ThemeTab({ saved, side, reload, notify }: { saved: Values; side: SideFilter; reload: () => Promise<void>; notify: (m: string) => void }) {
+export default function ThemeTab({ saved, side, reload, notify }: { saved: Values; side: Side; reload: () => Promise<void>; notify: (m: string) => void }) {
   const [draft, setDraft] = useState<Values>(saved);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const sides = (["talent", "tech"] as const).filter((s) => side === "all" || side === s);
+  const sides = (["talent", "tech"] as const).filter((s) => side === s);
   const changed = THEME_FIELDS.filter((f) => (draft[f.key] || "") !== (saved[f.key] || ""));
 
   const save = async () => {

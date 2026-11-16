@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import BuilderTab from "./BuilderTab";
 import CopyTab from "./CopyTab";
-import EnquiriesTab from "./EnquiriesTab";
+import LeadsTab from "./LeadsTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
 import ThemeTab from "./ThemeTab";
@@ -119,13 +119,13 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "enquiries" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
+type Tab = "leads" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses: the roster is Tech only, Featured in and the animations are the talent site's. */
 const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string }[] = [
-  { id: "enquiries", label: "Enquiries", group: "Day to day", sides: ["talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to pr@modesociety.com.au." },
-  { id: "insights", label: "Insights", group: "Day to day", sides: ["talent", "tech"], about: "Who's visiting the site, where from, and how many enquiries it brings in." },
+  { id: "leads", label: "Leads", group: "Day to day", sides: ["talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to the team." },
+  { id: "insights", label: "Insights", group: "Day to day", sides: ["talent", "tech"], about: "Who's visiting the site, where from, and how many leads it brings in." },
   { id: "pages", label: "Pages", group: "Website", sides: ["talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
   { id: "copy", label: "Pages & text", group: "Website", sides: ["talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
   { id: "press", label: "Featured in", group: "Website", sides: ["talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
@@ -162,7 +162,7 @@ function SidePicker({ side, onChange }: { side: Side; onChange: (s: Side) => voi
 }
 
 function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
-  const [tab, setTab] = useState<Tab>("enquiries");
+  const [tab, setTab] = useState<Tab>("leads");
   const [side, setSideState] = useState<Side>("talent");
   useEffect(() => {
     try {
@@ -180,7 +180,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
     } catch {
       /* storage blocked */
     }
-    if (!TABS.find((t) => t.id === tab)?.sides.includes(s)) setTab("enquiries");
+    if (!TABS.find((t) => t.id === tab)?.sides.includes(s)) setTab("leads");
   };
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -266,7 +266,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         </div>
 
 
-        {tab === "enquiries" && <EnquiriesTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
+        {tab === "leads" && <LeadsTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}
         {tab === "pages" && content && <BuilderTab content={content} side={side} reload={loadContent} notify={notify} openTab={setTab} />}

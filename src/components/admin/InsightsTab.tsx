@@ -260,7 +260,7 @@ export default function InsightsTab({ disabled, side }: { disabled: boolean; sid
             <Tile label="Visits" value={fmt(t.sessions)} sub={<Delta now={t.sessions} before={p.sessions} />} />
             <Tile label="Page views" value={fmt(t.pageviews)} sub={<span className="text-xs text-ink-2">{t.pagesPerSession} pages per visit</span>} />
             <Tile
-              label="Enquiries"
+              label="Leads"
               value={fmt(enquiries)}
               sub={<span className="text-xs text-ink-2">{t.sessions ? `${((enquiries / t.sessions) * 100).toFixed(1)}% of visits` : "—"}</span>}
             />
@@ -359,7 +359,7 @@ export default function InsightsTab({ disabled, side }: { disabled: boolean; sid
                   </div>
                 ))}
                 <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-ink">All enquiries</dt>
+                  <dt className="text-ink">All leads</dt>
                   <dd className="text-right">
                     <span className="font-display text-xl tabular-nums text-ink">{enquiries}</span>
                     <div>

@@ -6,7 +6,7 @@ import { ENQUIRY_KINDS, ENQUIRY_STATUSES, type Enquiry, type EnquiryKind } from 
 import type { Side } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
-/** an enquiry type, or "declined": every declined enquiry, wherever it came from */
+/** a lead type, or "declined": every declined lead, wherever it came from */
 type View = EnquiryKind | "declined";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -127,10 +127,10 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
 }
 
 /**
- * Talent applications, brand call bookings and Tech enquiries, read from the
+ * Leads: talent applications, brand call bookings and Tech enquiries, read from the
  * Google Sheet. Status changes are written back to the Sheet.
  */
-export default function EnquiriesTab({
+export default function LeadsTab({
   disabled,
   sheetUrl,
   notify,
@@ -172,7 +172,7 @@ export default function EnquiriesTab({
     load();
   }, [load]);
 
-  // declined enquiries leave their own list for the Declined view, where they can be deleted
+  // declined leads leave their own list for the Declined view, where they can be deleted
   const declined = useMemo(
     () =>
       kinds
@@ -218,8 +218,8 @@ export default function EnquiriesTab({
     if (!list.length) return;
     const ask =
       list.length === 1
-        ? `Delete ${list[0].title}'s ${list[0].kind === "talent" || list[0].kind === "techCreators" ? "application" : "enquiry"} for good? It's removed from the Sheet${list[0].files.length || list[0].folderUrl ? ", and their screenshots go to the Drive bin" : ""}.`
-        : `Delete all ${list.length} declined enquiries for good? They're removed from the Sheet, and any talent screenshots go to the Drive bin.`;
+        ? `Delete ${list[0].title}'s ${list[0].kind === "talent" || list[0].kind === "techCreators" ? "application" : "lead"} for good? It's removed from the Sheet${list[0].files.length || list[0].folderUrl ? ", and their screenshots go to the Drive bin" : ""}.`
+        : `Delete all ${list.length} declined leads for good? They're removed from the Sheet, and any talent screenshots go to the Drive bin.`;
     if (!confirm(ask)) return;
     const gone = new Set<string>();
     for (const e of list) {
@@ -235,15 +235,15 @@ export default function EnquiriesTab({
     setSaving("");
     setOpen("");
     setItems((cur) => cur && (Object.fromEntries(Object.entries(cur).map(([k, v]) => [k, v.filter((x) => !gone.has(`${x.kind}:${x.reference}`))])) as Items));
-    if (gone.size) notify(gone.size === 1 ? "Deleted" : `${gone.size} enquiries deleted`);
+    if (gone.size) notify(gone.size === 1 ? "Deleted" : `${gone.size} leads deleted`);
   };
 
-  if (disabled) return <p className="text-muted">Connect the backend to see enquiries.</p>;
+  if (disabled) return <p className="text-muted">Connect the backend to see leads.</p>;
 
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Enquiry type">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Lead type">
           {kinds.map((k) => {
             const fresh = items?.[k.id].filter((e) => e.status === "New").length || 0;
             const count = items ? items[k.id].filter((e) => e.status !== "Declined").length : "–";
@@ -303,8 +303,8 @@ export default function EnquiriesTab({
         </div>
       </div>
 
-      {error && <p className="mb-4 border-l-2 border-pin bg-paper-2 p-4 text-sm text-ink-2">Couldn&apos;t load enquiries: {error}</p>}
-      {!items && !error && <p className="text-muted">Loading enquiries…</p>}
+      {error && <p className="mb-4 border-l-2 border-pin bg-paper-2 p-4 text-sm text-ink-2">Couldn&apos;t load leads: {error}</p>}
+      {!items && !error && <p className="text-muted">Loading leads…</p>}
 
       {items && kind === "declined" && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-2">
@@ -324,7 +324,7 @@ export default function EnquiriesTab({
               {kind === "declined"
                 ? declined.length
                   ? "Nothing matches that search."
-                  : "Nothing declined. Enquiries you mark Declined move here."
+                  : "Nothing declined. Leads you mark Declined move here."
                 : items[kind].some((e) => e.status !== "Declined")
                   ? "Nothing matches that search or filter."
                   : `No ${kindLabel(kind).toLowerCase()} yet.`}
@@ -368,7 +368,7 @@ export default function EnquiriesTab({
         </ul>
       )}
       <p className="mt-3 text-xs text-muted">
-        Read from the Google Sheet (one tab per form). Status changes are saved there too; a declined enquiry stays in its tab, marked Declined, until
+        Read from the Google Sheet (one tab per form). Status changes are saved there too; a declined lead stays in its tab, marked Declined, until
         it&apos;s deleted here.
       </p>
     </div>

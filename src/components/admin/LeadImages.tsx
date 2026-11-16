@@ -48,7 +48,7 @@ export default function LeadImages({ ids, label }: { ids: string[]; label: strin
         ))}
       </div>
       {hover && <Lens hover={hover} />}
-      {shown !== null && <Viewer ids={ids} index={shown} label={label} onClose={() => setShown(null)} />}
+      {shown !== null && <Viewer ids={ids} index={shown} label={label} onMove={setShown} onClose={() => setShown(null)} />}
     </>
   );
 }
@@ -154,10 +154,45 @@ function Lens({ hover }: { hover: Hover }) {
 
 /**
  * The image large, over the panel, in the same window. A click outside the image, the × button or
- * Esc closes it. A file that isn't an image (a PDF) shows a link to open it instead.
+ * Esc closes it. The arrows, the arrow keys and the scroll wheel move through this lead's images only,
+ * stopping at the first and last. A file that isn't an image (a PDF) shows a link to open it instead.
  */
-function Viewer({ ids, index, label, onClose }: { ids: string[]; index: number; label: string; onClose: () => void }) {
+function Viewer({
+  ids,
+  index,
+  label,
+  onMove,
+  onClose,
+}: {
+  ids: string[];
+  index: number;
+  label: string;
+  onMove: (i: number) => void;
+  onClose: () => void;
+}) {
   const id = ids[index];
+  const go = (d: number) => {
+    const next = index + d;
+    if (next >= 0 && next < ids.length) onMove(next);
+  };
+  // the arrow keys and the wheel: one image per press, or per wheel gesture (not per scroll tick)
+  const goRef = useRef(go);
+  useEffect(() => {
+    goRef.current = go;
+  });
+  const wheelAt = useRef(0);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") goRef.current(1);
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") goRef.current(-1);
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, []);
+  // preload the neighbours so moving is instant
+  useEffect(() => {
+    for (const n of [index - 1, index + 1]) if (ids[n]) new Image().src = fileUrl(ids[n]);
+  }, [ids, index]);
   const [failed, setFailed] = useState("");
   const close = useRef<HTMLButtonElement>(null);
   // the latest onClose, so the set-up below runs once per opening (not on every render)
@@ -186,7 +221,33 @@ function Viewer({ ids, index, label, onClose }: { ids: string[]; index: number; 
       aria-label={`${label} ${index + 1} of ${ids.length}`}
       className="fixed inset-0 z-[60] grid place-items-center bg-[#0b0b0b]/85 p-4 backdrop-blur-sm md:p-10"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onWheel={(e) => {
+        const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        if (Math.abs(d) < 8 || e.timeStamp - wheelAt.current < 350) return;
+        wheelAt.current = e.timeStamp;
+        go(d > 0 ? 1 : -1);
+      }}
     >
+      {ids.length > 1 && (
+        <>
+          <button
+            onClick={() => go(-1)}
+            disabled={index === 0}
+            aria-label="Previous image"
+            className="absolute left-3 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-xl text-white hover:bg-white/20 disabled:opacity-25 md:left-6"
+          >
+            ‹
+          </button>
+          <button
+            onClick={() => go(1)}
+            disabled={index === ids.length - 1}
+            aria-label="Next image"
+            className="absolute right-3 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-xl text-white hover:bg-white/20 disabled:opacity-25 md:right-6"
+          >
+            ›
+          </button>
+        </>
+      )}
       <button
         ref={close}
         onClick={onClose}

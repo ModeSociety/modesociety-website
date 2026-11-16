@@ -844,7 +844,7 @@ export const SECTIONS = {
     page: "Home",
     path: "/tech",
     title: "Get in touch",
-    hint: "The two-step form. Brand enquiries and creator applications go to the Sheet and to pr@modesociety.com.au.",
+    hint: "The two-step form. Brand enquiries and creator applications go to the Sheet and are emailed to techadmin@ and patrick@modesociety.com.au.",
     fields: {
       label: text("Small label"),
       heading: heading("Headline", "*stars* = the pixel words"),

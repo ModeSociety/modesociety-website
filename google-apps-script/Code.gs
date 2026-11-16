@@ -9,8 +9,9 @@
  *   ROOT_FOLDER_ID  – the Drive folder the website lives in: its ID or its full URL (required)
  *   SHARED_SECRET   – long random string, must match APPS_SCRIPT_SECRET on the site (required)
  *   OWNER_EMAIL     – permanent admin that can never be removed (optional, recommended)
- *   NOTIFY_EMAIL    – where new enquiries are emailed (optional; default pr@modesociety.com.au,
- *                     comma-separate several, or "off" to stop the emails)
+ *   NOTIFY_EMAIL    – where Mode Society creator applications are emailed (optional; default
+ *                     pr@modesociety.com.au, comma-separate several, or "off" to stop all form emails).
+ *                     Tech forms never use it: they go to NOTIFY_DEFAULTS below.
  * Everything else (SPREADSHEET_ID, sub-folder IDs) is created by setup().
  */
 
@@ -91,8 +92,25 @@ var MEDIA_FOLDERS = [
   'Intro Video',
 ];
 
-/** New form submissions are emailed here unless the NOTIFY_EMAIL script property says otherwise. */
-var DEFAULT_NOTIFY_EMAIL = 'pr@modesociety.com.au';
+/**
+ * Where each form's new submissions are emailed (comma-separated). Mode Society and ModeSociety Tech
+ * are separate businesses: a Tech form never goes to a Mode Society inbox (Asha, 16 Nov 2026).
+ */
+var NOTIFY_DEFAULTS = {
+  talent: 'pr@modesociety.com.au',
+  bookings: 'pr@modesociety.com.au',
+  techBrands: 'techadmin@modesociety.com.au, patrick@modesociety.com.au',
+  techCreators: 'techadmin@modesociety.com.au, patrick@modesociety.com.au',
+};
+var TECH_FORMS = { techBrands: true, techCreators: true };
+
+/** The addresses a form's emails go to; '' when emails are off. */
+function notifyTo_(form) {
+  var prop = String(PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL') || '').trim();
+  if (/^off$/i.test(prop)) return '';
+  if (form === 'talent' && prop) return prop; // the old single-address setting, kept for Mode Society creators
+  return NOTIFY_DEFAULTS[form] || '';
+}
 var SITE_URL = 'https://www.modesociety.com.au';
 /** Gmail takes 25 MB of attachments per email; files past this are linked to in the application folder instead. */
 var MAX_ATTACH_BYTES = 20 * 1024 * 1024;
@@ -469,7 +487,7 @@ var ACTIONS = {
       sheet_('talent').appendRow([new Date(), 'New', f.name, f.email, (f.roles || []).join(', '), channels.join('\n'),
         (f.niches || []).join(', '), f.wants, f.signed, f.consent ? 'Yes' : 'No', folder.getUrl(), shots.join('\n'), ref]);
     });
-    notify_('New talent application: ' + (f.name || 'Unnamed'), ref, f.email, [
+    notify_('talent', 'New talent application: ' + (f.name || 'Unnamed'), ref, f.email, [
       ['Name', f.name], ['Email', f.email], ['What they do', (f.roles || []).join(', ')], ['Channels', channels.join('\n')],
       ['Niche', (f.niches || []).join(', ')], ['Wants from an agency', f.wants], ['Signed elsewhere', f.signed],
       ['18+ / consent', f.consent ? 'Yes' : 'No'], ['Application folder', folder.getUrl()],
@@ -484,7 +502,7 @@ var ACTIONS = {
       sheet_('bookings').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.services || []).join(', '),
         f.project, f.budget, f.timeline, f.notes, ref]);
     });
-    notify_('New brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
+    notify_('bookings', 'New brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
       ['Brand', f.brand], ['Website / Instagram', f.website], ['Name', f.name], ['Email', f.email],
       ['Services', (f.services || []).join(', ')], ['About the project', f.project], ['Budget', f.budget],
       ['Timeline', f.timeline], ['Notes', f.notes],
@@ -499,7 +517,7 @@ var ACTIONS = {
       sheet_('techBrands').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.categories || []).join(', '),
         (f.formats || []).join(', '), f.about, f.budget, f.timeline, ref]);
     });
-    notify_('New Tech brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
+    notify_('techBrands', 'New Tech brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
       ['Brand', f.brand], ['Website', f.website], ['Name', f.name], ['Email', f.email],
       ['Category', (f.categories || []).join(', ')], ['Formats', (f.formats || []).join(', ')],
       ['About the campaign', f.about], ['Budget', f.budget], ['Timeline', f.timeline],
@@ -515,7 +533,7 @@ var ACTIONS = {
       sheet_('techCreators').appendRow([new Date(), 'New', f.name, f.handle, f.email, f.as, channels.join('\n'), f.niche,
         f.region, f.adult ? 'Yes' : 'No', f.notes, ref]);
     });
-    notify_('New Tech creator application: ' + (f.name || f.handle || 'Unnamed'), ref, f.email, [
+    notify_('techCreators', 'New Tech creator application: ' + (f.name || f.handle || 'Unnamed'), ref, f.email, [
       ['Name', f.name], ['Handle', f.handle], ['Email', f.email], ['Applying as', f.as], ['Channels', channels.join('\n')],
       ['Games / niche', f.niche], ['Region', f.region], ['18+', f.adult ? 'Yes' : 'No'], ['Anything else', f.notes],
     ]);
@@ -829,12 +847,13 @@ var ACTIONS = {
 // ---------------------------------------------------------------------------
 
 /**
- * Emails a new submission to the PR inbox; replying goes straight to the person who filled in the form.
- * A mail failure (quota, bad address) is logged and never loses the submission: it is already in the Sheet.
+ * Emails a new submission to that form's inbox (notifyTo_); replying goes straight to the person who
+ * filled in the form. A mail failure (quota, bad address) is logged and never loses the submission:
+ * it is already in the Sheet.
  */
-function notify_(subject, ref, replyTo, rows, files) {
-  var to = String(PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL') || DEFAULT_NOTIFY_EMAIL).trim();
-  if (!to || /^off$/i.test(to)) return;
+function notify_(form, subject, ref, replyTo, rows, files) {
+  var to = notifyTo_(form);
+  if (!to) return;
   // what the person uploaded (talent screenshots) goes in as attachments, up to Gmail's size limit
   var attachments = [];
   var size = 0;
@@ -866,12 +885,13 @@ function notify_(subject, ref, replyTo, rows, files) {
         '</td><td style="border-bottom:1px solid #eee">' + cell(r[1]) + '</td></tr>';
     }).join('') +
     '</table><p style="margin:18px 0 0;color:#666">Reply to this email to answer them directly. ' +
-    'Set its status under Enquiries in the <a href="' + SITE_URL + '/admin">admin panel</a>.</p></div>';
+    'Set its status under Leads in the <a href="' + SITE_URL + '/admin">admin panel</a>.</p></div>';
   var body = subject + ' (' + ref + ')\n\n' +
     filled.map(function (r) { return r[0] + ': ' + String(r[1]); }).join('\n') +
     '\n\nReply to this email to answer them directly. Admin panel: ' + SITE_URL + '/admin';
   try {
-    var mail = { to: to, subject: subject + ' (' + ref + ')', body: body, htmlBody: html, name: 'Mode Society website' };
+    var mail = { to: to, subject: subject + ' (' + ref + ')', body: body, htmlBody: html,
+      name: TECH_FORMS[form] ? 'ModeSociety Tech website' : 'Mode Society website' };
     if (attachments.length) mail.attachments = attachments;
     var reply = normaliseEmail_(replyTo);
     if (reply) mail.replyTo = reply;

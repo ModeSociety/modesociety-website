@@ -51,7 +51,7 @@ Top to bottom: the loader; the nav (logo, the 20-segment XP meter, a keycap **ME
 
 **The welcome film** (Asha's *Welcome to Mode Society Tech*, 55 s) sits in a frosted glass frame under the ticker. It plays muted on a loop while on screen (not for people who prefer less motion); **Play with sound** plays it from the start with controls. It is built in, re-encoded from the 78 MB Drive original: `public/tech/welcome-1080.mp4` (16 MB), a 720p cut for phones (10 MB) and `welcome-poster.jpg`. To swap it, paste a YouTube, Vimeo, `.mp4` or Google Drive link under *Pages & text → ModeSociety Tech → Home → Welcome film*. A Drive link plays in Drive's own player, because Drive's download address cannot play in a `<video>` on another site (Google marks it same-site only).
 
-**The form** has two levels, brand and creator, and sends to the same backend as before (the *Tech Brand Enquiries* / *Tech Creator Applications* tabs and pr@modesociety.com.au). Level 1 is the design's; level 2 holds the live form's questions. Any button with `data-tab="brand|creator"` opens its tab; `/tech#apply` opens the creator tab.
+**The form** has two levels, brand and creator, and sends to the same backend as before (the *Tech Brand Enquiries* / *Tech Creator Applications* tabs), and its emails go to techadmin@modesociety.com.au and patrick@modesociety.com.au, never to a Mode Society inbox. Level 1 is the design's; level 2 holds the live form's questions. Any button with `data-tab="brand|creator"` opens its tab; `/tech#apply` opens the creator tab.
 
 **Editing:** every section is a block in the page builder (*Pages* → Tech → Home), and every word is in *Pages & text* (*ModeSociety Tech* → *Home* and *Shared sections* → *Navigation and loading screen*, *Footer*); the defaults are the design's copy, word for word. The Tech *Colours & fonts* change the design's royal blue, ink, background and fonts. Code: `src/components/tx/`, `src/app/tech/tx.css` (the mockup's CSS, scoped to `.tx`), wording `techSite.*` in `src/lib/copy.ts`.
 
@@ -120,7 +120,7 @@ Files show in name order, so prefix them `01-`, `02-` and so on to control the o
 | **Tech Roster** | The ModeSociety Tech roster (admin panel → Roster). One row per creator, with a link and follower column pair per platform. Keep the *ID* column. |
 | **Images**, **Settings**, **Admins** | Written by the admin panel. |
 
-Every new form submission is also **emailed to `pr@modesociety.com.au`** (from the account that runs the backend), with the answers laid out and *Reply-To* set to the sender, so replying answers them directly. A talent application's engagement screenshots are attached to its email (up to about 20 MB; anything past that is noted in the email and stays in the application folder). Change the address with the `NOTIFY_EMAIL` script property. The Sheet row is written first, so a mail failure never loses an enquiry.
+Every new form submission is also **emailed to that form's inbox** (from the account that runs the backend): Mode Society forms to `pr@modesociety.com.au`, ModeSociety Tech forms to `techadmin@modesociety.com.au` and `patrick@modesociety.com.au` (a Tech form never goes to a Mode Society inbox). Each email comes with the answers laid out and *Reply-To* set to the sender, so replying answers them directly. A talent application's engagement screenshots are attached to its email (up to about 20 MB; anything past that is noted in the email and stays in the application folder). The `NOTIFY_EMAIL` script property still moves Mode Society creator applications (and `off` stops every form's emails); it never moves Tech mail. The Sheet row is written first, so a mail failure never loses an enquiry.
 
 ---
 
@@ -154,7 +154,7 @@ Do this **signed in as the owner of that Drive**.
    - `SHARED_SECRET`: a long random string. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. This same value becomes `APPS_SCRIPT_SECRET`.
    - `OWNER_EMAIL`: the address of the account that owns the Drive (a permanent admin, alongside Vercel's `OWNER_EMAIL`)
    - `ROOT_FOLDER_ID` (optional): an existing folder's ID from step 1. Leave it out and `setup` makes the folder.
-   - `NOTIFY_EMAIL` (optional): where every new enquiry is emailed. Defaults to `pr@modesociety.com.au`; comma-separate several addresses, or set `off` to stop the emails.
+   - `NOTIFY_EMAIL` (optional): where Mode Society creator applications are emailed. Defaults to `pr@modesociety.com.au`; comma-separate several addresses, or set `off` to stop every form's emails. Tech forms ignore it.
 5. Back in the editor, select the **`setup`** function and click **Run**. Approve the permissions prompt. On a personal Gmail you'll see "Google hasn't verified this app": click **Advanced → Go to Mode Society Backend**. This is your own script, so that's expected. `setup` creates the folder (if needed), the Sheet, the sub-folders and a nightly clean-up job, and logs their links. Running it again is safe.
 6. **Deploy → New deployment →** type **Web app**. Set *Execute as* to **Me** and *Who has access* to **Anyone**. Click **Deploy** and copy the **Web app URL**. That's `APPS_SCRIPT_URL`.
 

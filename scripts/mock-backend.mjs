@@ -128,6 +128,7 @@ const actions = {
     db.admins = db.admins.filter((a) => a !== p.email);
     return { owner: OWNER, admins: db.admins };
   },
+  getSettings: (db) => ({ settings: { ...(db.settings || {}) } }),
   setSettings: (db, p) => {
     Object.assign(db.settings, p.values);
     return { settings: db.settings };

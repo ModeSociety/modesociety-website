@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import BuilderTab from "./BuilderTab";
 import CopyTab from "./CopyTab";
+import EmailsTab from "./EmailsTab";
 import LeadsTab, { prefetchLeads } from "./LeadsTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
@@ -123,7 +124,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "leads" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "access";
+type Tab = "leads" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "emails" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses (the roster is Tech only, Featured in and the animations are the talent site's),
@@ -138,6 +139,7 @@ const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string
   { id: "roster", label: "Roster", group: "Website", sides: ["tech"], about: "The creators on ModeSociety Tech, with their channels and follower counts." },
   { id: "theme", label: "Colours & fonts", group: "Website", sides: ["talent", "tech"], about: "The brand colours and the fonts, for each side. Nothing changes until you save, and each one can go back to the original." },
   { id: "animations", label: "Animations", group: "Website", sides: ["talent"], about: "How the home page hero, the intro and the footer logo move." },
+  { id: "emails", label: "Emails", group: "Team", sides: ["talent", "tech"], about: "Where this side's form emails go, and the address applicants reply to." },
   { id: "access", label: "Access", group: "Team", sides: ["talent", "tech"], about: "The Google accounts that can sign in to this panel." },
 ];
 const SIDE_KEY = "ms-admin-side";
@@ -428,6 +430,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         {tab === "animations" && (
           <AnimationsTab key={JSON.stringify(content?.settings ?? null)} settings={content?.settings} disabled={!content} reload={loadContent} notify={notify} />
         )}
+        {tab === "emails" && <EmailsTab side={side} disabled={!me.backendConfigured} notify={notify} />}
         {tab === "access" && <AccessTab me={me} reload={reloadMe} notify={notify} />}
       </div>
       </div>

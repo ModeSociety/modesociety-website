@@ -103,11 +103,18 @@ var NOTIFY_DEFAULTS = {
   techCreators: 'techadmin@modesociety.com.au, patrick@modesociety.com.au',
 };
 var TECH_FORMS = { techBrands: true, techCreators: true };
+var CREATOR_FORMS = { talent: true, techCreators: true };
 
-/** The addresses a form's emails go to; '' when emails are off. */
+/**
+ * The addresses a form's emails go to; '' when emails are off. Addresses saved in the admin panel
+ * (Settings tab: email.<talent|tech>.<creators|brands>) come first, then the old NOTIFY_EMAIL script
+ * property (Mode Society creators only), then NOTIFY_DEFAULTS.
+ */
 function notifyTo_(form) {
   var prop = String(PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL') || '').trim();
   if (/^off$/i.test(prop)) return '';
+  var saved = String(readSettings_()['email.' + (TECH_FORMS[form] ? 'tech' : 'talent') + '.' + (CREATOR_FORMS[form] ? 'creators' : 'brands')] || '').trim();
+  if (saved) return saved;
   if (form === 'talent' && prop) return prop; // the old single-address setting, kept for Mode Society creators
   return NOTIFY_DEFAULTS[form] || '';
 }
@@ -401,6 +408,11 @@ var ACTIONS = {
       }
       return { owner: ownerEmail_(), admins: readAdmins_() };
     });
+  },
+
+  /** Every row of the Settings tab (the admin panel reads the email addresses from it). */
+  getSettings: function () {
+    return { settings: readSettings_() };
   },
 
   setSettings: function (p) {

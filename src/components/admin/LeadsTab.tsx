@@ -9,6 +9,23 @@ type Items = Record<EnquiryKind, Enquiry[]>;
 
 /** The last list this browser saw, so coming back to Leads (or switching side) shows it at once. */
 let kept: Items | null = null;
+let early: Promise<Items | null> | null = null;
+
+/**
+ * Starts loading the website's kept copy as soon as the panel opens, alongside the sign-in check,
+ * so the list is ready when the Leads tab appears. A signed-out visitor just gets null.
+ */
+export function prefetchLeads() {
+  if (kept || early) return;
+  // (no cache option: a "no-cache" request header makes Next skip its kept copy; the API already sends no-store)
+  early = fetch("/api/admin/enquiries")
+    .then((r) => r.json())
+    .then((d) => (d.ok ? (kept = d.items as Items) : null))
+    .catch(() => null)
+    .finally(() => {
+      early = null;
+    });
+}
 
 const STATUS_STYLE: Record<string, string> = {
   New: "bg-ink text-white",
@@ -168,13 +185,16 @@ export default function LeadsTab({
       if (disabled) return;
       setError("");
       const get = async (fresh: boolean) => {
-        const r = await fetch(`/api/admin/enquiries${fresh ? "?fresh=1" : ""}`, { cache: "no-store" });
+        const r = await fetch(`/api/admin/enquiries${fresh ? "?fresh=1" : ""}`);
         const d = await r.json();
         if (!d.ok) throw new Error(d.error);
         return d.items as Items;
       };
       try {
-        if (!onlyFresh && !kept) setItems((kept = await get(false)));
+        if (!onlyFresh && !kept) {
+          const ready = early && (await early);
+          setItems((kept = ready || (await get(false))));
+        }
         setLoading(true);
         for (let tries = 0; tries < 3; tries++) {
           const before = writes.current;

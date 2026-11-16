@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import BuilderTab from "./BuilderTab";
 import CopyTab from "./CopyTab";
-import LeadsTab from "./LeadsTab";
+import LeadsTab, { prefetchLeads } from "./LeadsTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
 import ThemeTab from "./ThemeTab";
@@ -48,6 +48,9 @@ export default function AdminApp({ clientId, devBypass }: { clientId: string; de
   const [loginError, setLoginError] = useState("");
   const [gsiReady, setGsiReady] = useState(false);
   const btn = useRef<HTMLDivElement>(null);
+
+  // the panel opens on Leads: start loading them now, not after the sign-in check
+  useEffect(() => prefetchLeads(), []);
 
   const loadMe = useCallback(async () => {
     const r = await fetch("/api/admin/me", { cache: "no-store" });

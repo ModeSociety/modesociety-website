@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { postJson } from "@/lib/upload";
 import { CLOSED_STATUSES, ENQUIRY_KINDS, statusesFor, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
+import { parseChannels } from "@/lib/channels";
 import type { Side } from "@/lib/side";
 
 type Items = Record<EnquiryKind, Enquiry[]>;
@@ -67,6 +68,27 @@ function Linkified({ text }: { text: string }) {
   );
 }
 
+/** A lead's channels, each a link to the profile (opens in a new tab), whether they typed a handle or a link. */
+function Channels({ text }: { text: string }) {
+  return (
+    <ul className="grid gap-1.5 whitespace-normal">
+      {parseChannels(text).map((c, i) => (
+        <li key={i} className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-muted">{c.platform}</span>
+          {c.url ? (
+            <a href={c.url} target="_blank" rel="noopener noreferrer" className="break-all font-medium underline underline-offset-2" title={`Open ${c.platform} in a new tab`}>
+              {c.handle.replace(/^https?:\/\/(www\.)?/i, "")} ↗
+            </a>
+          ) : (
+            <span className="break-all">{c.handle}</span>
+          )}
+          {c.followers && <span className="text-ink-2">· {c.followers}</span>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /**
  * A talent screenshot from Drive, shown through the admin-only route: the list shows the small kept
  * thumbnail, and the full file loads only when opened. PDFs fall back to a link.
@@ -98,7 +120,7 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
             <div key={f.label} className={f.value.length > 80 || f.value.includes("\n") ? "sm:col-span-2" : ""}>
               <dt className="eyebrow">{f.label}</dt>
               <dd className="mt-1 whitespace-pre-line text-[15px] leading-relaxed text-ink">
-                <Linkified text={f.value} />
+                {f.label.startsWith("Channels") ? <Channels text={f.value} /> : <Linkified text={f.value} />}
               </dd>
             </div>
           ))}

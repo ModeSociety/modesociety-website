@@ -134,8 +134,10 @@ You'll need **four values**. The steps below say where to get each one.
 | `APPS_SCRIPT_SECRET` | Shared password between the site and the backend | You make it up (step 2) |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Lets "Sign in with Google" work | Step 3 |
 | `SESSION_SECRET` | Signs admin login cookies | You make it up (step 4) |
+| `PANDADOC_API_KEY` | Sends creator contracts through PandaDoc (live site) | PandaDoc, signed in as admin@modesociety.com.au: Settings → Developer Dashboard → Configuration → production key |
+| `PANDADOC_STAGING_API_KEY` | The same, for local and preview testing: contracts sent with it are marked [DEV] and aren't binding | The same page → sandbox key |
 
-Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_SITE_URL`. See `.env.example`.
+Optional: `OWNER_EMAIL` (defaults to `rubayathdrjb@gmail.com`) and `NEXT_PUBLIC_SITE_URL`. See `.env.example`. The PandaDoc keys stay on the server (never `NEXT_PUBLIC_`): the live site (Vercel Production) uses `PANDADOC_API_KEY`; anywhere else the staging key is used when it is set, so a test never sends a live contract. `/api/admin/pandadoc` (signed in) shows which key and account are connected.
 
 ### 1. The website folder in Google Drive (optional)
 

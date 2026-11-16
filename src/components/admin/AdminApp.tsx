@@ -53,7 +53,8 @@ export default function AdminApp({ clientId, devBypass }: { clientId: string; de
   useEffect(() => prefetchLeads(), []);
 
   const loadMe = useCallback(async () => {
-    const r = await fetch("/api/admin/me", { cache: "no-store" });
+    // (no cache option: a "no-cache" request header makes Next skip its kept copies; the route sends no-store)
+    const r = await fetch("/api/admin/me");
     setMe(await r.json());
   }, []);
 

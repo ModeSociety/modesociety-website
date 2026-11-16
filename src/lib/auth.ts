@@ -1,3 +1,4 @@
+import { revalidateTag, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createRemoteJWKSet, jwtVerify, SignJWT } from "jose";
 import { callBackend } from "./backend";
@@ -33,42 +34,55 @@ export async function verifyGoogleCredential(credential: string) {
   };
 }
 
-let adminCache: { at: number; list: string[]; backendOwner: string } | null = null;
+const ADMINS_TAG = "admins";
+type AdminsData = { owner?: string; admins: string[] };
+
+/**
+ * The Admins tab, kept by the website (shared by every server instance) so a signed-in admin's
+ * requests don't each wait 2 seconds for Apps Script. It refreshes every 2 minutes, and at once
+ * when someone is added or removed in Access (invalidateAdminCache).
+ */
+const readAdminsCached = unstable_cache(() => callBackend<AdminsData>("getAdmins"), ["admins-v1"], { tags: [ADMINS_TAG], revalidate: 120 });
+
+async function readAdmins(fresh: boolean): Promise<AdminsData | null> {
+  try {
+    if (!fresh) return await readAdminsCached();
+    const data = await callBackend<AdminsData>("getAdmins");
+    revalidateTag(ADMINS_TAG, "max");
+    return data;
+  } catch (err) {
+    // Backend unreachable: only the owner can get in, so the panel is still usable for setup.
+    console.error("[mode-society] admin list unavailable:", err);
+    return null;
+  }
+}
 
 /**
  * Everyone allowed in besides the site owner: the Admins tab plus the backend's own
  * OWNER_EMAIL script property (so a Drive owner set there can always sign in too).
+ * fresh: straight from the Sheet (signing in), not the kept copy.
  */
-export async function listAdmins(force = false) {
-  if (!force && adminCache && Date.now() - adminCache.at < 30_000) return adminCache.list;
-  let list: string[] = [];
-  let backendOwner = "";
-  try {
-    const data = await callBackend<{ owner?: string; admins: string[] }>("getAdmins");
-    backendOwner = data.owner || "";
-    list = [...new Set([...(backendOwner ? [backendOwner] : []), ...data.admins])];
-  } catch (err) {
-    // Backend unreachable: only the owner can get in, so the panel is still usable for setup.
-    console.error("[mode-society] admin list unavailable:", err);
-  }
-  adminCache = { at: Date.now(), list, backendOwner };
-  return list;
+export async function listAdmins(fresh = false) {
+  const data = await readAdmins(fresh);
+  const owner = data?.owner || "";
+  return [...new Set([...(owner ? [owner] : []), ...(data?.admins || [])])];
 }
 
 /** The backend's OWNER_EMAIL script property (permanent, can't be removed from the panel). */
 export async function backendOwnerEmail() {
-  await listAdmins();
-  return adminCache?.backendOwner || "";
+  return (await readAdmins(false))?.owner || "";
 }
 
+/** After an admin is added or removed: the next check reads the Sheet again (a removed admin loses access at once). */
 export function invalidateAdminCache() {
-  adminCache = null;
+  revalidateTag(ADMINS_TAG, { expire: 0 });
 }
 
-export async function isAllowedAdmin(email: string) {
+/** Whether this email may sign in, against a given list (or the kept one). */
+export async function isAllowedAdmin(email: string, admins?: string[]) {
   const e = email.toLowerCase();
   if (e === ownerEmail()) return true;
-  return (await listAdmins()).includes(e);
+  return (admins ?? (await listAdmins())).includes(e);
 }
 
 export type AdminSession = { email: string; name: string; picture: string };

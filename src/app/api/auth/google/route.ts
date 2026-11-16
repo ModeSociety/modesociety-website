@@ -8,8 +8,8 @@ export async function POST(req: Request) {
     const { credential } = await req.json();
     if (typeof credential !== "string") throw new HttpError(400, "Missing credential");
     const user = await verifyGoogleCredential(credential);
-    await listAdmins(true);
-    if (!(await isAllowedAdmin(user.email))) {
+    // fresh from the Sheet: someone added there a moment ago can sign in straight away
+    if (!(await isAllowedAdmin(user.email, await listAdmins(true)))) {
       throw new HttpError(403, `${user.email} doesn't have access to the Mode Society admin.`);
     }
     await createSession(user);

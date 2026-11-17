@@ -239,3 +239,22 @@ export function basedProblems(a: Application, el: Eligibility): string[] {
   if (a.country === "United Arab Emirates" && !a.uaePermit.trim()) out.push("Add your UAE Advertiser Permit number");
   return out;
 }
+
+/** Settings tab keys for a side's lists: eligibility.<side>.countries / .blocked (one per line). */
+export const eligibilityKey = (side: Side, list: "countries" | "blocked") => `eligibility.${side}.${list}`;
+
+/** A typed list: one name per line (or comma-separated), tidied, no repeats. */
+export const parseList = (raw: string) => [...new Set(raw.split(/[\n,]+/).map((x) => x.trim().replace(/\s+/g, " ")).filter(Boolean))];
+
+/** Each side's saved lists over Asha's starting ones. */
+export function readEligibility(settings: Record<string, string>): Record<Side, Eligibility> {
+  const one = (side: Side): Eligibility => {
+    const countries = parseList(settings[eligibilityKey(side, "countries")] ?? "");
+    const blocked = settings[eligibilityKey(side, "blocked")];
+    return {
+      countries: countries.length ? countries : ELIGIBLE_COUNTRIES,
+      blocked: blocked === undefined ? BLOCKED_REGIONS : parseList(blocked),
+    };
+  };
+  return { talent: one("talent"), tech: one("tech") };
+}

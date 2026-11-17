@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { encodeFile, postJson } from "@/lib/upload";
 import BuilderTab from "./BuilderTab";
 import CopyTab from "./CopyTab";
+import ApplicationsTab from "./ApplicationsTab";
 import EmailsTab from "./EmailsTab";
 import LeadsTab, { prefetchLeads } from "./LeadsTab";
 import PressTab from "./PressTab";
@@ -127,7 +128,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "leads" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "emails" | "access";
+type Tab = "leads" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "applications" | "emails" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses (the roster is Tech only, Featured in and the animations are the talent site's),
@@ -136,6 +137,7 @@ const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string
   { id: "leads", label: "Leads", group: "Day to day", sides: ["talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to the team." },
   { id: "insights", label: "Insights", group: "Day to day", sides: ["talent", "tech"], about: "Who's visiting the site, where from, and how many leads it brings in." },
   { id: "copy", label: "Pages & text", group: "Website", sides: ["talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
+  { id: "applications", label: "Applications", group: "Website", sides: ["talent", "tech"], about: "Which countries creators can apply from, and the regions blocked within them." },
   { id: "images", label: "Images & video", group: "Website", sides: ["talent", "tech"], about: "Every photo, logo and video on the site, and the Drive folder each one reads from." },
   { id: "pages", label: "Pages", group: "Website", sides: ["talent", "tech"], about: "Lay out each page block by block: add, move, hide and restyle any block (colours, fonts, background, animation), check it in the preview, then publish." },
   { id: "press", label: "Featured in", group: "Website", sides: ["talent"], about: "Press features: a photo, a teaser for the home page and the full article on its own page." },
@@ -439,6 +441,9 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         {tab === "images" && !content && me.backendConfigured && !loadError && <p className="text-muted">Loading images…</p>}
         {tab === "animations" && (
           <AnimationsTab key={JSON.stringify(content?.settings ?? null)} settings={content?.settings} disabled={!content} reload={loadContent} notify={notify} />
+        )}
+        {tab === "applications" && content && (
+          <ApplicationsTab key={side + JSON.stringify(content.eligibility[side])} side={side} saved={content.eligibility[side]} reload={loadContent} notify={notify} />
         )}
         {tab === "emails" && <EmailsTab side={side} disabled={!me.backendConfigured} notify={notify} />}
         {tab === "access" && full && <AccessTab me={me} reload={reloadMe} notify={notify} />}

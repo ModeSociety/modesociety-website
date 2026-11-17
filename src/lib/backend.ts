@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { readEligibility } from "./application";
 import { readEmails } from "./emails";
 import { unstable_cache } from "next/cache";
 import { draftMode } from "next/headers";
@@ -137,6 +138,7 @@ export function buildContent(raw: RawSite | null, preview = false): SiteContent 
   return {
     settings: parseSettings(raw?.settings),
     contactEmail: { talent: emails.talent.replyTo, tech: emails.tech.replyTo },
+    eligibility: readEligibility(raw?.settings ?? {}),
     images,
     roster: (raw?.roster ?? []).map((m) => ({ ...m, photo: m.photo ? photo(m.photo) : "" })),
     press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: photo(fileId) })) })),

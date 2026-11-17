@@ -18,8 +18,14 @@ const ALLOWED: Record<string, string[]> = {
   footerStyle: FOOTER_STYLES.map((m) => m.id),
 };
 
+/** The eligible countries and blocked regions: names one per line (letters, spaces, . ' - and ( )). */
+const LIST_KEY = /^eligibility\.(talent|tech)\.(countries|blocked)$/;
+const validList = (v: string) => v.length <= 3000 && v.split(/[\n,]+/).every((x) => x.trim().length <= 60 && /^[\p{L} .'()-]*$/u.test(x.trim()));
+
 /** Which business a setting belongs to: Tech's theme, launch switch and key numbers, or Mode Society's. */
 function settingSide(key: string): "talent" | "tech" {
+  const list = key.match(LIST_KEY);
+  if (list) return list[1] as "talent" | "tech";
   const theme = THEME_FIELDS.find((f) => f.key === key);
   if (theme) return theme.side;
   return FREE_TEXT.has(key) || key === "techLaunched" ? "tech" : "talent";
@@ -34,7 +40,9 @@ export async function POST(req: Request) {
     for (const [k, v] of Object.entries(values || {})) {
       requireSide(session, settingSide(k));
       const s = String(v);
-      const ok = FREE_TEXT.has(k)
+      const ok = LIST_KEY.test(k)
+        ? validList(s)
+        : FREE_TEXT.has(k)
         ? TECH_NUMBER.test(s)
         : THEME_FIELDS.some((f) => f.key === k)
           ? validThemeValue(k, s)

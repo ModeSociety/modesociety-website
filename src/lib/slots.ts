@@ -295,6 +295,8 @@ export type SiteImage = {
 };
 export type SiteContent = {
   settings: SiteSettings;
+  /** the countries and regions each business can sign creators from (admin panel → Applications) */
+  eligibility: Record<"talent" | "tech", { countries: string[]; blocked: string[] }>;
   /** each business's public contact address (admin panel → Emails → Applicants reply to) */
   contactEmail: { talent: string; tech: string };
   images: Record<string, SiteImage[]>;

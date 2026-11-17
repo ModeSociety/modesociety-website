@@ -189,10 +189,11 @@ const actions = {
         // rows written by column name (the new creator application) add their columns at the end, as in Code.gs
         const recs = db[c.store] || [];
         const headers = [...c.headers];
-        for (const r of recs) for (const [h] of r.columns || []) if (!headers.includes(h)) headers.push(h);
+        for (const r of recs) for (const [h] of [...(r.columns || []), ...(r.extra || [])]) if (!headers.includes(h)) headers.push(h);
         const rowOf = (r) => {
-          if (!r.columns) return c.row(r);
-          const vals = Object.fromEntries(r.columns);
+          // a row from the old forms (fields) or by column name; columns set later (the contract) on top
+          const vals = r.columns ? Object.fromEntries(r.columns) : Object.fromEntries(c.headers.map((h, i) => [h, c.row(r)[i]]));
+          Object.assign(vals, Object.fromEntries(r.extra || []));
           vals.Status = r.status || "New";
           return headers.map((h) => vals[h]);
         };
@@ -215,6 +216,23 @@ const actions = {
       db.signed.push({ Reference: p.reference, Side: p.kind === "techCreators" ? "tech" : "talent", Contract: m?.[1] || "", Commission: m?.[2] || "",
         "Signed At": now, "Mode Email In Bio": "No", "Updated At": now, "Updated By": p.by || "" });
     }
+    return { ok: true };
+  },
+  setLeadContract: (db, p) => {
+    // as Code.gs: the contract's own columns on a creator lead, and optionally its status
+    const c = ENQUIRY_COLUMNS[p.kind];
+    if (!c || !(p.kind === "talent" || p.kind === "techCreators")) throw new Error("Only creator leads have contracts");
+    if (p.status && !statusesFor(p.kind).includes(p.status)) throw new Error("Unknown status");
+    const rec = (db[c.store] || []).find((r) => r.reference === p.reference);
+    if (!rec) throw new Error("That enquiry is no longer in the Sheet");
+    const allowed = ["Contract Type", "Contract Doc ID", "Contract Link", "Contract Sent At", "Contract State", "Contract Reminded At", "NSW Sheet Sent"];
+    rec.extra ||= [];
+    for (const [h, v] of (p.columns || []).filter(([h]) => allowed.includes(h))) {
+      const i = rec.extra.findIndex(([k]) => k === h);
+      if (i >= 0) rec.extra[i] = [h, v];
+      else rec.extra.push([h, v]);
+    }
+    if (p.status) rec.status = p.status;
     return { ok: true };
   },
   updateSigned: (db, p) => {

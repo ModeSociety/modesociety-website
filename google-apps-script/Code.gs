@@ -997,6 +997,31 @@ var ACTIONS = {
   },
 
   /**
+   * Records a creator lead's contract (SP-32, SP-115, SP-116) in its own columns, added the first time:
+   * Contract Type, Contract Doc ID, Contract Link, Contract Sent At, Contract State, Contract Reminded At,
+   * NSW Sheet Sent; and, when given, a new Status. Only these columns can be written here.
+   */
+  setLeadContract: function (p) {
+    var key = ENQUIRY_TABS[p.kind];
+    if (!key || !CREATOR_KINDS[p.kind]) throw new Error('Only creator leads have contracts');
+    if (p.status && statusesFor_(p.kind).indexOf(p.status) < 0) throw new Error('Unknown status');
+    var allowed = ['Contract Type', 'Contract Doc ID', 'Contract Link', 'Contract Sent At', 'Contract State', 'Contract Reminded At', 'NSW Sheet Sent'];
+    var pairs = (p.columns || []).filter(function (c) { return allowed.indexOf(c[0]) >= 0; });
+    if (p.status) pairs.push(['Status', p.status]);
+    return withLock_(function () {
+      var sheet = sheet_(key);
+      var values = sheet.getDataRange().getValues();
+      var refCol = values[0].indexOf('Reference');
+      for (var i = 1; i < values.length; i++) {
+        if (!p.reference || String(values[i][refCol]) !== String(p.reference)) continue;
+        updateByColumn_(sheet, i + 1, pairs);
+        return { ok: true };
+      }
+      throw new Error('That enquiry is no longer in the Sheet');
+    });
+  },
+
+  /**
    * Changes a signed creator's own details in Signed Talent: the contract (type, commission, signed date),
    * the "Mode email in bio" tick and their dedicated email. Only these columns can be written here.
    */
@@ -1474,6 +1499,19 @@ function appendByColumn_(sheet, pairs) {
   var row = headers.map(function () { return ''; });
   pairs.forEach(function (p) { row[headers.indexOf(p[0])] = p[1] == null ? '' : p[1]; });
   sheet.appendRow(row);
+}
+
+/** Writes [column, value] pairs into one row; columns the tab doesn't have yet are added (as appendByColumn_). */
+function updateByColumn_(sheet, row, pairs) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  var missing = pairs.map(function (p) { return p[0]; }).filter(function (h) { return headers.indexOf(h) < 0; });
+  if (missing.length) {
+    var tech = /^Tech /.test(sheet.getName());
+    sheet.getRange(1, headers.length + 1, 1, missing.length).setValues([missing])
+      .setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
+    headers = headers.concat(missing);
+  }
+  pairs.forEach(function (p) { sheet.getRange(row, headers.indexOf(p[0]) + 1).setValue(p[1] == null ? '' : p[1]); });
 }
 
 /** Moves staged uploads into the application folder with readable names; returns their links (and adds the files to `out`). */

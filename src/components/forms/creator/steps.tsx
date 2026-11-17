@@ -1,20 +1,9 @@
 "use client";
 
-import type { Application } from "@/lib/application";
-import type { Side } from "@/lib/side";
+import { about } from "./about";
+import type { StepDef } from "./types";
 
-export type StepProps = { side: Side; a: Application; set: (patch: Partial<Application>) => void };
-export type SubmitProps = StepProps & { ready: boolean; clearDraft: () => void; onDone?: (reference: string, a: Application) => void };
-
-export type StepDef = {
-  kicker: string;
-  title: string;
-  /** what still has to be answered before Next (empty: the step is valid) */
-  problems: (p: StepProps) => string[];
-  render: (p: StepProps) => React.ReactNode;
-  /** the last step's submit button */
-  submit?: (p: SubmitProps) => React.ReactNode;
-};
+export type { StepDef, StepProps, SubmitProps } from "./types";
 
 /** The application's steps, in order (Asha's spec: Step 1, 1b, 1c, 2 … 7). Each card adds its step. */
-export const STEPS: StepDef[] = [];
+export const STEPS: StepDef[] = [about];

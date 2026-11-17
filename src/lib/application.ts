@@ -184,3 +184,25 @@ export function ageOn(dob: string, today = new Date()): number | null {
 export const isEmailAddress = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
 /** A phone number: digits with spaces, brackets, dashes and an optional leading + (8 to 15 digits). */
 export const isPhone = (v: string) => /^\+?[\d\s()-]+$/.test(v.trim()) && (v.match(/\d/g)?.length ?? 0) >= 8 && (v.match(/\d/g)?.length ?? 0) <= 15;
+
+/** An Australian number: 10 digits starting 0 (e.g. 0412 345 678), or written +61. */
+const isAustralianPhone = (v: string) => /^(0\d{9}|\+?61\d{9})$/.test(v.replace(/[\s()-]/g, ""));
+
+/** Step 1: About you. */
+export const aboutProblems = (a: Application, today = new Date()) => {
+  const out: string[] = [];
+  if (!a.legalName.trim()) out.push("Add your full legal name");
+  if (!a.creatorName.trim()) out.push("Add your creator or professional name");
+  if (!isEmailAddress(a.email)) out.push("Add a valid email");
+  const intl = a.mobile.trim().startsWith("+") && !a.mobile.replace(/\s/g, "").startsWith("+61");
+  if (!(intl ? isPhone(a.mobile) : isAustralianPhone(a.mobile))) out.push("Add a mobile number (e.g. 0412 345 678, or +44 7700 900123 outside Australia)");
+  const age = ageOn(a.dob, today);
+  if (age === null) out.push("Add your date of birth");
+  else if (age < 13 || age > 120) out.push("Check your date of birth");
+  if (age !== null && age < 18) {
+    if (!a.guardianName.trim()) out.push("Add your parent or guardian's name");
+    if (!isEmailAddress(a.guardianEmail)) out.push("Add your parent or guardian's email");
+    if (!isPhone(a.guardianPhone)) out.push("Add your parent or guardian's phone");
+  }
+  return out;
+};

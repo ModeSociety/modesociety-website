@@ -216,6 +216,11 @@ function setup() {
     return t.getHandlerFunction() === 'cleanupIncoming';
   });
   if (!hasCleanup) ScriptApp.newTrigger('cleanupIncoming').timeBased().everyDays(1).atHour(3).create();
+  // the exclusive contracts' renewal reminders, checked each morning
+  var hasRenewals = ScriptApp.getProjectTriggers().some(function (t) {
+    return t.getHandlerFunction() === 'renewalReminders';
+  });
+  if (!hasRenewals) ScriptApp.newTrigger('renewalReminders').timeBased().everyDays(1).atHour(8).create();
 
   publishUploads();
   siteCacheClear_();
@@ -251,6 +256,118 @@ function publishUploads() {
 }
 
 /** Daily: bins uploads from forms that were started but never submitted, and prunes old visit rows. */
+// ---- renewal reminders (SP-124) ---------------------------------------------
+
+/** The exclusive agreements' wording (clauses 3.3 and 3.4): where an opt-out notice goes, per business. */
+var RENEWAL = {
+  talent: { name: 'Mode Society', notice: 'admin@modesociety.com.au', kind: 'talent' },
+  tech: { name: 'Mode Society Tech', notice: 'admin@modesocietytech.com', kind: 'techCreators' },
+};
+var RENEWAL_TZ = 'Australia/Melbourne';
+var REMIND_DAYS = 30;
+
+/** 'yyyy-MM-dd' plus n days (calendar dates, no time zone involved). */
+function addDays_(ymd, n) {
+  var d = new Date(ymd + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * An exclusive contract's next renewal on or after `today` (Melbourne dates, 'yyyy-MM-dd'): each
+ * anniversary of the signed date. Same rule as nextRenewal in src/lib/signed.ts.
+ */
+function nextRenewal_(signedAt, today) {
+  var signed = Utilities.formatDate(new Date(signedAt), RENEWAL_TZ, 'yyyy-MM-dd');
+  var y = Number(signed.slice(0, 4)), m = Number(signed.slice(5, 7)), d = Number(signed.slice(8, 10));
+  for (var n = 1; n < 100; n++) {
+    var last = new Date(Date.UTC(y + n, m, 0)).getUTCDate(); // 29 Feb signings renew on 28 Feb
+    var at = new Date(Date.UTC(y + n, m - 1, Math.min(d, last))).toISOString().slice(0, 10);
+    if (at >= today) return at;
+  }
+  return '';
+}
+
+/** "1 December 2026" for an email. */
+function longDate_(ymd) {
+  var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return Number(ymd.slice(8, 10)) + ' ' + months[Number(ymd.slice(5, 7)) - 1] + ' ' + ymd.slice(0, 4);
+}
+
+/**
+ * Runs each morning (setup adds the trigger). Each exclusive creator whose renewal is 30 days away
+ * (or closer, if a run was missed) gets one reminder of the Renewal Date and the Opt-Out Window, as
+ * their agreement promises (clause 3.4), and that business's admins get one email. Each reminder is
+ * logged in the creator's Renewal Reminders cell, so it's never sent twice for the same renewal.
+ */
+function renewalReminders(now) {
+  var today = Utilities.formatDate(now || new Date(), RENEWAL_TZ, 'yyyy-MM-dd');
+  var sheet = sheet_('signed');
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 2) return { sent: 0 };
+  var head = values[0].map(String);
+  var col = function (name) { return head.indexOf(name); };
+  // the creators' names and emails, read from their applications by reference
+  var people = {};
+  ['talent', 'techCreators'].forEach(function (kind) {
+    var t = readTable_(kind);
+    var at = function (row, name) { var i = t.headers.indexOf(name); return i < 0 ? '' : String(row[i] || '').trim(); };
+    t.rows.forEach(function (row) {
+      people[at(row, 'Reference')] = { email: at(row, 'Email'), name: at(row, 'Creator Name') || at(row, 'Full Name') };
+    });
+  });
+  var sent = 0;
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (String(row[col('Contract')]) !== 'Exclusive' || !row[col('Signed At')]) continue;
+    var renewal = nextRenewal_(row[col('Signed At')], today);
+    if (!renewal || addDays_(today, REMIND_DAYS) < renewal) continue; // not due yet
+    var log = String(row[col('Renewal Reminders')] || '');
+    var tag = 'renewal ' + renewal;
+    if (log.indexOf(tag) >= 0) continue; // already reminded for this renewal
+    var side = String(row[col('Side')]) === 'tech' ? 'tech' : 'talent';
+    var biz = RENEWAL[side];
+    var ref = String(row[col('Reference')]);
+    var person = people[ref] || {};
+    var email = normaliseEmail_(person.email);
+    var first = String(person.name || '').split(/\s+/)[0] || 'there';
+    var from = addDays_(renewal, -14), to = addDays_(renewal, -1);
+    var note;
+    if (email) {
+      var text = 'Hi ' + first + ',\n\n' +
+        'This is your reminder that your exclusive agreement with ' + biz.name + ' renews automatically on ' + longDate_(renewal) +
+        ' for a further 12 months.\n\n' +
+        'If you don\'t wish to renew, email ' + biz.notice + ' during your opt-out window: ' + longDate_(from) + ' to ' + longDate_(to) +
+        ' (until 11:59 pm Melbourne time). If you\'re happy to continue, you don\'t need to do anything.\n\n' +
+        'The ' + biz.name + ' Team';
+      try {
+        MailApp.sendEmail({ to: email, subject: 'Your ' + biz.name + ' agreement renews on ' + longDate_(renewal), body: text, name: biz.name, replyTo: biz.notice });
+        note = 'creator emailed';
+      } catch (err) {
+        console.error('Could not send the renewal reminder to ' + email + ': ' + err);
+        continue; // not logged: tomorrow's run tries again
+      }
+    } else {
+      note = 'no email on file, creator NOT emailed';
+    }
+    var admins = notifyTo_(biz.kind);
+    if (admins) {
+      try {
+        MailApp.sendEmail({
+          to: admins, name: biz.name + ' website',
+          subject: 'Renewal on ' + longDate_(renewal) + ': ' + (person.name || ref),
+          body: (person.name || ref) + "'s exclusive agreement renews on " + longDate_(renewal) + '. Opt-out window: ' + longDate_(from) + ' to ' +
+            longDate_(to) + '.\n' + (email ? 'They were emailed a reminder today (' + email + ').' : 'There is no email on file, so they were NOT emailed: please remind them yourself.') +
+            '\n\nReference ' + ref + ': admin panel, Signed Talent.',
+        });
+      } catch (err) { console.error('Could not send the admins\' renewal email: ' + err); }
+    }
+    sheet.getRange(i + 1, col('Renewal Reminders') + 1).setValue((log ? log + '\n' : '') + today + ': ' + tag + ' reminder, ' + note);
+    sent++;
+  }
+  return { sent: sent };
+}
+
 function cleanupIncoming() {
   var cutoff = Date.now() - 2 * 24 * 3600 * 1000;
   var files = folder_('incoming').getFiles();

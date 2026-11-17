@@ -274,3 +274,16 @@ export function addressProblems(a: Application): string[] {
   else if (country === "United States" && !/^\d{5}(-\d{4})?$/.test(pc)) out.push("A US ZIP code has 5 digits");
   return out;
 }
+
+export const MAX_PHOTOS = 6;
+export const MIN_PHOTO_SIDE = 1080;
+export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+export const PHOTO_TOO_SMALL = "This image is too small. Please upload a high-quality photo at least 1080 x 1080 pixels.";
+
+/** Step 2: headshots. 1 to 6 photos; the first is the profile photo, with its round crop saved. */
+export function photosProblems(a: Application): string[] {
+  if (!a.photos.length) return ["Upload at least one headshot or photo of yourself"];
+  if (a.photos.length > MAX_PHOTOS) return [`Keep it to ${MAX_PHOTOS} photos`];
+  if (!a.profileThumb) return ["Save the crop of your profile photo"];
+  return [];
+}

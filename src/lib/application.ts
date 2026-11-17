@@ -388,3 +388,44 @@ export function discoveryProblems(a: Application, side: Side): string[] {
   if (a.discovery === "Other" && !a.discoveryOther.trim()) return ["Tell us where you heard about us"];
   return [];
 }
+
+/** Asha's "How do you want to be represented?" explanation (the (i) pop-up), for each site. */
+export function representationInfo(side: Side) {
+  const tech = side === "tech";
+  const name = tech ? "Mode Society Tech" : "Mode Society";
+  const domain = tech ? "modesocietytech.com" : "modesociety.com.au";
+  return [
+    {
+      heading: "Exclusive representation (20% commission)",
+      intro: `${name} becomes your one and only agency. We manage all of your brand deals and your whole creator career, and we invest more in you.`,
+      points: [
+        "We take 20% of your earnings from brand deals and paid work. You keep 80%.",
+        "All brand enquiries come through us, including DMs.",
+        `You get your own dedicated ${name} email ([name]@${domain}) to display in your bios.`,
+        "Free strategy support, growth guidance and priority pitching to our brand partners.",
+        "12-month minimum term. It renews automatically each year unless you opt out in the 14 days before your anniversary (we'll remind you beforehand).",
+      ],
+    },
+    {
+      heading: "Non-exclusive representation (30% commission)",
+      intro: `Work with ${name} alongside other agencies or your own deals. You stay flexible, and we bring you opportunities when they're a good fit.`,
+      points: [
+        `We take 30% of earnings from deals that come through ${name}. Deals you find yourself are yours.`,
+        `You display pr@${domain} in your bios.`,
+        "Cancel any time.",
+        "Strategy calls and support are available at our standard rates.",
+      ],
+    },
+    {
+      heading: "Both options",
+      intro: "",
+      points: [
+        "We can't guarantee work or income, but we'll pitch you to brands that suit your content.",
+        `${name} can use content you've created up until your representation ends, permanently, to promote you and our agency.`,
+      ],
+    },
+  ];
+}
+
+/** Step 6: representation. */
+export const representationProblems = (a: Application) => (REPRESENTATIONS.includes(a.representation as Representation) ? [] : ["Choose exclusive or non-exclusive representation"]);

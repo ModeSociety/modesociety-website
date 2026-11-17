@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { M_PATH } from "@/components/tech/mark-paths";
+import { TECH_HOST } from "@/lib/domains";
 
 /**
  * Share previews (Google, iMessage, WhatsApp, LinkedIn…): the site's masthead style,
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
             </defs>
             <path d={M_PATH} fill="url(#g)" fillRule="evenodd" />
           </svg>
-          <div style={{ position: "absolute", right: 64, bottom: 50, display: "flex", ...mono, fontSize: 18, color: "#6a7398" }}>modesociety.com.au/tech</div>
+          <div style={{ position: "absolute", right: 64, bottom: 50, display: "flex", ...mono, fontSize: 18, color: "#6a7398" }}>{TECH_HOST || "modesociety.com.au/tech"}</div>
         </div>
       ),
       opts,

@@ -41,6 +41,7 @@ export const metadata: Metadata = {
       { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/brand/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
   },
   formatDetection: { telephone: false, email: false, address: false },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },

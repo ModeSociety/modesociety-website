@@ -37,7 +37,14 @@ export const metadata: Metadata = {
     "telco influencer campaigns",
     "game launch influencer campaign",
   ],
-  icons: { icon: [{ url: "/tech-icon.svg", type: "image/svg+xml" }] },
+  // ModeSociety Tech's own icons (the browser tab, Google's results and home-screen shortcuts)
+  icons: {
+    icon: [
+      { url: "/tech-icon.svg", type: "image/svg+xml" },
+      { url: "/tech/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: "/tech/apple-icon.png", sizes: "180x180" }],
+  },
 };
 
 /** ModeSociety Tech: one page at /tech, in Asha's v3.5 design (see src/app/tech/tx.css). */

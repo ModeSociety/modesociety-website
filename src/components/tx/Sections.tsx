@@ -7,7 +7,7 @@ import { Fragment } from "react";
 import JsonLd from "@/components/site/JsonLd";
 import type { SectionCopy } from "@/lib/copy";
 import { faqJsonLd } from "@/lib/seo";
-import { TxA } from "./paths";
+import { PageA, TxA } from "./paths";
 import { lines, pixel } from "./pixel";
 
 // ------------------------------------------------------------------ hero
@@ -531,6 +531,7 @@ export function Footer({ copy: c, nav }: { copy: SectionCopy<"techSite.footer">;
         </div>
         <div className="legal mono">
           <span>{c.legal}</span>
+          <PageA to="/privacy">Privacy Policy</PageA>
           <span>{c.place}</span>
         </div>
       </div>

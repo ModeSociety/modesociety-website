@@ -68,7 +68,12 @@ export default function Footer({ style, copy, nav }: { style: FooterStyle; copy:
             <span>
               © {new Date().getFullYear()} {COMPANY}
             </span>
-            <span>{copy.strapline}</span>
+            <span className="flex flex-wrap gap-x-6 gap-y-2">
+              <Link href="/privacy" className="link-underline">
+                Privacy Policy
+              </Link>
+              <span>{copy.strapline}</span>
+            </span>
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { agreementsProblems, APP_OPTIONS, TERMS_VERSION } from "@/lib/application";
 import { APPLICATION_TERMS } from "@/lib/application-terms";
 import { postJson } from "@/lib/upload";
+import { PageA } from "@/components/tx/paths";
 import Popup from "./Popup";
 import type { StepDef, StepProps, SubmitProps } from "./types";
 
@@ -63,6 +64,11 @@ function Agreements({ side, a, set }: StepProps) {
               ))}
             </section>
           ))}
+          <p>
+            <PageA to="/privacy" target="_blank" className="underline underline-offset-4">
+              Read our full Privacy Policy ↗
+            </PageA>
+          </p>
           <p className="font-mono text-[11px] text-muted">Version {TERMS_VERSION}</p>
         </Popup>
       )}

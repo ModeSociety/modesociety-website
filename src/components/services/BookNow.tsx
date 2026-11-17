@@ -5,6 +5,7 @@ import Popup from "@/components/forms/creator/Popup";
 import { Chips, Field } from "@/components/forms/StepForm";
 import { BOOKING_AS, blankBooking, bookingProblems, bookingThanks, type Booking } from "@/lib/booking";
 import type { Side } from "@/lib/side";
+import { PageA } from "@/components/tx/paths";
 import { postJson } from "@/lib/upload";
 
 /**
@@ -85,7 +86,13 @@ export default function BookNow({ side, service, tier, price, label }: { side: S
               <Field label="Your goals *">
                 <textarea className="input min-h-[110px]" value={b.goals} onChange={(e) => set({ goals: e.target.value })} placeholder="What you'd like to get out of it" />
               </Field>
-              <p className="text-[13px] text-muted">No payment now: our team will confirm your booking and email you an invoice.</p>
+              <p className="text-[13px] text-muted">
+                No payment now: our team will confirm your booking and email you an invoice. See our{" "}
+                <PageA to="/privacy" target="_blank" className="underline underline-offset-2">
+                  Privacy Policy
+                </PageA>
+                .
+              </p>
               {error && (
                 <p role="alert" className="text-pin">
                   {error}

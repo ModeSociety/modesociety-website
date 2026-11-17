@@ -21,6 +21,11 @@ export function useTechPaths() {
   };
 }
 
+/** A link to another page of the site it's on (e.g. "/privacy": /privacy, /tech/privacy, or /privacy on modesocietytech.com). */
+export function PageA({ to, ...rest }: Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & { to: string }) {
+  return <a href={useTechPaths().page(to)} {...rest} />;
+}
+
 /** A link to a section of the Tech home page (or "#top" of this page), from any Tech page. */
 export function TxA({ to, ...rest }: Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & { to: string }) {
   const p = useTechPaths();

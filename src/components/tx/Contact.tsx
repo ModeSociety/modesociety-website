@@ -11,6 +11,7 @@ import {
 } from "@/lib/tech-brand";
 import { encodeFile, postJson } from "@/lib/upload";
 import { pixel } from "./pixel";
+import { PageA } from "./paths";
 import { TAB_EVENT } from "./TxShell";
 
 type Mode = "brand" | "creator";
@@ -312,7 +313,13 @@ export default function Contact({ copy: c, eligibility }: { copy: SectionCopy<"t
                     )}
                     <label className="f full" style={{ display: "flex", gap: 12, alignItems: "flex-start", color: "var(--body)" }}>
                       <input type="checkbox" checked={b.consent} onChange={(e) => setB({ consent: e.target.checked })} style={{ width: 20, height: 20, padding: 0, marginTop: 2, flex: "none" }} required />
-                      <span>{TB_CONSENT} *</span>
+                      <span>
+                        {TB_CONSENT.replace(/Privacy Policy\.$/, "")}
+                        <PageA to="/privacy" target="_blank" style={{ textDecoration: "underline" }}>
+                          Privacy Policy
+                        </PageA>
+                        . *
+                      </span>
                     </label>
                   </div>
                 </div>

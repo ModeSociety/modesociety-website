@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { postJson } from "@/lib/upload";
 import { CLOSED_STATUSES, ENQUIRY_KINDS, formatCount, placeOf, statusesFor, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
 import { parseChannels } from "@/lib/channels";
+import ContractBox from "./ContractBox";
 import LeadImages from "./LeadImages";
 import type { Side } from "@/lib/side";
 
@@ -184,7 +185,20 @@ function BrandRow({ e, isOpen, onToggle }: { e: Enquiry; isOpen: boolean; onTogg
   );
 }
 
-function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: string) => void; onDelete?: () => void; saving: boolean }) {
+function Detail({
+  e,
+  onStatus,
+  onDelete,
+  onContract,
+  saving,
+}: {
+  e: Enquiry;
+  onStatus: (s: string) => void;
+  onDelete?: () => void;
+  /** after a contract action: the message, and the list read fresh */
+  onContract: (message: string) => Promise<void>;
+  saving: boolean;
+}) {
   const subject = encodeURIComponent(`Mode Society — ${e.kind === "talent" ? "your application" : "your enquiry"} (${e.reference})`);
   return (
     <div className="grid gap-8 border-t border-line bg-paper-2/40 px-4 py-6 md:grid-cols-[1fr_240px] md:px-6">
@@ -220,6 +234,7 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
             ))}
           </select>
         </label>
+        {e.creator && <ContractBox e={e} onDone={onContract} />}
         {e.email && (
           <a href={`mailto:${e.email}?subject=${subject}`} className="btn !justify-start">
             Email {e.kind === "talent" ? e.title.split(" ")[0] : e.subtitle.split(" ")[0] || "them"} <span className="arrow">→</span>
@@ -513,6 +528,11 @@ export default function LeadsTab({
                     e={e}
                     saving={saving === e.reference}
                     onStatus={(s) => setEnquiryStatus(e, s)}
+                    onContract={async (message) => {
+                      notify(message);
+                      writes.current++;
+                      await load(true);
+                    }}
                     onDelete={CLOSED_STATUSES.has(e.status) ? () => remove([e]) : undefined}
                   />
                 )}

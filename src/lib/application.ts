@@ -433,3 +433,82 @@ export const representationProblems = (a: Application) => (REPRESENTATIONS.inclu
 /** Step 7: the five agreements are all required (the email tips are optional). */
 export const agreementsProblems = (a: Application, side: Side) =>
   APP_OPTIONS[side].agreements.every((t) => a.agreements.includes(t)) ? [] : ["Tick all five agreements to send your application"];
+
+// ---------------------------------------------------------------------------
+// Checking a whole application (the server), tags and the Sheet row
+// ---------------------------------------------------------------------------
+
+/** Every step's problems at once: what the server checks before saving an application. */
+export function allProblems(a: Application, side: Side, el: Eligibility): string[] {
+  return [
+    ...aboutProblems(a),
+    ...basedProblems(a, el),
+    ...addressProblems(a),
+    ...photosProblems(a),
+    ...socialsProblems(a, side),
+    ...contentProblems(a, side),
+    ...discoveryProblems(a, side),
+    ...representationProblems(a),
+    ...agreementsProblems(a, side),
+  ];
+}
+
+/**
+ * The lead's admin tags (Asha's spec): NSW creators need the Information for Performers sheet before
+ * a contract, QLD creators are paid within 7 days, and anyone outside Australia is International.
+ */
+export function tagsFor(a: Application): string[] {
+  const tags: string[] = [];
+  if (a.based === "Australia" && a.region === "New South Wales") tags.push("NSW: send Information for Performers sheet before contract");
+  if (a.based === "Australia" && a.region === "Queensland") tags.push("QLD: pay within 7 days");
+  if (a.based === "International") tags.push("International");
+  return tags;
+}
+
+/** The consent record saved with each application: when, from where, and which terms. */
+export type Consent = { at: string; ip: string; terms: string };
+
+/**
+ * The Sheet row for an application: [column, value] pairs in column order. The backend adds any column
+ * missing from the tab, so older rows keep their own columns. Files are added by the backend (Drive links).
+ */
+export function applicationColumns(a: Application, side: Side, consent: Consent): [string, string][] {
+  const fmt = (n: string) => (countOf(n) ?? "").toString();
+  const address = [a.addressType, a.address1, a.address2, a.suburb, a.region, a.postcode, a.based === "Australia" ? "Australia" : a.country]
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .join("\n");
+  const others = a.others.map((c) => `${c.platform}: ${channelLink(c.platform, c.link) ?? c.link} · ${fmt(c.followers)}`).join("\n");
+  const age = ageOn(a.dob);
+  return [
+    ["Full Name", a.legalName.trim()],
+    ["Creator Name", a.creatorName.trim()],
+    ["Email", a.email.trim().toLowerCase()],
+    ["Mobile", a.mobile.trim()],
+    ["Date of Birth", a.dob],
+    ["Guardian", age !== null && age < 18 ? `${a.guardianName.trim()} · ${a.guardianEmail.trim()} · ${a.guardianPhone.trim()}` : ""],
+    ["Based", a.based],
+    ["Country", a.based === "Australia" ? "Australia" : a.country],
+    ["State / Region", a.region.trim()],
+    ["UAE Permit", a.uaePermit.trim()],
+    ["Postal Address", address],
+    ["Main Platform", a.mainPlatform],
+    ["Main Channel", channelLink(a.mainPlatform, a.mainLink) ?? a.mainLink.trim()],
+    ["Main Followers", fmt(a.mainFollowers)],
+    [APP_OPTIONS[side].avgLabel, fmt(a.avgViews)],
+    ["Other Platforms", others],
+    ["Niche", a.niches.join(", ")],
+    ["Work Open To", a.work.join(", ")],
+    ["Games", side === "tech" ? a.games.trim() : ""],
+    ["Setup", side === "tech" ? a.setup.join(", ") : ""],
+    ["Audience Top Country", a.audienceCountry],
+    ["Past Collaborations", a.collaborations.trim()],
+    ["Agency", a.represented === "Yes" ? `Yes: ${a.agency.trim()}` : "No"],
+    ["Discovery", [a.discovery, a.referrer.trim(), a.discoveryOther.trim()].filter(Boolean).join(": ")],
+    ["Representation", a.representation],
+    ["Agreements", `All ${a.agreements.length} ticked`],
+    ["Email Tips", a.tips ? "Yes" : "No"],
+    ["Consent Record", `${consent.at} · IP ${consent.ip || "unknown"} · terms ${consent.terms}`],
+    ["Tags", tagsFor(a).join("\n")],
+  ];
+}

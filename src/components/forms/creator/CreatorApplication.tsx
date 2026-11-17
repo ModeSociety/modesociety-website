@@ -40,6 +40,7 @@ export default function CreatorApplication({
   const [restored, setRestored] = useState(false);
   // saving waits until the saved answers have been read back, so a blank form never overwrites them
   const [loaded, setLoaded] = useState(false);
+  const [startedAt] = useState(() => Date.now());
   const panel = useRef<HTMLDivElement>(null);
   const top = useRef<HTMLDivElement>(null);
 
@@ -152,7 +153,7 @@ export default function CreatorApplication({
               Next <span className="arrow">→</span>
             </button>
           )}
-          {last && step.submit?.({ ...props, ready: problems.length === 0, clearDraft: () => localStorage.removeItem(draftKey(side)), onDone })}
+          {last && step.submit?.({ ...props, ready: problems.length === 0, startedAt, clearDraft: () => localStorage.removeItem(draftKey(side)), onDone })}
         </div>
       </form>
     </div>

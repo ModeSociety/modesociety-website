@@ -3,7 +3,8 @@ import type { Side } from "@/lib/side";
 
 /** el: the countries and regions creators can sign from (admin panel) */
 export type StepProps = { side: Side; a: Application; set: (patch: Partial<Application>) => void; el: Eligibility };
-export type SubmitProps = StepProps & { ready: boolean; clearDraft: () => void; onDone?: (reference: string, a: Application) => void };
+/** startedAt: when the form first appeared (the spam check times the whole form) */
+export type SubmitProps = StepProps & { ready: boolean; startedAt: number; clearDraft: () => void; onDone?: (reference: string, a: Application) => void };
 
 export type StepDef = {
   kicker: string;

@@ -71,11 +71,10 @@ function Agreements({ side, a, set }: StepProps) {
 }
 
 /** Sends the application (the server checks every step again and records the consent). */
-function Submit({ side, a, ready, clearDraft, onDone }: SubmitProps) {
+function Submit({ side, a, ready, startedAt, clearDraft, onDone }: SubmitProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [honey, setHoney] = useState("");
-  const [startedAt] = useState(() => Date.now());
   return (
     <div className="grid justify-items-end gap-2">
       <input className="honeypot" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} aria-hidden />

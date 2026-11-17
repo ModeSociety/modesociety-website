@@ -611,6 +611,7 @@ var ACTIONS = {
     withLock_(function () { appendByColumn_(sheet_(key), cols); });
     notify_(key, 'New ' + (tech ? 'Tech creator' : 'creator') + ' application: ' + (p.name || 'Unnamed'), ref, p.email,
       (p.columns || []).concat([['Application folder', folder.getUrl()]]), files);
+    autoReply_(p.email, p.autoReply);
     return { reference: ref };
   },
 
@@ -1202,6 +1203,24 @@ function isInside_(file, folderId) {
     queue = next;
   }
   return false;
+}
+
+/**
+ * The applicant's one auto-reply (Asha's wording, built by the site): sent from the account that runs
+ * the backend under the business's name, replies going to that business's address. A mail failure is
+ * logged and never loses the application, which is already saved.
+ */
+function autoReply_(to, m) {
+  var email = normaliseEmail_(to);
+  if (!email || !m || !m.subject) return;
+  try {
+    var mail = { to: email, subject: String(m.subject), body: String(m.text || ''), htmlBody: String(m.html || ''), name: String(m.fromName || 'Mode Society') };
+    var reply = normaliseEmail_(m.replyTo);
+    if (reply) mail.replyTo = reply;
+    MailApp.sendEmail(mail);
+  } catch (err) {
+    console.error('Could not send the auto-reply to ' + email + ': ' + err);
+  }
 }
 
 /**

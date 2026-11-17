@@ -1,8 +1,9 @@
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds, rateLimit } from "@/lib/api";
-import { allProblems, APP_OPTIONS, applicationColumns, blankApplication, TERMS_VERSION, type Application } from "@/lib/application";
+import { allProblems, APP_OPTIONS, applicationColumns, autoReply, blankApplication, GROWTH_GUIDE, TERMS_VERSION, type Application } from "@/lib/application";
 import { callBackend, getSiteContent } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
+import { SITE_URL, TECH_BASE_URL } from "@/lib/seo";
 import type { Side } from "@/lib/side";
 
 /** Faster than a person can fill in nine steps: a script (SP-112's timing check). */
@@ -78,7 +79,7 @@ export async function POST(req: Request) {
     if (body.website_url || !(Number(body.elapsed) >= MIN_MS)) return Response.json({ ok: true, reference: "C-THANKYOU" });
     const side: Side = body.side === "tech" ? "tech" : "talent";
     const a = tidy(body.application || {}, side);
-    const { eligibility } = await getSiteContent();
+    const { eligibility, contactEmail } = await getSiteContent();
     const problems = allProblems(a, side, eligibility[side]);
     if (problems.length) throw new HttpError(400, problems[0]);
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim();
@@ -90,6 +91,8 @@ export async function POST(req: Request) {
       mediaKitLink: /^https?:\/\//.test(a.mediaKit) ? a.mediaKit : "",
       name: a.creatorName || a.legalName,
       email: a.email,
+      // the applicant's one auto-reply: Asha's message and the guide's link, replies to the side's address
+      autoReply: { ...autoReply(side, a, (side === "tech" ? TECH_BASE_URL : SITE_URL) + GROWTH_GUIDE[side]), replyTo: contactEmail[side] },
     });
     leadsChanged();
     return Response.json({ ok: true, reference: data.reference });

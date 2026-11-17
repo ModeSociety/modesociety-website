@@ -512,3 +512,34 @@ export function applicationColumns(a: Application, side: Side, consent: Consent)
     ["Tags", tagsFor(a).join("\n")],
   ];
 }
+
+/** Each site's Creator Growth Guide (Asha's PDFs, in public/guides). */
+export const GROWTH_GUIDE: Record<Side, string> = {
+  talent: "/guides/mode-society-creator-growth-guide.pdf",
+  tech: "/guides/mode-society-tech-creator-growth-guide.pdf",
+};
+
+/** The first name for "Thanks, [first name]!": the first word of the legal name. */
+export const firstNameOf = (a: Pick<Application, "legalName" | "creatorName">) => (a.legalName.trim().split(/\s+/)[0] || a.creatorName.trim() || "there");
+
+/** Asha's thank-you message (the screen after submitting, and the auto-reply email). */
+export const thankYouMessage = (first: string) =>
+  `Thanks, ${first}! Your application is in. Our team reviews every application and will be in touch if it's a fit. In the meantime, download our free Creator Growth Guide below.`;
+
+/** The auto-reply to the applicant (Asha's spec): one email with the same message and the guide's link. */
+export function autoReply(side: Side, a: Application, guideUrl: string) {
+  const name = APP_OPTIONS[side].name;
+  const first = firstNameOf(a);
+  const message = thankYouMessage(first);
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return {
+    subject: `We've received your ${name} application`,
+    text: `${message}\n\nCreator Growth Guide: ${guideUrl}\n\nThe ${name} Team`,
+    html:
+      `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;max-width:560px">` +
+      `<p>${esc(message)}</p>` +
+      `<p><a href="${esc(guideUrl)}" style="display:inline-block;padding:10px 18px;background:#1a1a1a;color:#fff;text-decoration:none">Download the Creator Growth Guide</a></p>` +
+      `<p>The ${esc(name)} Team</p></div>`,
+    fromName: name,
+  };
+}

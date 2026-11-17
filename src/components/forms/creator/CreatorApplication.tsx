@@ -5,6 +5,7 @@ import { blankApplication, DEFAULT_ELIGIBILITY, type Application, type Eligibili
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import type { Side } from "@/lib/side";
 import { STEPS, type StepProps } from "./steps";
+import ThankYou from "./ThankYou";
 
 /** The answers kept in this browser while the form is unfinished (photos are not kept). */
 const draftKey = (side: Side) => `ms-apply-${side}`;
@@ -41,6 +42,7 @@ export default function CreatorApplication({
   // saving waits until the saved answers have been read back, so a blank form never overwrites them
   const [loaded, setLoaded] = useState(false);
   const [startedAt] = useState(() => Date.now());
+  const [sent, setSent] = useState<{ reference: string; a: Application } | null>(null);
   const panel = useRef<HTMLDivElement>(null);
   const top = useRef<HTMLDivElement>(null);
 
@@ -73,6 +75,7 @@ export default function CreatorApplication({
   }, [i]);
 
   const step = STEPS[i];
+  if (sent) return <ThankYou side={side} a={sent.a} reference={sent.reference} />;
   if (!step) return null; // no steps yet
   const props: StepProps = { side, a, el: eligibility, set: (patch) => setA((cur) => ({ ...cur, ...patch })) };
   const problems = step.problems(props);
@@ -153,7 +156,11 @@ export default function CreatorApplication({
               Next <span className="arrow">→</span>
             </button>
           )}
-          {last && step.submit?.({ ...props, ready: problems.length === 0, startedAt, clearDraft: () => localStorage.removeItem(draftKey(side)), onDone })}
+          {last && step.submit?.({ ...props, ready: problems.length === 0, startedAt, clearDraft: () => localStorage.removeItem(draftKey(side)), onDone: (reference, done) => {
+            setSent({ reference, a: done });
+            top.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+            onDone?.(reference, done);
+          } })}
         </div>
       </form>
     </div>

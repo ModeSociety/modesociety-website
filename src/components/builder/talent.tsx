@@ -16,6 +16,7 @@ import VideoOrbit from "@/components/home/VideoOrbit";
 import { FeaturedStrip, PressGrid, PressLogos } from "@/components/press/Press";
 import { Accordion, ExpectCards, InstagramGrid, Quote, Steps } from "@/components/sections/Blocks";
 import Faq from "@/components/sections/Faq";
+import BookNow from "@/components/services/BookNow";
 import PricedServices, { shownServices } from "@/components/services/PricedServices";
 import ServicesShowcase from "@/components/services/ServicesShowcase";
 import Accent, { accent, headingLines } from "@/components/site/Accent";
@@ -495,7 +496,15 @@ export const TALENT: Record<string, Feature> = {
     shows: ({ c }) => shownServices(c.copy["services.priced"].items).length > 0,
     render: ({ c }) => {
       const p = c.copy["services.priced"];
-      return <PricedServices intro={p.intro} freeBadge={p.freeBadge} footer={p.footer} items={p.items} />;
+      return (
+        <PricedServices
+          intro={p.intro}
+          freeBadge={p.freeBadge}
+          footer={p.footer}
+          items={p.items}
+          book={(s, t) => p.bookLabel.trim() && <BookNow side="talent" service={s.title.trim()} tier={t.name.trim()} price={t.price} label={p.bookLabel} />}
+        />
+      );
     },
   },
 

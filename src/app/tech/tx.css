@@ -397,3 +397,5 @@ html:has(.tx),html:has(.tx) body{cursor:url("data:image/svg+xml,%3Csvg xmlns='ht
 .tx .svc-foot{color:var(--body);font-size:13px;max-width:80ch;margin-top:clamp(36px,4vw,56px)}
 @media (max-width:900px){.tx .svc-grid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:520px){.tx .svc-tiers li{grid-template-columns:minmax(0,1fr)}.tx .svc-price{flex-direction:row;align-items:center;justify-content:space-between}}
+.tx .svc .pill.book{font-size:12px;gap:10px;padding:5px 5px 9px 14px}
+.tx .svc .pill.book .ac{width:28px;height:28px}

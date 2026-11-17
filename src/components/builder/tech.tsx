@@ -6,6 +6,7 @@ import Contact from "@/components/tx/Contact";
 import Film from "@/components/tx/Film";
 import { Campaigns, Faq, Hero, Rules, Run, Ticker, Who } from "@/components/tx/Sections";
 import TxServices, { TxServicesHero } from "@/components/tx/TxServices";
+import BookNow from "@/components/services/BookNow";
 import { shownServices } from "@/components/services/PricedServices";
 import type { Feature } from "./types";
 
@@ -23,7 +24,15 @@ export const TECH: Record<string, Feature> = {
     shows: ({ c }) => shownServices(c.copy["techSite.services"].items).length > 0,
     render: ({ c }) => {
       const p = c.copy["techSite.services"];
-      return <TxServices intro={p.intro} freeBadge={p.freeBadge} footer={p.footer} items={p.items} />;
+      return (
+        <TxServices
+          intro={p.intro}
+          freeBadge={p.freeBadge}
+          footer={p.footer}
+          items={p.items}
+          book={(s, t) => p.bookLabel.trim() && <BookNow side="tech" service={s.title.trim()} tier={t.name.trim()} price={t.price} label={p.bookLabel} />}
+        />
+      );
     },
   },
   "x.faq": { shows: ({ c }) => !c.copy["techSite.faq"].hidden, render: ({ c }) => <Faq copy={c.copy["techSite.faq"]} /> },

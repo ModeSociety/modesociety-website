@@ -15,6 +15,6 @@ export const TECH: Record<string, Feature> = {
   "x.campaigns": { shows: ({ c }) => !c.copy["techSite.campaigns"].hidden, render: ({ c }) => <Campaigns copy={c.copy["techSite.campaigns"]} /> },
   "x.run": { shows: ({ c }) => !c.copy["techSite.run"].hidden, render: ({ c }) => <Run copy={c.copy["techSite.run"]} /> },
   "x.rules": { shows: ({ c }) => !c.copy["techSite.rules"].hidden, render: ({ c }) => <Rules copy={c.copy["techSite.rules"]} /> },
-  "x.contact": { render: ({ c }) => <Contact copy={c.copy["techSite.contact"]} /> },
+  "x.contact": { render: ({ c }) => <Contact copy={c.copy["techSite.contact"]} eligibility={c.eligibility.tech} /> },
   "x.faq": { shows: ({ c }) => !c.copy["techSite.faq"].hidden, render: ({ c }) => <Faq copy={c.copy["techSite.faq"]} /> },
 };

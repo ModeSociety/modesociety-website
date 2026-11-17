@@ -6,7 +6,7 @@ import Link from "next/link";
 import { StrikeList } from "@/components/about/AboutFx";
 import BrandForm from "@/components/forms/BrandForm";
 import GetInTouch, { type FormKey } from "@/components/forms/GetInTouch";
-import TalentForm from "@/components/forms/TalentForm";
+import CreatorApplication from "@/components/forms/creator/CreatorApplication";
 import Clients from "@/components/home/Clients";
 import DualCta from "@/components/home/DualCta";
 import Hero from "@/components/home/Hero";
@@ -451,7 +451,10 @@ export const TALENT: Record<string, Feature> = {
               </h2>
             </div>
             <div className="md:col-span-7 md:col-start-6">
-              <TalentForm intro={c.copy["site.forms"].talent} />
+              {c.copy["site.forms"].talent && (
+                <p className="font-serif mb-10 text-[clamp(18px,1.6vw,22px)] italic leading-snug text-ink">&ldquo;{c.copy["site.forms"].talent}&rdquo;</p>
+              )}
+              <CreatorApplication side="talent" eligibility={c.eligibility.talent} />
             </div>
           </div>
         </section>
@@ -720,6 +723,7 @@ export const TALENT: Record<string, Feature> = {
         initial={FORM_KEYS.find((k) => k === q.form) ?? null}
         cards={c.copy["contact.cards"]}
         intros={c.copy["site.forms"]}
+        eligibility={c.eligibility.talent}
       />
     ),
   },

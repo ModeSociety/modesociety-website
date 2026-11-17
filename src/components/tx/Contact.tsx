@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import CreatorApplication from "@/components/forms/creator/CreatorApplication";
 import { isEmail } from "@/components/forms/StepForm";
+import type { Eligibility } from "@/lib/application";
 import type { SectionCopy } from "@/lib/copy";
-import { PLATFORMS, TECH_APPLY_AS, TECH_BUDGETS, TECH_CATEGORY_OPTIONS, TECH_FORMAT_OPTIONS, TECH_REGIONS, TECH_TIMELINES } from "@/lib/tech";
+import { TECH_BUDGETS, TECH_CATEGORY_OPTIONS, TECH_FORMAT_OPTIONS, TECH_TIMELINES } from "@/lib/tech";
 import { postJson } from "@/lib/upload";
 import { pixel } from "./pixel";
 import { TAB_EVENT } from "./TxShell";
 
 type Mode = "brand" | "creator";
-type Channel = { platform: string; handle: string; followers: string };
 
 function Opts<T extends string>({ options, value, onChange, single = false }: { options: readonly T[]; value: T[]; onChange: (v: T[]) => void; single?: boolean }) {
   return (
@@ -32,15 +33,12 @@ function Opts<T extends string>({ options, value, onChange, single = false }: { 
  * timeline; creators: channels, niche, region, notes and the 18+ check). Any data-tab button on the
  * page opens it on that tab.
  */
-export default function Contact({ copy: c }: { copy: SectionCopy<"techSite.contact"> }) {
+export default function Contact({ copy: c, eligibility }: { copy: SectionCopy<"techSite.contact">; eligibility: Eligibility }) {
   const [mode, setMode] = useState<Mode>("brand");
   const [step, setStep] = useState(1);
   const [b, setB] = useState({ brand: "", website: "", name: "", email: "", about: "", budget: "", timeline: "" });
   const [categories, setCategories] = useState<string[]>([]);
   const [formats, setFormats] = useState<string[]>([]);
-  const [cr, setCr] = useState({ name: "", handle: "", email: "", as: "", niche: "", region: "", notes: "" });
-  const [channels, setChannels] = useState<Channel[]>([{ platform: "Twitch", handle: "", followers: "" }]);
-  const [adult, setAdult] = useState(false);
   const [honey, setHoney] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -60,20 +58,16 @@ export default function Contact({ copy: c }: { copy: SectionCopy<"techSite.conta
     return () => removeEventListener(TAB_EVENT, on);
   }, []);
 
-  const filled = channels.filter((x) => x.handle.trim());
-  const ok1 = mode === "brand" ? Boolean(b.brand.trim() && b.name.trim()) && isEmail(b.email) : Boolean(cr.name.trim() && cr.as) && isEmail(cr.email);
-  const ok2 = mode === "brand" ? b.about.trim().length > 10 : filled.length > 0 && adult;
-  const need1 = mode === "brand" ? "Brand name, your name and a valid email are needed." : "Your name, a valid email and what you're applying as are needed.";
-  const need2 = mode === "brand" ? "Tell us a little about the campaign." : "Add at least one channel with your handle, and confirm you're 18 or over.";
+  const ok1 = Boolean(b.brand.trim() && b.name.trim()) && isEmail(b.email);
+  const ok2 = b.about.trim().length > 10;
+  const need1 = "Brand name, your name and a valid email are needed.";
+  const need2 = "Tell us a little about the campaign.";
 
   const submit = async () => {
     setBusy(true);
     setError("");
     try {
-      const res =
-        mode === "brand"
-          ? await postJson<{ reference: string }>("/api/forms/tech-brand", { fields: { ...b, categories, formats }, website_url: honey })
-          : await postJson<{ reference: string }>("/api/forms/tech-creator", { fields: { ...cr, channels: filled, adult }, website_url: honey });
+      const res = await postJson<{ reference: string }>("/api/forms/tech-brand", { fields: { ...b, categories, formats }, website_url: honey });
       setDone({ mode, ref: res.reference });
     } catch (err) {
       setError((err as Error).message);
@@ -93,7 +87,6 @@ export default function Contact({ copy: c }: { copy: SectionCopy<"techSite.conta
     submit();
   };
 
-  const setCh = (i: number, k: keyof Channel, v: string) => setChannels(channels.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
 
   return (
     <section className="sec contact" id="contact">
@@ -117,13 +110,31 @@ export default function Contact({ copy: c }: { copy: SectionCopy<"techSite.conta
             </p>
           </div>
 
-          {done ? (
+          {mode === "creator" && !done ? (
+            <div className="form rv in">
+              <div className="tabs" role="tablist">
+                {(
+                  [
+                    ["brand", c.brandTab],
+                    ["creator", c.creatorTab],
+                  ] as const
+                ).map(([m, label]) => (
+                  <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => open(m)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="panel creator-app">
+                <CreatorApplication side="tech" eligibility={eligibility} />
+              </div>
+            </div>
+          ) : done ? (
             <div className="form rv in" role="status">
               <span className="mono" style={{ color: "var(--royal)" }}>
                 Received · {done.ref}
               </span>
               <h3>Thanks!</h3>
-              <p style={{ color: "var(--body)" }}>{done.mode === "brand" ? c.brandThanks : c.creatorThanks}</p>
+              <p style={{ color: "var(--body)" }}>{c.brandThanks}</p>
             </div>
           ) : (
             <form className="form rv" onSubmit={onSubmit} noValidate>
@@ -175,33 +186,6 @@ export default function Contact({ copy: c }: { copy: SectionCopy<"techSite.conta
                 </div>
               )}
 
-              {step === 1 && mode === "creator" && (
-                <div className="panel">
-                  <span className="mono" style={{ color: "var(--royal)" }}>
-                    {c.level1}
-                  </span>
-                  <h3>{c.level1Title}</h3>
-                  <div className="fields">
-                    <div className="f">
-                      <label className="mono" htmlFor="tc1">Name *</label>
-                      <input id="tc1" value={cr.name} onChange={(e) => setCr({ ...cr, name: e.target.value })} autoComplete="name" required />
-                    </div>
-                    <div className="f">
-                      <label className="mono" htmlFor="tc2">Your @ (optional)</label>
-                      <input id="tc2" value={cr.handle} onChange={(e) => setCr({ ...cr, handle: e.target.value })} />
-                    </div>
-                    <div className="f full">
-                      <label className="mono" htmlFor="tc3">Email *</label>
-                      <input id="tc3" type="email" value={cr.email} onChange={(e) => setCr({ ...cr, email: e.target.value })} autoComplete="email" required />
-                    </div>
-                    <div className="f full">
-                      <span className="mono">Applying as *</span>
-                      <Opts options={TECH_APPLY_AS} value={cr.as ? [cr.as as (typeof TECH_APPLY_AS)[number]] : []} onChange={(v) => setCr({ ...cr, as: v[0] || "" })} single />
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {step === 2 && mode === "brand" && (
                 <div className="panel">
                   <span className="mono" style={{ color: "var(--royal)" }}>
@@ -243,77 +227,12 @@ export default function Contact({ copy: c }: { copy: SectionCopy<"techSite.conta
                 </div>
               )}
 
-              {step === 2 && mode === "creator" && (
-                <div className="panel">
-                  <span className="mono" style={{ color: "var(--royal)" }}>
-                    {c.level2}
-                  </span>
-                  <h3>{c.creatorLevel2}</h3>
-                  <div className="fields">
-                    {channels.map((ch, i) => (
-                      <div key={i} className="f full chan">
-                        <span className="mono">Channel {channels.length > 1 ? i + 1 : ""}</span>
-                        <div className="chan-row">
-                          <select aria-label="Platform" value={ch.platform} onChange={(e) => setCh(i, "platform", e.target.value)}>
-                            {PLATFORMS.map((p) => (
-                              <option key={p.id}>{p.label}</option>
-                            ))}
-                          </select>
-                          <input aria-label="Handle or link" value={ch.handle} onChange={(e) => setCh(i, "handle", e.target.value)} placeholder="@handle or URL" />
-                          <input aria-label="Followers" value={ch.followers} onChange={(e) => setCh(i, "followers", e.target.value)} placeholder="Followers, e.g. 18K" />
-                          {channels.length > 1 && (
-                            <button type="button" className="back" onClick={() => setChannels(channels.filter((_, j) => j !== i))} aria-label="Remove this channel">
-                              ✕
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {channels.length < 6 && (
-                      <div className="f full">
-                        <div className="opts">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setChannels([...channels, { platform: PLATFORMS.find((p) => !channels.some((x) => x.platform === p.label))?.label || "YouTube", handle: "", followers: "" }])
-                            }
-                          >
-                            + Add a channel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    <div className="f">
-                      <label className="mono" htmlFor="tc4">Games or niche (optional)</label>
-                      <input id="tc4" value={cr.niche} onChange={(e) => setCr({ ...cr, niche: e.target.value })} placeholder="e.g. FPS, PC builds, mobile" />
-                    </div>
-                    <div className="f">
-                      <label className="mono" htmlFor="tc5">Where you&apos;re based (optional)</label>
-                      <select id="tc5" value={cr.region} onChange={(e) => setCr({ ...cr, region: e.target.value })}>
-                        <option value="">Choose…</option>
-                        {TECH_REGIONS.map((x) => (
-                          <option key={x}>{x}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="f full">
-                      <label className="mono" htmlFor="tc6">Anything you&apos;d like us to know (optional)</label>
-                      <textarea id="tc6" value={cr.notes} onChange={(e) => setCr({ ...cr, notes: e.target.value })} placeholder="Brands you've worked with, what you're looking for…" />
-                    </div>
-                    <label className="f full adult">
-                      <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} />
-                      <span>I&apos;m 18 or over (for a team: every member is).</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
               <div className="actions">
                 <button type="button" className="back" style={{ visibility: step === 1 ? "hidden" : "visible" }} onClick={() => setStep(1)}>
                   {c.back}
                 </button>
                 <button type="submit" className="pill" disabled={busy}>
-                  <span>{busy ? "Sending…" : step === 1 ? c.next : mode === "brand" ? c.brandSend : c.creatorSend}</span> <span className="ac">→</span>
+                  <span>{busy ? "Sending…" : step === 1 ? c.next : c.brandSend}</span> <span className="ac">→</span>
                 </button>
               </div>
               {error && (

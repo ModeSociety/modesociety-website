@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { SectionCopy } from "@/lib/copy";
 import BrandForm from "./BrandForm";
-import TalentForm from "./TalentForm";
+import type { Eligibility } from "@/lib/application";
+import CreatorApplication from "./creator/CreatorApplication";
 
 export type FormKey = "talent" | "brands";
 
@@ -14,10 +15,13 @@ export default function GetInTouch({
   initial,
   cards: copy,
   intros,
+  eligibility,
 }: {
   initial: FormKey | null;
   cards: SectionCopy<"contact.cards">;
   intros: SectionCopy<"site.forms">;
+  /** the countries Mode Society can sign creators from (admin panel → Applications) */
+  eligibility: Eligibility;
 }) {
   // the cards are edited in the admin panel in the order talent, brands
   const CARDS = KEYS.map((key, i) => ({ key, ...(copy.cards[i] ?? { eyebrow: "", title: key, body: "", cta: "" }) }));
@@ -68,7 +72,7 @@ export default function GetInTouch({
         {active && (
           <div key={active} className="mt-12 grid gap-10 md:grid-cols-12" role="tabpanel">
             <div className="md:col-span-8 md:col-start-3">
-              {active === "talent" && <TalentForm intro={intros.talent} />}
+              {active === "talent" && <CreatorApplication side="talent" eligibility={eligibility} />}
               {active === "brands" && <BrandForm intro={intros.brands} />}
             </div>
           </div>

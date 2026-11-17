@@ -1,6 +1,6 @@
 import Link from "next/link";
 import BrandForm from "@/components/forms/BrandForm";
-import TalentForm from "@/components/forms/TalentForm";
+import CreatorApplication from "@/components/forms/creator/CreatorApplication";
 import { Accordion } from "@/components/sections/Blocks";
 import Accent from "@/components/site/Accent";
 import IntroVideo from "@/components/site/IntroVideo";
@@ -253,7 +253,7 @@ function Body({ b, side, light, onDark, c }: P) {
       const intros = c.copy["site.forms"];
       const form =
         p.form === "brands" ? <BrandForm intro={intros.brands} /> :
-        p.form === "talent" ? <TalentForm intro={intros.talent} /> :
+        p.form === "talent" ? <CreatorApplication side="talent" eligibility={c.eligibility.talent} /> :
         null;
       if (!form) return null;
       return (

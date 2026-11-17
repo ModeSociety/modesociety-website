@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { blankApplication, type Application, type StepId } from "@/lib/application";
+import { blankApplication, DEFAULT_ELIGIBILITY, type Application, type Eligibility, type StepId } from "@/lib/application";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import type { Side } from "@/lib/side";
 import { STEPS, type StepProps } from "./steps";
@@ -26,7 +26,15 @@ function readDraft(side: Side): Draft | null {
  * bar. Next stays disabled until the step's required answers are valid (the problems are listed under
  * it). The answers are kept in this browser if it closes, except photos, which must be added again.
  */
-export default function CreatorApplication({ side, onDone }: { side: Side; onDone?: (reference: string, a: Application) => void }) {
+export default function CreatorApplication({
+  side,
+  eligibility = DEFAULT_ELIGIBILITY,
+  onDone,
+}: {
+  side: Side;
+  eligibility?: Eligibility;
+  onDone?: (reference: string, a: Application) => void;
+}) {
   const [a, setA] = useState<Application>(blankApplication);
   const [i, setI] = useState(0);
   const [restored, setRestored] = useState(false);
@@ -61,7 +69,7 @@ export default function CreatorApplication({ side, onDone }: { side: Side; onDon
 
   const step = STEPS[i];
   if (!step) return null; // no steps yet
-  const props: StepProps = { side, a, set: (patch) => setA((cur) => ({ ...cur, ...patch })) };
+  const props: StepProps = { side, a, el: eligibility, set: (patch) => setA((cur) => ({ ...cur, ...patch })) };
   const problems = step.problems(props);
   const last = i === STEPS.length - 1;
   const go = (n: number) => {

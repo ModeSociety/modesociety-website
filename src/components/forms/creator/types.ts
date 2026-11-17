@@ -1,7 +1,8 @@
-import type { Application } from "@/lib/application";
+import type { Application, Eligibility } from "@/lib/application";
 import type { Side } from "@/lib/side";
 
-export type StepProps = { side: Side; a: Application; set: (patch: Partial<Application>) => void };
+/** el: the countries and regions creators can sign from (admin panel) */
+export type StepProps = { side: Side; a: Application; set: (patch: Partial<Application>) => void; el: Eligibility };
 export type SubmitProps = StepProps & { ready: boolean; clearDraft: () => void; onDone?: (reference: string, a: Application) => void };
 
 export type StepDef = {

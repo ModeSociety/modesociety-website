@@ -206,3 +206,36 @@ export const aboutProblems = (a: Application, today = new Date()) => {
   }
   return out;
 };
+
+/** The countries creators can sign from and the regions blocked within them (admin panel → Applications). */
+export type Eligibility = { countries: string[]; blocked: string[] };
+export const DEFAULT_ELIGIBILITY: Eligibility = { countries: ELIGIBLE_COUNTRIES, blocked: BLOCKED_REGIONS };
+
+/** Asha's "Unable to sign" message, shown in red under the field for a blocked location. */
+export const unableToSign = (name: string) =>
+  `Unable to sign: Unfortunately, ${name} can't represent creators based in your location at the moment because of local talent agency laws. We're working on expanding, so follow us on socials for updates.`;
+
+/** Whether the chosen location is one we can't sign from (an unlisted country, or a blocked region). */
+export function locationBlocked(a: Application, el: Eligibility): boolean {
+  if (a.based === "International") {
+    if (a.country === NOT_LISTED) return true;
+    if (a.country && !el.countries.includes(a.country)) return true;
+  }
+  const region = a.region.trim().toLowerCase();
+  return Boolean(region) && el.blocked.some((b) => b.trim().toLowerCase() === region);
+}
+
+/** The state/region list for a country (Australia, the US), or null for free text. */
+export const regionsFor = (country: string) => (country === "Australia" ? AU_STATES : country === "United States" ? US_STATES : null);
+
+/** Step 1b: Where you're based. */
+export function basedProblems(a: Application, el: Eligibility): string[] {
+  const out: string[] = [];
+  if (!a.based) return ["Choose Australia or International"];
+  if (locationBlocked(a, el)) return ["We can't sign creators from this location yet"];
+  if (a.based === "International" && (!a.country || a.country === "Australia")) out.push("Choose your country of residence");
+  const regions = regionsFor(a.based === "Australia" ? "Australia" : a.country);
+  if (regions ? !regions.includes(a.region) : !a.region.trim()) out.push("Add your state or region");
+  if (a.country === "United Arab Emirates" && !a.uaePermit.trim()) out.push("Add your UAE Advertiser Permit number");
+  return out;
+}

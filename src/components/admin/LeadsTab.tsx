@@ -52,7 +52,7 @@ function StatusPill({ status }: { status: string }) {
 }
 
 /** Plain text with any web addresses made clickable. */
-function Linkified({ text }: { text: string }) {
+export function Linkified({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
   return (
     <>
@@ -70,7 +70,7 @@ function Linkified({ text }: { text: string }) {
 }
 
 /** A lead's channels, each a link to the profile (opens in a new tab), whether they typed a handle or a link. */
-function Channels({ text }: { text: string }) {
+export function Channels({ text }: { text: string }) {
   return (
     <ul className="grid gap-1.5 whitespace-normal">
       {parseChannels(text).map((c, i) => (
@@ -194,7 +194,7 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
             <div key={f.label} className={f.value.length > 80 || f.value.includes("\n") ? "sm:col-span-2" : ""}>
               <dt className="eyebrow">{f.label}</dt>
               <dd className="mt-1 whitespace-pre-line text-[15px] leading-relaxed text-ink">
-                {f.label.startsWith("Channels") ? <Channels text={f.value} /> : <Linkified text={f.value} />}
+                {f.label.startsWith("Channels") || f.label === "Other Platforms" ? <Channels text={f.value} /> : <Linkified text={f.value} />}
               </dd>
             </div>
           ))}

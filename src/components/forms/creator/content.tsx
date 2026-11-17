@@ -4,7 +4,7 @@ import { APP_OPTIONS, AUDIENCE_COUNTRIES, contentProblems } from "@/lib/applicat
 import { Chips, Field } from "../StepForm";
 import type { StepDef } from "./types";
 
-/** Step 4: your content. Niches and work types are each site's own lists. */
+/** Step 4: your content. Niches and work types are each site's own lists; Tech also asks games and setup. */
 export const content: StepDef = {
   kicker: "Your content",
   title: "What do you make?",
@@ -19,6 +19,16 @@ export const content: StepDef = {
         <Field label="Work you are open to * (tick any)">
           <Chips options={o.work} value={a.work} onChange={(work) => set({ work })} />
         </Field>
+        {side === "tech" && (
+          <>
+            <Field label="Main games you play" optional>
+              <input className="input" value={a.games} onChange={(e) => set({ games: e.target.value })} placeholder="e.g. Valorant, Fortnite, EA FC" />
+            </Field>
+            <Field label="Setup / platform (tick any)" optional>
+              <Chips options={o.setup} value={a.setup} onChange={(setup) => set({ setup })} />
+            </Field>
+          </>
+        )}
         <div className="grid gap-8 md:grid-cols-2">
           <Field label="Audience top country" optional>
             <select className="input" value={a.audienceCountry} onChange={(e) => set({ audienceCountry: e.target.value })}>

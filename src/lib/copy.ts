@@ -75,7 +75,8 @@ const pricedServices = (exclusiveOf: string) => ({
   footer: area("Note at the bottom", "Prices, how booking works, no guarantees"),
 });
 const pricedDefaults = (d: ServicesCopy) => ({
-  intro: d.intro,
+  // the intro's first sentence ("Grow with intention.") is the page's headline, so it isn't repeated
+  intro: d.intro.replace(/^[^.]+\.\s+/, ""),
   freeBadge: "Free for exclusive creators",
   bookLabel: "Book now",
   items: d.items.map((x) => ({ ...x, tiers: x.tiers.map((t) => ({ ...t })) })),

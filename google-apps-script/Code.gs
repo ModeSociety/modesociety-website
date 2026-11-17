@@ -89,6 +89,9 @@ var FOLDERS = {
   images: 'Website Images',
   talent: 'Talent Applications',
   incoming: '_Incoming Uploads',
+  // the four contract templates (Google Docs, made from Asha's Word files) and the signed PDFs; private
+  contracts: 'Contracts',
+  signed: 'Signed Contracts',
 };
 
 /**
@@ -781,6 +784,34 @@ var ACTIONS = {
       (p.columns || []).concat([['Application folder', folder.getUrl()]]), files);
     autoReply_(p.email, p.autoReply);
     return { reference: ref };
+  },
+
+  /**
+   * A creator's contract as a PDF (SP-113): a copy of the template Doc in Drive → Contracts (so Asha's
+   * latest wording is used), with Schedule 2 cut down to the creator's part (A: Australia, B:
+   * international). The site uploads it to PandaDoc, whose field tags in it become the signing fields.
+   * The copy is deleted straight after.
+   */
+  buildContract: function (p) {
+    var name = String(p.template || '');
+    var found = folder_('contracts').getFilesByName(name);
+    var tpl = null;
+    while (found.hasNext()) {
+      var f = found.next();
+      if (f.getMimeType() === 'application/vnd.google-apps.document' && !f.isTrashed()) { tpl = f; break; }
+    }
+    if (!tpl) throw new Error('There is no Google Doc called "' + name + '" in Drive → Contracts (see README → Contracts)');
+    var copy = tpl.makeCopy(name + ' (' + (p.reference || 'draft') + ')', folder_('incoming'));
+    try {
+      var doc = DocumentApp.openById(copy.getId());
+      var body = doc.getBody();
+      body.replaceText('\\{\\{BASED\\}\\}', p.part === 'A' ? 'Australia: Domestic Talent (complete Part A)' : 'International: International Talent (complete Part B)');
+      removePart_(body, p.part === 'A' ? 'B' : 'A');
+      doc.saveAndClose();
+      return { name: name + '.pdf', data: Utilities.base64Encode(copy.getAs('application/pdf').getBytes()) };
+    } finally {
+      copy.setTrashed(true);
+    }
   },
 
   // ---- Tech roster (admin panel → Roster; also editable in the Sheet) ----
@@ -1484,6 +1515,24 @@ function ensureSigned_(reference, side, representation, by) {
   var m = String(representation).match(/^(Exclusive|Non-exclusive) \((\d+%) commission\)/);
   appendByColumn_(sheet, [['Reference', reference], ['Side', side], ['Contract', m ? m[1] : ''], ['Commission', m ? m[2] : ''],
     ['Signed At', new Date()], ['Mode Email In Bio', 'No'], ['Updated At', new Date()], ['Updated By', by || '']]);
+}
+
+/**
+ * Removes one part of Schedule 2 from a contract: from its "Part A: …" or "Part B: …" heading up to
+ * the next part's heading (or the closing confirmation for Part B).
+ */
+function removePart_(body, drop) {
+  var n = body.getNumChildren();
+  // paragraphs, list items and tables all have getText (a table's is all its cells)
+  var text = function (i) { var c = body.getChild(i); return c.getText ? String(c.getText()).trim() : ''; };
+  var start = -1, end = n;
+  for (var i = 0; i < n; i++) {
+    var t = text(i);
+    if (start < 0 && t.indexOf('Part ' + drop + ':') === 0) start = i;
+    else if (start >= 0 && (t.indexOf('Part B:') === 0 || t.indexOf('I confirm that these Payment Details') === 0)) { end = i; break; }
+  }
+  if (start < 0) throw new Error('The contract template has no "Part ' + drop + ':" heading in Schedule 2');
+  for (var k = end - 1; k >= start; k--) body.removeChild(body.getChild(k));
 }
 
 function readSettings_() {

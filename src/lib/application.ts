@@ -429,3 +429,7 @@ export function representationInfo(side: Side) {
 
 /** Step 6: representation. */
 export const representationProblems = (a: Application) => (REPRESENTATIONS.includes(a.representation as Representation) ? [] : ["Choose exclusive or non-exclusive representation"]);
+
+/** Step 7: the five agreements are all required (the email tips are optional). */
+export const agreementsProblems = (a: Application, side: Side) =>
+  APP_OPTIONS[side].agreements.every((t) => a.agreements.includes(t)) ? [] : ["Tick all five agreements to send your application"];

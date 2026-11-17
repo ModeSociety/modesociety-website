@@ -551,7 +551,7 @@ export const SECTIONS = {
     title: "Page title",
     hint: "The second line of the heading is set smaller.",
     fields: { tag, label, meta, heading: heading() },
-    defaults: { tag: "Services", label: "How it works", meta: "No price list: every package is built around you", heading: "Four ways\n*we work with brands.*" },
+    defaults: { tag: "Services", label: "For creators and brands", meta: "Prices in AUD, excluding GST", heading: "Grow with\n*intention.*" },
   },
   "services.list": {
     side: "talent",

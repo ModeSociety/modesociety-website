@@ -61,10 +61,10 @@ export const PAGES: Record<PageKey, { path: string; title: string; description: 
   },
   services: {
     path: "/services",
-    title: "Influencer Campaigns, UGC & Guest Lists | Mode Society",
+    title: "Creator & Brand Services and Prices | Mode Society",
     description:
-      "Influencer campaigns, UGC content, event guest lists and grant funding for overseas marketing. See how each Mode Society service works, step by step.",
-    og: "Four ways we work with brands",
+      "Strategy sessions, social media audits, content editing, email and SMS marketing, media kits and more for creators and brands. Prices in AUD, with free strategy for exclusive creators.",
+    og: "Grow with intention",
     crumb: "Services",
   },
   work: {

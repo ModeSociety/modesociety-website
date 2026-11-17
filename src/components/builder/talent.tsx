@@ -16,6 +16,7 @@ import VideoOrbit from "@/components/home/VideoOrbit";
 import { FeaturedStrip, PressGrid, PressLogos } from "@/components/press/Press";
 import { Accordion, ExpectCards, InstagramGrid, Quote, Steps } from "@/components/sections/Blocks";
 import Faq from "@/components/sections/Faq";
+import PricedServices, { shownServices } from "@/components/services/PricedServices";
 import ServicesShowcase from "@/components/services/ServicesShowcase";
 import Accent, { accent, headingLines } from "@/components/site/Accent";
 import { Mark, SectionHead } from "@/components/site/Editorial";
@@ -487,6 +488,14 @@ export const TALENT: Record<string, Feature> = {
           />
         </section>
       );
+    },
+  },
+
+  "t.servicesPriced": {
+    shows: ({ c }) => shownServices(c.copy["services.priced"].items).length > 0,
+    render: ({ c }) => {
+      const p = c.copy["services.priced"];
+      return <PricedServices intro={p.intro} freeBadge={p.freeBadge} footer={p.footer} items={p.items} />;
     },
   },
 

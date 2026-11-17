@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { flagOf, formatCount, placeOf } from "@/lib/enquiries";
-import { localDate, nextRenewal, type SignedCreator } from "@/lib/signed";
+import { localDate, nextRenewal, optOutWindow, type SignedCreator } from "@/lib/signed";
 import type { Side } from "@/lib/side";
+import LeadImages from "./LeadImages";
+import { Channels, Linkified } from "./LeadsTab";
 
 /** The last list this browser saw per business, so coming back shows it at once. */
 const kept: Partial<Record<Side, SignedCreator[]>> = {};
@@ -139,6 +141,7 @@ export default function SignedTab({ side, disabled }: { side: Side; disabled: bo
           {list.map((s) => (
             <li key={s.contract.reference} className="border-b border-line last:border-b-0">
               <Row s={s} side={side} isOpen={open === s.contract.reference} onToggle={() => setOpen(open === s.contract.reference ? "" : s.contract.reference)} />
+              {open === s.contract.reference && <Profile s={s} side={side} />}
             </li>
           ))}
         </ul>
@@ -190,6 +193,113 @@ function Row({ s, side, isOpen, onToggle }: { s: SignedCreator; side: Side; isOp
       <span className="hidden min-w-0 truncate text-[13px] text-ink-2 lg:block">{c ? placeOf(c) : "—"}</span>
       <span className="hidden font-mono text-[12px] text-ink-2 lg:block">{showDate(s.contract.signedAt)}</span>
       <span className="font-mono text-[12px] text-ink-2 max-lg:hidden">{showDate(renewal)}</span>
+    </div>
+  );
+}
+
+/** The profile's sections, by the application's Sheet columns; anything else goes under "More". */
+const SECTIONS: [string, string[]][] = [
+  ["Contact", ["Full Name", "Creator Name", "Mobile", "Date of Birth", "Guardian"]],
+  ["Location and postal address", ["Based", "Country", "State / Region", "UAE Permit", "Postal Address"]],
+  [
+    "Socials",
+    ["Main Platform", "Main Channel", "Main Followers", "Average views per post", "Average live viewers (if streaming)", "Other Platforms", "Audience Top Country", "Media Kit"],
+  ],
+  ["Work", ["Niche", "Work Open To", "Games", "Setup", "Past Collaborations", "Agency", "Tags"]],
+];
+const HIDDEN = new Set(["Profile Photo", "Profile Photo (Round)", "Photos", "Status"]);
+
+/** One label and value. */
+function Item({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={value.length > 80 || value.includes("\n") ? "sm:col-span-2" : ""}>
+      <dt className="eyebrow">{label}</dt>
+      <dd className="mt-1 whitespace-pre-line text-[15px] leading-relaxed text-ink">
+        {label.startsWith("Channels") || label === "Other Platforms" ? <Channels text={value} /> : <Linkified text={value} />}
+      </dd>
+    </div>
+  );
+}
+
+/**
+ * A signed creator's profile: their application (read from its Sheet row by reference) in sections,
+ * their photos, and the contract beside it (type, commission, signed date, renewal, opt-out window, links).
+ */
+function Profile({ s, side }: { s: SignedCreator; side: Side }) {
+  const a = s.application;
+  const k = s.contract;
+  const renewal = nextRenewal(k);
+  const optOut = renewal ? optOutWindow(renewal) : null;
+  const fields = (a?.fields || []).filter((f) => !HIDDEN.has(f.label));
+  const by = new Map(fields.map((f) => [f.label, f.value]));
+  const placed = new Set(SECTIONS.flatMap(([, labels]) => labels));
+  const more = fields.filter((f) => !placed.has(f.label));
+  return (
+    <div className="grid gap-8 border-t border-line bg-paper-2/30 px-4 py-6 md:px-6 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-8">
+        {!a && <p className="text-pin">The application ({k.reference}) is no longer in the Sheet, so only the contract is shown.</p>}
+        {a && a.files.length > 0 && (
+          <section>
+            <p className="eyebrow mb-3">Photos ({a.files.length})</p>
+            <LeadImages ids={a.files} label="Photo" side={side} />
+          </section>
+        )}
+        {a &&
+          [...SECTIONS.map(([title, labels]) => [title, labels.filter((l) => by.get(l)).map((l) => ({ label: l, value: by.get(l)! }))] as const), ["More", more] as const]
+            .filter(([, items]) => items.length)
+            .map(([title, items]) => (
+              <section key={title}>
+                <h3 className="mb-3 font-display text-xl">{title}</h3>
+                <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                  {title === "Contact" && a.email && <Item label="Email" value={a.email} />}
+                  {items.map((f) => (
+                    <Item key={f.label} label={f.label} value={f.value} />
+                  ))}
+                </dl>
+              </section>
+            ))}
+      </div>
+      <aside className="grid content-start gap-4 text-sm">
+        <h3 className="font-display text-xl">Contract</h3>
+        <dl className="grid gap-3">
+          <div>
+            <dt className="eyebrow">Type</dt>
+            <dd className="text-[15px]">{k.type ? `${k.type}${k.commission ? `, ${k.commission} commission` : ""}` : "Not set yet"}</dd>
+          </div>
+          <div>
+            <dt className="eyebrow">Signed</dt>
+            <dd className="text-[15px]">{showDate(k.signedAt)}</dd>
+          </div>
+          <div>
+            <dt className="eyebrow">Renews</dt>
+            <dd className="text-[15px]">{k.type === "Exclusive" ? showDate(renewal) : "Doesn't renew (non-exclusive)"}</dd>
+          </div>
+          {optOut && (
+            <div>
+              <dt className="eyebrow">Opt-out window</dt>
+              <dd className="text-[15px]">
+                {showDate(optOut[0])} to {showDate(optOut[1])}
+              </dd>
+            </div>
+          )}
+        </dl>
+        {k.contractLink ? (
+          <a href={k.contractLink} target="_blank" rel="noreferrer" className="link-underline w-fit text-ink-2">
+            Signed contract in Drive ↗
+          </a>
+        ) : (
+          <p className="text-muted">The signed contract is linked here once it&apos;s saved to Drive.</p>
+        )}
+        {a?.folderUrl && (
+          <a href={a.folderUrl} target="_blank" rel="noreferrer" className="link-underline w-fit text-ink-2">
+            Application folder in Drive ↗
+          </a>
+        )}
+        <p className="font-mono text-[11px] text-muted">
+          Ref {k.reference}
+          {k.updatedBy ? ` · updated by ${k.updatedBy}` : ""}
+        </p>
+      </aside>
     </div>
   );
 }

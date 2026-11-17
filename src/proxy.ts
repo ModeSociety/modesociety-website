@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isMainHost, isTechHost, TECH_HOST, TECH_SITE_URL } from "@/lib/domains";
+import { isMainHost, isTechHost, MAIN_SITE_URL, TECH_HOST, TECH_SITE_URL } from "@/lib/domains";
 
 /** The old Tech pages (one page since 6 Nov 2026) and the section of the new page each one became. */
 const OLD_TECH: Record<string, string> = {
@@ -10,12 +10,15 @@ const OLD_TECH: Record<string, string> = {
   "/tech/contact": "#contact",
 };
 
+/** Addresses without a file extension that the Tech page needs on its own domain (Next's dev tools too). */
+const TECH_OWN = ["/media", "/og", "/__nextjs_original-stack-frame", "/__nextjs_source-map", "/__nextjs_font"];
+
 /**
  * Sends each domain to its own pages (one deployment serves both businesses). While
  * NEXT_PUBLIC_TECH_SITE_URL is unset, nothing changes and the Tech page stays at /tech.
  *
  * - modesocietytech.com: www goes to the bare domain, and the root shows the Tech page; /tech there
- *   goes to the root.
+ *   goes to the root. Mode Society's pages (and the admin panel) go to www.modesociety.com.au.
  * - www.modesociety.com.au: the Tech page and its old pages move to modesocietytech.com (permanent,
  *   so search engines carry their ranking over).
  */
@@ -37,7 +40,10 @@ export function proxy(req: NextRequest) {
     // the Tech page at the root
     if (path === "/") return NextResponse.rewrite(new URL("/tech" + url.search, req.url));
     if (path in OLD_TECH) return NextResponse.redirect(new URL("/" + url.search + OLD_TECH[path], `https://${TECH_HOST}`), 308);
-    return NextResponse.next();
+    // what the Tech page itself loads: Drive photos and its share image
+    if (TECH_OWN.some((p) => path === p || path.startsWith(p + "/"))) return NextResponse.next();
+    // anything else is Mode Society's (its pages, the admin panel): the same page on its own domain
+    return NextResponse.redirect(new URL(url.pathname + url.search, MAIN_SITE_URL), 308);
   }
 
   if (isMainHost(host) && path in OLD_TECH) {

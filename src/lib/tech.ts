@@ -159,16 +159,6 @@ export const TECH_FAQ_CREATORS = [
   { q: "Which platforms do you look at?", a: "Twitch, YouTube, TikTok, Instagram, X and Kick. Tell us where your audience is, and how big it is, in the application." },
 ];
 
-// ---------------------------------------------------------------------------
-// Forms
-// ---------------------------------------------------------------------------
-
-export const TECH_APPLY_AS = ["Creator", "Streamer", "Esports athlete", "Team"] as const;
-export const TECH_REGIONS = ["Australia & NZ", "Asia", "Europe", "North America", "Elsewhere"] as const;
-export const TECH_BUDGETS = ["Under $5k", "$5k–$15k", "$15k–$50k", "$50k+", "Not sure yet"] as const;
-export const TECH_TIMELINES = ["ASAP", "Next 1–3 months", "3–6 months", "Just exploring"] as const;
-export const TECH_CATEGORY_OPTIONS = TECH_CATEGORIES.map((c) => c.title.replace(" & ", " and "));
-export const TECH_FORMAT_OPTIONS = TECH_FORMATS.map((f) => f.title);
 
 /** The roster to show: the real one, or the marked samples until the first creator is added. */
 export function rosterFor(real: RosterMember[]) {

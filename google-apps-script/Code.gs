@@ -20,7 +20,8 @@ var TABS = {
   // the website's wording, one row per section edited in the admin panel (Pages & text); Value is JSON
   content: { name: 'Content', headers: ['Section', 'Value', 'Updated At', 'Updated By'] },
   images: { name: 'Images', headers: ['Slot', 'Order', 'File ID', 'Alt Text', 'File Link', 'Updated At', 'Updated By'] },
-  admins: { name: 'Admins', headers: ['Email', 'Added By', 'Added At'] },
+  // Side: 'talent' or 'tech' limits an admin to that business; blank = both (16 Nov 2026)
+  admins: { name: 'Admins', headers: ['Email', 'Added By', 'Added At', 'Side'] },
   talent: {
     name: 'Talent',
     headers: ['Submitted At', 'Status', 'Full Name', 'Email', 'What They Do', 'Channels (handle · followers)', 'Niche',
@@ -383,17 +384,41 @@ var ACTIONS = {
   },
 
   getAdmins: function () {
-    return { owner: ownerEmail_(), admins: readAdmins_() };
+    return { owner: ownerEmail_(), admins: readAdmins_(), sides: readAdminSides_() };
   },
 
+  /** Adds an admin; side 'talent' or 'tech' limits them to that business (blank: both). */
   addAdmin: function (p) {
     var email = normaliseEmail_(p.email);
     if (!email) throw new Error('Invalid email');
+    var side = adminSide_(p.side);
     return withLock_(function () {
       if (readAdmins_().indexOf(email) === -1 && email !== ownerEmail_()) {
-        sheet_('admins').appendRow([email, p.by || '', new Date()]);
+        sheet_('admins').appendRow([email, p.by || '', new Date(), side]);
       }
-      return { owner: ownerEmail_(), admins: readAdmins_() };
+      return { owner: ownerEmail_(), admins: readAdmins_(), sides: readAdminSides_() };
+    });
+  },
+
+  /** Changes which business an admin can open: 'talent', 'tech' or '' (both). */
+  setAdminSide: function (p) {
+    var email = normaliseEmail_(p.email);
+    if (email === ownerEmail_()) throw new Error('The owner account always has both');
+    var side = adminSide_(p.side);
+    return withLock_(function () {
+      var sheet = sheet_('admins');
+      var values = sheet.getDataRange().getValues();
+      var col = values[0].indexOf('Side');
+      if (col < 0) throw new Error('Run setup first: the Admins tab has no Side column');
+      var found = false;
+      for (var i = 1; i < values.length; i++) {
+        if (normaliseEmail_(values[i][0]) === email) {
+          sheet.getRange(i + 1, col + 1).setValue(side);
+          found = true;
+        }
+      }
+      if (!found) throw new Error('That account is not an admin');
+      return { owner: ownerEmail_(), admins: readAdmins_(), sides: readAdminSides_() };
     });
   },
 
@@ -1171,6 +1196,24 @@ function readImages_() {
   for (var i = 1; i < values.length; i++) {
     if (!values[i][0] || !values[i][2]) continue;
     out.push({ slot: values[i][0], order: Number(values[i][1]) || i, fileId: values[i][2], alt: values[i][3] || '' });
+  }
+  return out;
+}
+
+function adminSide_(v) {
+  return v === 'talent' || v === 'tech' ? v : '';
+}
+
+/** Admins limited to one business: { email: 'talent' | 'tech' } (everyone else sees both). */
+function readAdminSides_() {
+  var values = sheet_('admins').getDataRange().getValues();
+  var col = (values[0] || []).indexOf('Side');
+  var out = {};
+  if (col < 0) return out;
+  for (var i = 1; i < values.length; i++) {
+    var email = normaliseEmail_(values[i][0]);
+    var side = adminSide_(String(values[i][col]).trim().toLowerCase());
+    if (email && side) out[email] = side;
   }
   return out;
 }

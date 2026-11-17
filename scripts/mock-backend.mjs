@@ -117,15 +117,28 @@ const actions = {
     imagesFolderUrl: "https://drive.google.com/drive/folders/mock-images",
     talentFolderUrl: "https://drive.google.com/drive/folders/mock-talent",
   }),
-  getAdmins: (db) => ({ owner: OWNER, admins: db.admins }),
+  getAdmins: (db) => ({ owner: OWNER, admins: db.admins, sides: { ...(db.adminSides || {}) } }),
   addAdmin: (db, p) => {
     const e = String(p.email).toLowerCase();
-    if (!db.admins.includes(e) && e !== OWNER) db.admins.push(e);
-    return { owner: OWNER, admins: db.admins };
+    if (!db.admins.includes(e) && e !== OWNER) {
+      db.admins.push(e);
+      if (p.side === "talent" || p.side === "tech") (db.adminSides ||= {})[e] = p.side;
+    }
+    return { owner: OWNER, admins: db.admins, sides: { ...(db.adminSides || {}) } };
+  },
+  setAdminSide: (db, p) => {
+    const e = String(p.email).toLowerCase();
+    if (e === OWNER) throw new Error("The owner account always has both");
+    if (!db.admins.includes(e)) throw new Error("That account is not an admin");
+    db.adminSides ||= {};
+    if (p.side === "talent" || p.side === "tech") db.adminSides[e] = p.side;
+    else delete db.adminSides[e];
+    return { owner: OWNER, admins: db.admins, sides: { ...db.adminSides } };
   },
   removeAdmin: (db, p) => {
     if (p.email === OWNER) throw new Error("The owner account cannot be removed");
     db.admins = db.admins.filter((a) => a !== p.email);
+    if (db.adminSides) delete db.adminSides[p.email];
     return { owner: OWNER, admins: db.admins };
   },
   getSettings: (db) => ({ settings: { ...(db.settings || {}) } }),

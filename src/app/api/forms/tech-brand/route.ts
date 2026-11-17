@@ -2,6 +2,7 @@ import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds, cleanList, rateLimit } from "@/lib/api";
 import { callBackend, getSiteContent } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
+import { isSpam } from "@/lib/spam";
 import {
   blankTechBrand, brandProblems, campaignProblems, TB_BUDGETS, TB_CREATORS, TB_GOALS, TB_HEARD, TB_INDUSTRIES, TB_MARKETS,
   TB_PLATFORMS, TB_TYPES, techBrandAutoReply, techBrandColumns, type TechBrand,
@@ -48,8 +49,7 @@ export async function POST(req: Request) {
     assertSameOrigin(req);
     rateLimit(req, "tech-brand", 5, 30 * 60_000);
     const body = await req.json();
-    // spam trap: a filled-in hidden field, or a form sent faster than a person can type
-    if (body.website_url || !(Number(body.elapsed) >= MIN_MS)) return Response.json({ ok: true, reference: "TB-THANKYOU" });
+    if (isSpam(body, MIN_MS)) return Response.json({ ok: true, reference: "TB-THANKYOU" });
     const b = tidy(body.enquiry || {});
     const problems = [...brandProblems(b), ...campaignProblems(b)];
     if (problems.length) throw new HttpError(400, problems[0]);

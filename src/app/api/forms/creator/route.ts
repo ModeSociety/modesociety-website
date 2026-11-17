@@ -3,6 +3,7 @@ import { assertSameOrigin, clean, cleanIds, rateLimit } from "@/lib/api";
 import { allProblems, APP_OPTIONS, applicationColumns, autoReply, blankApplication, GROWTH_GUIDE, TERMS_VERSION, type Application } from "@/lib/application";
 import { callBackend, getSiteContent } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
+import { isSpam } from "@/lib/spam";
 import { SITE_URL, TECH_BASE_URL } from "@/lib/seo";
 import type { Side } from "@/lib/side";
 
@@ -75,8 +76,7 @@ export async function POST(req: Request) {
     assertSameOrigin(req);
     rateLimit(req, "creator", 5, 30 * 60_000);
     const body = await req.json();
-    // spam trap: a filled-in hidden field, or a form sent faster than a person can type
-    if (body.website_url || !(Number(body.elapsed) >= MIN_MS)) return Response.json({ ok: true, reference: "C-THANKYOU" });
+    if (isSpam(body, MIN_MS)) return Response.json({ ok: true, reference: "C-THANKYOU" });
     const side: Side = body.side === "tech" ? "tech" : "talent";
     const a = tidy(body.application || {}, side);
     const { eligibility, contactEmail } = await getSiteContent();

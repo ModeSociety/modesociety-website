@@ -53,6 +53,13 @@ var TABS = {
       .concat(['Twitch', 'YouTube', 'TikTok', 'Instagram', 'X', 'Kick'].reduce(function (a, n) { return a.concat([n + ' URL', n + ' Followers']); }, []))
       .concat(['Updated At', 'Updated By']),
   },
+  // ---- Signed Talent (admin panel → Signed Talent): one row per signed creator, both businesses ----
+  // Only the application's Reference and the contract: everything else is read from the application row.
+  signed: {
+    name: 'Signed Talent',
+    headers: ['Reference', 'Side', 'Contract', 'Commission', 'Signed At', 'PandaDoc ID', 'Contract Link', 'Mode Email In Bio',
+      'Dedicated Email', 'Renewal Reminders', 'Updated At', 'Updated By'],
+  },
   // ---- Featured in (admin panel → Featured in) ----
   press: {
     name: 'Featured In',
@@ -777,7 +784,7 @@ var ACTIONS = {
       });
       out[kind] = { headers: (values[0] || []).map(String), rows: rows.reverse() };
     });
-    return { enquiries: out };
+    return { enquiries: out, signed: readTable_('signed') };
   },
 
   /** Sets the Status cell of the row with this Reference (rows can be sorted or deleted in the Sheet). */
@@ -793,10 +800,36 @@ var ACTIONS = {
       for (var i = 1; i < values.length; i++) {
         if (p.reference && String(values[i][refCol]) === String(p.reference)) {
           sheet.getRange(i + 1, statusCol + 1).setValue(p.status);
+          // a creator marked Signed joins Signed Talent (once), with the representation they chose
+          if (p.status === 'Signed' && CREATOR_KINDS[p.kind]) {
+            ensureSigned_(p.reference, TECH_FORMS[key] ? 'tech' : 'talent', String(values[i][values[0].indexOf('Representation')] || ''), p.by);
+          }
           return { ok: true };
         }
       }
       throw new Error('That enquiry is no longer in the Sheet');
+    });
+  },
+
+  /**
+   * Changes a signed creator's own details in Signed Talent: the contract (type, commission, signed date),
+   * the "Mode email in bio" tick and their dedicated email. Only these columns can be written here.
+   */
+  updateSigned: function (p) {
+    var allowed = { contract: 'Contract', commission: 'Commission', signedAt: 'Signed At', modeEmailInBio: 'Mode Email In Bio', dedicatedEmail: 'Dedicated Email' };
+    return withLock_(function () {
+      var sheet = sheet_('signed');
+      var values = sheet.getDataRange().getValues();
+      var head = values[0].map(String);
+      for (var i = 1; i < values.length; i++) {
+        if (!p.reference || String(values[i][0]) !== String(p.reference)) continue;
+        Object.keys(allowed).forEach(function (k) {
+          if (p.patch && p.patch[k] !== undefined) sheet.getRange(i + 1, head.indexOf(allowed[k]) + 1).setValue(p.patch[k]);
+        });
+        sheet.getRange(i + 1, head.indexOf('Updated At') + 1, 1, 2).setValues([[new Date(), p.by || '']]);
+        return { ok: true };
+      }
+      throw new Error('That creator is not in Signed Talent');
     });
   },
 
@@ -1271,6 +1304,31 @@ function claimFiles_(ids, folder, baseName, out) {
     if (out) out.push(file);
   });
   return links;
+}
+
+/** A tab as header + text cells (dates as ISO strings), in Sheet order. */
+function readTable_(key) {
+  var values = sheet_(key).getDataRange().getValues();
+  return {
+    headers: (values[0] || []).map(String),
+    rows: values.slice(1).filter(function (r) { return r.join('') !== ''; }).map(function (r) {
+      return r.map(function (v) { return v instanceof Date ? v.toISOString() : String(v); });
+    }),
+  };
+}
+
+/**
+ * Adds a creator to Signed Talent unless they're already there (called inside the lock). The contract
+ * type and commission come from the representation they chose in the application ("Exclusive (20%
+ * commission)"); an older application without one leaves them blank for an admin to fill in.
+ */
+function ensureSigned_(reference, side, representation, by) {
+  var sheet = sheet_('signed');
+  var refs = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().map(function (r) { return String(r[0]); }) : [];
+  if (refs.indexOf(String(reference)) >= 0) return;
+  var m = String(representation).match(/^(Exclusive|Non-exclusive) \((\d+%) commission\)/);
+  appendByColumn_(sheet, [['Reference', reference], ['Side', side], ['Contract', m ? m[1] : ''], ['Commission', m ? m[2] : ''],
+    ['Signed At', new Date()], ['Mode Email In Bio', 'No'], ['Updated At', new Date()], ['Updated By', by || '']]);
 }
 
 function readSettings_() {

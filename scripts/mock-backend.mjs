@@ -27,6 +27,8 @@ const CREATOR_STATUSES = ["New", "Reviewing", "Contract sent", "Signed", "Declin
 const BRAND_STATUSES = ["New", "Contacted", "Proposal sent", "Won", "Lost"];
 const statusesFor = (kind) => (kind === "talent" || kind === "techCreators" ? CREATOR_STATUSES : BRAND_STATUSES);
 /** Same columns as the Sheet tabs in Code.gs, so the admin panel parses both the same way. */
+const SIGNED_HEADERS = ["Reference", "Side", "Contract", "Commission", "Signed At", "PandaDoc ID", "Contract Link", "Mode Email In Bio",
+  "Dedicated Email", "Renewal Reminders", "Updated At", "Updated By"];
 const ENQUIRY_COLUMNS = {
   talent: {
     store: "talent",
@@ -192,6 +194,7 @@ const actions = {
         return [kind, { headers, rows: [...recs].reverse().map((r) => rowOf(r).map((v) => (v == null ? "" : String(v)))) }];
       }),
     ),
+    signed: { headers: SIGNED_HEADERS, rows: (db.signed || []).map((r) => SIGNED_HEADERS.map((h) => String(r[h] ?? ""))) },
   }),
   setEnquiryStatus: (db, p) => {
     const c = ENQUIRY_COLUMNS[p.kind];
@@ -200,6 +203,21 @@ const actions = {
     const rec = (db[c.store] || []).find((r) => r.reference === p.reference);
     if (!rec) throw new Error("That enquiry is no longer in the Sheet");
     rec.status = p.status;
+    // as Code.gs: a creator marked Signed joins Signed Talent once
+    if (p.status === "Signed" && (p.kind === "talent" || p.kind === "techCreators") && !(db.signed ||= []).some((r) => r.Reference === p.reference)) {
+      const m = String(Object.fromEntries(rec.columns || []).Representation || "").match(/^(Exclusive|Non-exclusive) \((\d+%) commission\)/);
+      const now = new Date().toISOString();
+      db.signed.push({ Reference: p.reference, Side: p.kind === "techCreators" ? "tech" : "talent", Contract: m?.[1] || "", Commission: m?.[2] || "",
+        "Signed At": now, "Mode Email In Bio": "No", "Updated At": now, "Updated By": p.by || "" });
+    }
+    return { ok: true };
+  },
+  updateSigned: (db, p) => {
+    const row = (db.signed || []).find((r) => r.Reference === p.reference);
+    if (!row) throw new Error("That creator is not in Signed Talent");
+    const cols = { contract: "Contract", commission: "Commission", signedAt: "Signed At", modeEmailInBio: "Mode Email In Bio", dedicatedEmail: "Dedicated Email" };
+    for (const [k, h] of Object.entries(cols)) if (p.patch?.[k] !== undefined) row[h] = p.patch[k];
+    Object.assign(row, { "Updated At": new Date().toISOString(), "Updated By": p.by || "" });
     return { ok: true };
   },
   deleteEnquiry: (db, p) => {

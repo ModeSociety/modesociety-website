@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const status = kind && cleanList([body?.status], statusesFor(kind))[0];
     const reference = clean(body?.reference, 40);
     if (!kind || !status || !reference) throw new HttpError(400, "Missing lead, type or status");
-    await callBackend("setEnquiryStatus", { kind, reference, status });
+    await callBackend("setEnquiryStatus", { kind, reference, status, by: session.email });
     leadsChanged();
     return Response.json({ ok: true });
   } catch (err) {

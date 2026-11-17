@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
-/** A pop-up over the form (the representation info, the application terms): Esc, × or a click outside closes it. */
+/**
+ * A pop-up over the page (the representation info, the application terms, a service booking): Esc, ×
+ * or a click outside closes it. It's drawn at the top of the site's root, so an animated section it
+ * opens from (whose transform would trap a fixed overlay inside it) can't cover it.
+ */
 export default function Popup({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
@@ -22,7 +27,7 @@ export default function Popup({ title, onClose, children }: { title: string; onC
       before?.focus();
     };
   }, []);
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[80] grid place-items-center bg-black/50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div
         ref={box}
@@ -39,6 +44,8 @@ export default function Popup({ title, onClose, children }: { title: string; onC
         <h2 className="font-display pr-10 text-3xl md:text-4xl">{title}</h2>
         <div className="mt-6 grid gap-6 text-[15px] leading-relaxed text-ink-2">{children}</div>
       </div>
-    </div>
+    </div>,
+    // ModeSociety Tech's root keeps its fonts and colours
+    document.querySelector(".tech-root") ?? document.body,
   );
 }

@@ -8,6 +8,7 @@ import CopyTab from "./CopyTab";
 import ApplicationsTab from "./ApplicationsTab";
 import EmailsTab from "./EmailsTab";
 import LeadsTab, { prefetchLeads } from "./LeadsTab";
+import SignedTab from "./SignedTab";
 import PressTab from "./PressTab";
 import RosterTab from "./RosterTab";
 import ThemeTab from "./ThemeTab";
@@ -128,13 +129,14 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 // ---------------------------------------------------------------------------
 
-type Tab = "leads" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "applications" | "emails" | "access";
+type Tab = "leads" | "signed" | "insights" | "pages" | "copy" | "press" | "images" | "theme" | "roster" | "animations" | "applications" | "emails" | "access";
 type Group = "Day to day" | "Website" | "Team";
 
 /** Which tabs each side uses (the roster is Tech only, Featured in and the animations are the talent site's),
  * in order of importance: what the team uses most comes first. */
 const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string }[] = [
   { id: "leads", label: "Leads", group: "Day to day", sides: ["talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to the team." },
+  { id: "signed", label: "Signed Talent", group: "Day to day", sides: ["talent", "tech"], about: "The creators who signed with this business, their contracts and renewal dates. A creator joins when their lead is marked Signed." },
   { id: "insights", label: "Insights", group: "Day to day", sides: ["talent", "tech"], about: "Who's visiting the site, where from, and how many leads it brings in." },
   { id: "copy", label: "Pages & text", group: "Website", sides: ["talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
   { id: "applications", label: "Applications", group: "Website", sides: ["talent", "tech"], about: "Which countries creators can apply from, and the regions blocked within them." },
@@ -426,6 +428,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         </div>
 
 
+        {tab === "signed" && <SignedTab key={side} side={side} disabled={!me.backendConfigured} />}
         {tab === "leads" && <LeadsTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}

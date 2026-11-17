@@ -428,7 +428,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
         </div>
 
 
-        {tab === "signed" && <SignedTab key={side} side={side} disabled={!me.backendConfigured} />}
+        {tab === "signed" && <SignedTab key={side} side={side} disabled={!me.backendConfigured} notify={notify} />}
         {tab === "leads" && <LeadsTab key={side} side={side} disabled={!me.backendConfigured} sheetUrl={me.info?.spreadsheetUrl} notify={notify} />}
         {tab === "insights" && <InsightsTab side={side} disabled={!me.backendConfigured} />}
         {tab === "images" && content && <ImagesTab side={side} content={content} reload={loadContent} notify={notify} />}

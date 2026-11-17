@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { flagOf, formatCount, placeOf } from "@/lib/enquiries";
-import { localDate, nextRenewal, optOutWindow, type SignedCreator } from "@/lib/signed";
+import { postJson } from "@/lib/upload";
+import { localDate, nextRenewal, optOutWindow, type Contract, type SignedCreator } from "@/lib/signed";
 import type { Side } from "@/lib/side";
 import LeadImages from "./LeadImages";
 import { Channels, Linkified } from "./LeadsTab";
@@ -25,7 +26,10 @@ const contractLabel = (s: SignedCreator) => (s.contract.type ? `${s.contract.typ
  * followers, representation, location, signed date and renewal date, with search and filters.
  * Creators join the list when their lead is marked Signed.
  */
-export default function SignedTab({ side, disabled }: { side: Side; disabled: boolean }) {
+/** What an admin can change on a signed creator (the API's PATCH body). */
+export type SignedPatch = { modeEmailInBio?: boolean; dedicatedEmail?: string; type?: string; signedAt?: string };
+
+export default function SignedTab({ side, disabled, notify }: { side: Side; disabled: boolean; notify: (m: string) => void }) {
   const [items, setItems] = useState<SignedCreator[] | null>(kept[side] ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -87,6 +91,24 @@ export default function SignedTab({ side, disabled }: { side: Side; disabled: bo
     });
   }, [items, query, rep, platform, country, noBio]);
 
+  /** saves a change to the Sheet, then shows it here (and in this browser's kept copy) */
+  const save = async (reference: string, patch: SignedPatch) => {
+    const res = await postJson<{ patch: Record<string, string> }>("/api/admin/signed", { reference, side, patch }, "PATCH");
+    const p = res.patch;
+    const next = (items || []).map((s) => {
+      if (s.contract.reference !== reference) return s;
+      const c: Contract = { ...s.contract };
+      if (p.contract !== undefined) c.type = p.contract;
+      if (p.commission !== undefined) c.commission = p.commission;
+      if (p.signedAt !== undefined) c.signedAt = `${p.signedAt}T12:00:00+10:00`; // midday Melbourne: the same date in summer and winter
+      if (p.modeEmailInBio !== undefined) c.modeEmailInBio = p.modeEmailInBio === "Yes";
+      if (p.dedicatedEmail !== undefined) c.dedicatedEmail = p.dedicatedEmail;
+      return { ...s, contract: c };
+    });
+    setItems((kept[side] = next));
+    notify("Saved to the Signed Talent sheet");
+  };
+
   if (disabled) return <p className="text-ink-2">Connect the Google Sheet backend to see signed talent.</p>;
 
   return (
@@ -141,7 +163,7 @@ export default function SignedTab({ side, disabled }: { side: Side; disabled: bo
           {list.map((s) => (
             <li key={s.contract.reference} className="border-b border-line last:border-b-0">
               <Row s={s} side={side} isOpen={open === s.contract.reference} onToggle={() => setOpen(open === s.contract.reference ? "" : s.contract.reference)} />
-              {open === s.contract.reference && <Profile s={s} side={side} />}
+              {open === s.contract.reference && <Profile s={s} side={side} onSave={(patch) => save(s.contract.reference, patch)} />}
             </li>
           ))}
         </ul>
@@ -225,7 +247,7 @@ function Item({ label, value }: { label: string; value: string }) {
  * A signed creator's profile: their application (read from its Sheet row by reference) in sections,
  * their photos, and the contract beside it (type, commission, signed date, renewal, opt-out window, links).
  */
-function Profile({ s, side }: { s: SignedCreator; side: Side }) {
+function Profile({ s, side, onSave }: { s: SignedCreator; side: Side; onSave: (patch: SignedPatch) => Promise<void> }) {
   const a = s.application;
   const k = s.contract;
   const renewal = nextRenewal(k);
@@ -283,6 +305,7 @@ function Profile({ s, side }: { s: SignedCreator; side: Side }) {
             </div>
           )}
         </dl>
+        <ModeEmail contract={k} side={side} onSave={onSave} />
         {k.contractLink ? (
           <a href={k.contractLink} target="_blank" rel="noreferrer" className="link-underline w-fit text-ink-2">
             Signed contract in Drive ↗
@@ -300,6 +323,57 @@ function Profile({ s, side }: { s: SignedCreator; side: Side }) {
           {k.updatedBy ? ` · updated by ${k.updatedBy}` : ""}
         </p>
       </aside>
+    </div>
+  );
+}
+
+/**
+ * Asha's "Put mode in bio" (16 Nov 2026): a tick an admin sets after checking the creator's bios,
+ * and, for an exclusive creator, their dedicated Mode email address.
+ */
+function ModeEmail({ contract: k, side, onSave }: { contract: Contract; side: Side; onSave: (patch: SignedPatch) => Promise<void> }) {
+  const domain = side === "tech" ? "modesocietytech.com" : "modesociety.com.au";
+  const [email, setEmail] = useState(k.dedicatedEmail);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const run = async (patch: SignedPatch) => {
+    setBusy(true);
+    setError("");
+    try {
+      await onSave(patch);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="grid gap-3 border-y border-line py-4">
+      <label className="flex items-start gap-2 text-[15px]">
+        <input type="checkbox" className="mt-1" checked={k.modeEmailInBio} disabled={busy} onChange={(e) => run({ modeEmailInBio: e.target.checked })} />
+        <span>
+          Mode email in bio
+          <span className="block text-[12px] text-muted">Tick once you&apos;ve checked their bios show their Mode email.</span>
+        </span>
+      </label>
+      {k.type === "Exclusive" && (
+        <form
+          className="grid gap-1.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            run({ dedicatedEmail: email.trim() });
+          }}
+        >
+          <span className="eyebrow">Dedicated email</span>
+          <div className="flex gap-2">
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder={`name@${domain}`} aria-label="Dedicated email" className="min-w-0 flex-1 border border-line bg-white px-3 py-2" />
+            <button className="chip" disabled={busy || email.trim() === k.dedicatedEmail}>
+              Save
+            </button>
+          </div>
+        </form>
+      )}
+      {error && <p className="text-pin">{error}</p>}
     </div>
   );
 }

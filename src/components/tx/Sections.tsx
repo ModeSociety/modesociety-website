@@ -3,7 +3,6 @@
  * The markup and drawings follow the mockup so its CSS (src/app/tech/tx.css) applies as it is; the
  * words come from Pages & text (src/lib/copy.ts, techSite.*).
  */
-import Link from "next/link";
 import { Fragment } from "react";
 import JsonLd from "@/components/site/JsonLd";
 import type { SectionCopy } from "@/lib/copy";
@@ -531,7 +530,6 @@ export function Footer({ copy: c, nav }: { copy: SectionCopy<"techSite.footer">;
         <div className="legal mono">
           <span>{c.legal}</span>
           <span>{c.place}</span>
-          <Link href="/">{c.back}</Link>
         </div>
       </div>
     </footer>

@@ -16,7 +16,6 @@ export const MENU = [
   { href: "/services", label: "Services" },
   { href: "/our-work", label: "Our work" },
   { href: "/featured-in", label: "Featured in" },
-  { href: "/tech", label: "ModeSociety Tech" },
   { href: "/get-in-touch", label: "Contact us" },
 ];
 

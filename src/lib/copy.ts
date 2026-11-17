@@ -211,7 +211,6 @@ export const SECTIONS = {
       servicesLink: text("Menu: Services"),
       workLink: text("Menu: Our work"),
       pressLink: text("Menu: Featured in"),
-      techLink: text("Menu: ModeSociety Tech"),
       contactLink: text("Menu: Contact us"),
       contactButton: text("Contact button"),
       menuLabel: text("Phone menu: label"),
@@ -226,7 +225,6 @@ export const SECTIONS = {
       servicesLink: "Services",
       workLink: "Our work",
       pressLink: "Featured in",
-      techLink: "ModeSociety Tech",
       contactLink: "Contact us",
       contactButton: "Contact us",
       menuLabel: "Index",
@@ -973,7 +971,6 @@ export const SECTIONS = {
       facebook: text("Facebook link"),
       legal: text("Bottom line: left"),
       place: text("Bottom line: middle"),
-      back: text("Bottom line: link to Mode Society"),
     },
     defaults: {
       blurb: "Streamers, content creators and esports athletes, worldwide, for brand campaigns and events across gaming products and technology.",
@@ -987,7 +984,6 @@ export const SECTIONS = {
       facebook: "",
       legal: "© Mode Society Pty Ltd",
       place: "Melbourne · AU",
-      back: "Mode Society →",
     },
   },
 } satisfies Record<string, SectionDef>;

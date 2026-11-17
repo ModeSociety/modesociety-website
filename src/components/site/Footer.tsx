@@ -5,7 +5,6 @@ import { menuName } from "@/lib/nav";
 import type { FooterStyle } from "@/lib/slots";
 import { SectionHead } from "./Editorial";
 import Halftone from "./Halftone";
-import SideSwitch from "./SideSwitch";
 import SocialLinks from "./SocialLinks";
 import Wordmark from "./Wordmark";
 
@@ -52,7 +51,6 @@ export default function Footer({ style, copy, nav }: { style: FooterStyle; copy:
               </Link>
             </div>
             <SocialLinks />
-            <SideSwitch current="talent" tone="dark" className="w-fit" />
             <nav className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-[12px] uppercase tracking-[0.04em] text-white/75">
               {MENU.map((m) => (
                 <Link key={m.href} href={m.href} className="link-underline">

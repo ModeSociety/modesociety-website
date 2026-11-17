@@ -7,10 +7,9 @@ import { INSTAGRAM_URL, MENU } from "@/lib/content";
 import type { SectionCopy } from "@/lib/copy";
 import { menuName } from "@/lib/nav";
 import Logo from "./Logo";
-import SideSwitch from "./SideSwitch";
 
 // the Tech side has its own switch next to Contact us
-const INLINE = MENU.filter((m) => m.href !== "/get-in-touch" && m.href !== "/tech");
+const INLINE = MENU.filter((m) => m.href !== "/get-in-touch");
 
 
 export default function Nav({ words }: { words: SectionCopy<"site.nav"> }) {
@@ -66,7 +65,6 @@ export default function Nav({ words }: { words: SectionCopy<"site.nav"> }) {
                 {name(l)}
               </Link>
             ))}
-            <SideSwitch current="talent" />
             <Link href="/get-in-touch" className="btn !py-3">
               {words.contactButton} <span className="arrow">↗</span>
             </Link>
@@ -103,9 +101,6 @@ export default function Nav({ words }: { words: SectionCopy<"site.nav"> }) {
               </Link>
             ))}
           </nav>
-          <div className="mt-8">
-            <SideSwitch current="talent" tone="dark" />
-          </div>
           <div className="mt-8 flex items-end justify-between font-mono text-[12px] uppercase tracking-[0.04em] text-white/80">
             <Link href="/get-in-touch">{words.menuEnquiry}</Link>
             <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer">

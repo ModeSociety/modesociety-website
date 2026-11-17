@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ABOUT, INSTAGRAM_URL, LINKEDIN_URL, SERVICE_COPY, TIKTOK_URL } from "./content";
+import { TECH_SITE_URL } from "./domains";
 
 /**
  * Search: page titles and descriptions, canonical URLs, share previews and the
@@ -14,6 +15,12 @@ export type PageKey =
   | "techHome";
 
 export const TECH_NAME = "ModeSociety Tech";
+/**
+ * Where the Tech page lives for search engines: modesocietytech.com once the domain split is on
+ * (NEXT_PUBLIC_TECH_SITE_URL), until then /tech on Mode Society's domain.
+ */
+export const TECH_BASE_URL = TECH_SITE_URL || SITE_URL;
+export const TECH_HOME_URL = TECH_SITE_URL ? `${TECH_SITE_URL}/` : `${SITE_URL}/tech`;
 
 /**
  * Titles stay under ~60 characters and descriptions under ~155 so Google shows them whole.
@@ -101,13 +108,15 @@ export function pageMetadata(key: PageKey, extra: Partial<Metadata> = {}): Metad
   const p = PAGES[key];
   const name = p.tech ? TECH_NAME : SITE_NAME;
   const image = { url: ogImageUrl(p.og, p.tech), width: 1200, height: 630, alt: `${name}: ${p.og}` };
+  // each business's pages point search engines at its own domain
+  const url = p.tech ? TECH_HOME_URL : p.path;
   return {
     title: { absolute: p.title },
     description: p.description,
-    alternates: { canonical: p.path },
+    alternates: { canonical: url },
     openGraph: {
       type: "website",
-      url: p.path,
+      url,
       siteName: name,
       locale: "en_AU",
       title: p.title,

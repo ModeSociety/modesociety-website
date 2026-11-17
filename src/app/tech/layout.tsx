@@ -7,7 +7,7 @@ import { Footer } from "@/components/tx/Sections";
 import TxNav from "@/components/tx/TxNav";
 import TxShell from "@/components/tx/TxShell";
 import { getSiteContent } from "@/lib/backend";
-import { techOrganizationJsonLd } from "@/lib/seo";
+import { PAGES, TECH_BASE_URL, TECH_HOME_URL, TECH_NAME, techOrganizationJsonLd } from "@/lib/seo";
 import { techThemeCss } from "@/lib/theme";
 import "./tx.css";
 
@@ -16,8 +16,27 @@ const schibsted = Schibsted_Grotesk({ subsets: ["latin"], weight: ["400", "500",
 const martianMono = Martian_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-martian-mono", display: "swap" });
 const pressStart = Press_Start_2P({ subsets: ["latin"], weight: "400", variable: "--font-press-start", display: "swap" });
 
+/** ModeSociety Tech is its own business: its own name, address and keywords, none of Mode Society's. */
 export const metadata: Metadata = {
-  title: { default: "ModeSociety Tech | Gaming & Tech Creator Agency", template: "%s | ModeSociety Tech" },
+  metadataBase: new URL(TECH_BASE_URL),
+  title: { default: PAGES.techHome.title, template: `%s | ${TECH_NAME}` },
+  description: PAGES.techHome.description,
+  applicationName: TECH_NAME,
+  authors: [{ name: TECH_NAME, url: TECH_HOME_URL }],
+  creator: TECH_NAME,
+  publisher: TECH_NAME,
+  category: "Gaming and tech creator agency",
+  keywords: [
+    "gaming creator agency",
+    "gaming influencer agency Australia",
+    "streamer management agency",
+    "Twitch streamer agency",
+    "esports talent agency",
+    "gaming influencer marketing",
+    "tech influencer agency",
+    "telco influencer campaigns",
+    "game launch influencer campaign",
+  ],
   icons: { icon: [{ url: "/tech-icon.svg", type: "image/svg+xml" }] },
 };
 

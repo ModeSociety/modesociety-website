@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { ADMIN_COOKIE } from "@/lib/auth";
 import { clean } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
+import { isTechHost } from "@/lib/domains";
 import { classifySource } from "@/lib/insights";
 
 const BOTS = /bot|crawl|spider|slurp|preview|headless|lighthouse|pingdom|monitor|curl|wget|python|facebookexternalhit|embedly/i;
@@ -22,10 +23,13 @@ export async function POST(req: Request) {
   } catch {
     return new Response(null, { status: 400 });
   }
-  const path = clean(body.path, 200).split("?")[0] || "/";
-  if (!path.startsWith("/") || path.startsWith("/admin") || path.startsWith("/api")) return new Response(null, { status: 204 });
+  const asked = clean(body.path, 200).split("?")[0] || "/";
+  if (!asked.startsWith("/") || asked.startsWith("/admin") || asked.startsWith("/api")) return new Response(null, { status: 204 });
 
   const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "").split(":")[0];
+  // Insights counts /tech… as ModeSociety Tech: on its own domain the Tech page is "/", so it is
+  // recorded as /tech there (visits recorded before the move were /tech already)
+  const path = isTechHost(host) && !asked.startsWith("/tech") ? `/tech${asked === "/" ? "" : asked}` : asked;
   const { source, host: referrer, campaign } = classifySource(clean(body.referrer, 500), clean(body.query, 500), host);
   const view = {
     path,

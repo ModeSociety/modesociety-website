@@ -3,6 +3,10 @@ import { assertSameOrigin, clean, cleanList, rateLimit } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
 import { BUDGETS, SERVICES, TIMELINES } from "@/lib/forms";
+import { isSpam } from "@/lib/spam";
+
+/** Faster than a person can fill in both steps: a script. */
+const MIN_MS = 8_000;
 
 /** "Book a call" form. */
 export async function POST(req: Request) {
@@ -10,7 +14,7 @@ export async function POST(req: Request) {
     assertSameOrigin(req);
     rateLimit(req, "brand", 5, 30 * 60_000);
     const body = await req.json();
-    if (body.website_url) return Response.json({ ok: true, reference: "B-THANKYOU" }); // honeypot
+    if (isSpam(body, MIN_MS)) return Response.json({ ok: true, reference: "B-THANKYOU" });
     const f = body.fields || {};
     const fields = {
       brand: clean(f.brand, 160),

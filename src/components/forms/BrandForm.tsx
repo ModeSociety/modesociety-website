@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BUDGETS, SERVICES, SUCCESS_MESSAGE, TIMELINES } from "@/lib/forms";
 import { INSTAGRAM_URL } from "@/lib/content";
 import { postJson } from "@/lib/upload";
@@ -17,6 +17,11 @@ export default function BrandForm({ intro = "" }: { intro?: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState<string | null>(null);
+  // when the form appeared (the server turns away a form sent faster than a person can type)
+  const startedAt = useRef(0);
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, []);
 
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setF({ ...f, [k]: e.target.value });
@@ -28,6 +33,7 @@ export default function BrandForm({ intro = "" }: { intro?: string }) {
       const res = await postJson<{ reference: string }>("/api/forms/brand", {
         fields: { ...f, services },
         website_url: honey,
+        elapsed: Date.now() - startedAt.current,
       });
       setDone(res.reference);
     } catch (err) {

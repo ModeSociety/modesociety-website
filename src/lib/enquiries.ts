@@ -1,3 +1,5 @@
+import { parseChannels, profileUrl } from "./channels";
+
 /** Form submissions as the admin panel shows them (read back from the Sheet's form tabs). */
 
 export type EnquiryKind = "talent" | "brands" | "techBrands" | "techCreators";
@@ -45,15 +47,64 @@ export type Enquiry = {
   email: string;
   /** every other answer, in Sheet column order */
   fields: { label: string; value: string }[];
-  /** talent screenshots (Drive file IDs) and the application's Drive folder */
+  /** talent screenshots and photos (Drive file IDs) and the application's Drive folder */
   files: string[];
   folderUrl: string;
+  /** a creator lead's summary for the list (the new application's columns, or the old form's) */
+  creator?: CreatorSummary;
 };
+
+export type CreatorSummary = {
+  /** Drive file id of the round profile crop, or the first photo */
+  photo: string;
+  platform: string;
+  channel: string;
+  channelUrl: string | null;
+  followers: number | null;
+  representation: string;
+  country: string;
+  region: string;
+  tags: string[];
+};
+
+/** 12400 → "12.4K", 1200000 → "1.2M" (Asha's list format). */
+export function formatCount(n: number | null): string {
+  if (n === null) return "—";
+  if (n >= 1_000_000) return `${+(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${+(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
+/** "12K", "1.2M", "12,400" or "12400" as a number (old leads typed their counts freely). */
+export function parseCount(v: string): number | null {
+  const m = v.trim().replace(/,/g, "").match(/^(\d+(?:\.\d+)?)\s*([kKmM]?)$/);
+  if (!m) return null;
+  const n = parseFloat(m[1]) * (m[2].toLowerCase() === "m" ? 1_000_000 : m[2].toLowerCase() === "k" ? 1_000 : 1);
+  return Math.round(n);
+}
+
+const FLAG_CODES: Record<string, string> = {
+  Australia: "AU", "United States": "US", "United Kingdom": "GB", Japan: "JP", "United Arab Emirates": "AE", "New Zealand": "NZ",
+  Canada: "CA", Ireland: "IE", Singapore: "SG", "South Korea": "KR", Philippines: "PH", Indonesia: "ID", Malaysia: "MY", India: "IN",
+  Germany: "DE", France: "FR", Brazil: "BR", Mexico: "MX",
+};
+/** A country's flag emoji, or "" for one not in the list. */
+export const flagOf = (country: string) => {
+  const code = FLAG_CODES[country];
+  return code ? String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)) : "";
+};
+const AU_SHORT: Record<string, string> = {
+  "Australian Capital Territory": "ACT", "New South Wales": "NSW", "Northern Territory": "NT", Queensland: "QLD",
+  "South Australia": "SA", Tasmania: "TAS", Victoria: "VIC", "Western Australia": "WA",
+};
+/** "🇦🇺 VIC", "🇯🇵 Tokyo": the list's location column. */
+export const placeOf = (c: Pick<CreatorSummary, "country" | "region">) => [flagOf(c.country), AU_SHORT[c.region] ?? c.region].filter(Boolean).join(" ");
 
 export type SheetTable = { headers: string[]; rows: string[][] };
 
 const SKIP = new Set(["Submitted At", "Status", "Reference", "Email", "Screenshots", "Application Folder"]);
 const TITLE: Record<EnquiryKind, [string, string]> = {
+  // creators: the creator name when the new application gave one (see toEnquiries)
   talent: ["Full Name", "What They Do"],
   brands: ["Brand Name", "Your Name"],
   techBrands: ["Brand Name", "Your Name"],
@@ -69,18 +120,42 @@ export function toEnquiries(kind: EnquiryKind, table: SheetTable | undefined): E
     return i < 0 ? "" : String(row[i] ?? "").trim();
   };
   const [titleCol, subCol] = TITLE[kind];
-  return rows.map((row) => ({
+  const creator = kind === "talent" || kind === "techCreators";
+  const idOf = (link: string) => link.match(/\/d\/([-\w]{10,})/)?.[1] ?? "";
+  /** the list's summary: the new application's columns, falling back to the old form's first channel */
+  const summary = (row: string[]): CreatorSummary => {
+    const old = parseChannels(col(row, "Channels (handle · followers)") || col(row, "Channels (platform · handle · followers)"))[0];
+    const platform = col(row, "Main Platform") || old?.platform || "";
+    return {
+      photo: idOf(col(row, "Profile Photo (Round)")) || idOf(col(row, "Profile Photo")) || idOf(col(row, "Screenshots")),
+      platform,
+      channel: col(row, "Main Channel") || old?.handle || "",
+      channelUrl: col(row, "Main Channel") ? profileUrl(platform, col(row, "Main Channel")) : (old?.url ?? null),
+      followers: parseCount(col(row, "Main Followers") || old?.followers || ""),
+      representation: col(row, "Representation"),
+      country: col(row, "Country"),
+      region: col(row, "State / Region") || col(row, "Region"),
+      tags: col(row, "Tags").split(/\r?\n/).map((t) => t.trim()).filter(Boolean),
+    };
+  };
+  return rows.map((row) => {
+    // a creator is listed by their creator name when the new application gave one; the column shown as
+    // the title isn't repeated in the details (so the legal name stays there)
+    const titleFrom = creator && col(row, "Creator Name") ? "Creator Name" : titleCol;
+    return {
     kind,
     reference: col(row, "Reference"),
     submittedAt: col(row, "Submitted At"),
     status: normalStatus(kind, col(row, "Status")),
-    title: col(row, titleCol) || "Untitled",
-    subtitle: col(row, subCol),
+    title: col(row, titleFrom) || "Untitled",
+    subtitle: col(row, subCol) || (creator ? col(row, "Main Platform") : ""),
+    ...(creator ? { creator: summary(row) } : {}),
     email: col(row, "Email"),
     fields: headers
       .map((label, i) => ({ label, value: String(row[i] ?? "").trim() }))
-      .filter((f) => f.value && !SKIP.has(f.label) && f.label !== titleCol),
-    files: [...col(row, "Screenshots").matchAll(/\/d\/([-\w]{10,})/g)].map((m) => m[1]),
+      .filter((f) => f.value && !SKIP.has(f.label) && f.label !== titleFrom),
+    files: [...new Set(["Screenshots", "Photos", "Profile Photo (Round)"].flatMap((h) => [...col(row, h).matchAll(/\/d\/([-\w]{10,})/g)].map((m) => m[1])))],
     folderUrl: col(row, "Application Folder"),
-  }));
+    };
+  });
 }

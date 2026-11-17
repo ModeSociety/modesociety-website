@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { postJson } from "@/lib/upload";
-import { CLOSED_STATUSES, ENQUIRY_KINDS, statusesFor, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
+import { CLOSED_STATUSES, ENQUIRY_KINDS, formatCount, placeOf, statusesFor, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
 import { parseChannels } from "@/lib/channels";
 import LeadImages from "./LeadImages";
 import type { Side } from "@/lib/side";
@@ -90,6 +90,68 @@ function Channels({ text }: { text: string }) {
   );
 }
 
+const BADGE: Record<string, string> = {
+  "Exclusive (20% commission)": "Exclusive (20%)",
+  "Non-exclusive (30% commission)": "Non-exclusive (30%)",
+};
+
+/**
+ * A creator lead in Asha's column order: round photo, name, main channel (a link, with its platform),
+ * followers, representation, location (flag and state, with the tags), date received, status.
+ */
+function CreatorRow({ e, side, isOpen, onToggle }: { e: Enquiry; side: "talent" | "tech"; isOpen: boolean; onToggle: () => void }) {
+  const c = e.creator!;
+  const place = placeOf(c);
+  return (
+    <div
+      onClick={(ev) => !(ev.target as Element).closest("a") && onToggle()}
+      className={`grid cursor-pointer grid-cols-[40px_1fr_auto] items-center gap-x-4 gap-y-1 px-4 py-3 transition-colors hover:bg-paper-2/50 lg:grid-cols-[40px_minmax(0,1.3fr)_minmax(0,1.3fr)_64px_120px_minmax(0,1fr)_64px_auto] md:px-6 ${
+        e.status === "New" ? "font-medium" : ""
+      }`}
+    >
+      <span className="h-10 w-10 overflow-hidden rounded-full bg-paper-2">
+        {c.photo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={`/api/admin/enquiries/file/${c.photo}?side=${side}&size=thumb`} alt="" loading="lazy" className="h-full w-full object-cover" />
+        )}
+      </span>
+      <span className="min-w-0">
+        <button type="button" aria-expanded={isOpen} className="block max-w-full truncate text-left text-[15px] text-ink hover:underline" onClick={(ev) => (ev.stopPropagation(), onToggle())}>
+          {e.title}
+        </button>
+        <span className="block truncate text-[12px] text-muted lg:hidden">
+          {[c.platform, formatCount(c.followers), BADGE[c.representation], place].filter((x) => x && x !== "—").join(" · ")}
+        </span>
+      </span>
+      <span className="hidden min-w-0 truncate text-[14px] lg:block">
+        {c.channelUrl ? (
+          <a href={c.channelUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2" title={`Open ${c.platform} in a new tab`}>
+            <span className="text-muted">{c.platform}</span> {c.channel.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "")} ↗
+          </a>
+        ) : (
+          <span className="text-ink-2">{[c.platform, c.channel].filter(Boolean).join(" ")}</span>
+        )}
+      </span>
+      <span className="hidden text-right font-mono text-[13px] tabular-nums text-ink lg:block">{formatCount(c.followers)}</span>
+      <span className="hidden lg:block">
+        {BADGE[c.representation] && (
+          <span className={`rounded-full px-2 py-0.5 text-[11px] ${c.representation.startsWith("Exclusive") ? "bg-ink text-paper" : "border border-line text-ink-2"}`}>{BADGE[c.representation]}</span>
+        )}
+      </span>
+      <span className="hidden min-w-0 text-[13px] text-ink-2 lg:block">
+        <span className="block truncate">{place}</span>
+        {c.tags.length > 0 && (
+          <span className="block truncate text-[11px] text-pin" title={c.tags.join("\n")}>
+            {c.tags.map((t) => t.split(":")[0]).join(" · ")}
+          </span>
+        )}
+      </span>
+      <span className="hidden font-mono text-[12px] text-muted lg:block">{when(e.submittedAt)}</span>
+      <StatusPill status={e.status} />
+    </div>
+  );
+}
+
 function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: string) => void; onDelete?: () => void; saving: boolean }) {
   const subject = encodeURIComponent(`Mode Society — ${e.kind === "talent" ? "your application" : "your enquiry"} (${e.reference})`);
   return (
@@ -107,8 +169,8 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
         </dl>
         {e.files.length > 0 && (
           <div className="mt-8">
-            <p className="eyebrow mb-3">Engagement screenshots ({e.files.length})</p>
-            <LeadImages ids={e.files} label="Screenshot" />
+            <p className="eyebrow mb-3">Photos and screenshots ({e.files.length})</p>
+            <LeadImages ids={e.files} label="Photo" side={ENQUIRY_KINDS.find((k) => k.id === e.kind)!.side} />
           </div>
         )}
       </div>
@@ -173,6 +235,7 @@ export default function LeadsTab({
   const [kind, setKind] = useState<EnquiryKind>(kinds[0].id);
   const [status, setStatus] = useState<string>("New");
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"newest" | "oldest" | "followers">("newest");
   const [open, setOpen] = useState("");
   const [saving, setSaving] = useState("");
 
@@ -226,10 +289,16 @@ export default function LeadsTab({
   // one tab per status of the open lead type; search looks inside the open tab
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (items?.[kind] || []).filter(
+    const found = (items?.[kind] || []).filter(
       (e) => e.status === status && (!q || [e.title, e.subtitle, e.email, e.reference, ...e.fields.map((f) => f.value)].join(" ").toLowerCase().includes(q)),
     );
-  }, [items, kind, status, query]);
+    // the Sheet gives newest first; date and followers can be sorted
+    if (sort === "oldest") return [...found].reverse();
+    if (sort === "followers") return [...found].sort((a, b) => (b.creator?.followers ?? -1) - (a.creator?.followers ?? -1));
+    return found;
+  }, [items, kind, status, query, sort]);
+  const isCreator = ENQUIRY_KINDS.find((k) => k.id === kind)!.creator;
+  const sideOfKind = ENQUIRY_KINDS.find((k) => k.id === kind)!.side;
   const count = (k: EnquiryKind, st: string) => items?.[k].filter((e) => e.status === st).length ?? 0;
   const closed = CLOSED_STATUSES.has(status);
   const kindLabel = (k: EnquiryKind) => ENQUIRY_KINDS.find((x) => x.id === k)!.label;
@@ -313,6 +382,11 @@ export default function LeadsTab({
             aria-label={`Search the ${status} tab`}
             className="w-56 border border-line bg-white px-3 py-2"
           />
+          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Sort" className="border border-line bg-white px-3 py-2">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            {isCreator && <option value="followers">Most followers</option>}
+          </select>
           <button className="chip" onClick={() => load(true)} disabled={loading}>
             {loading ? "Updating…" : "↻ Refresh"}
           </button>
@@ -372,6 +446,9 @@ export default function LeadsTab({
             const isOpen = open === e.reference;
             return (
               <li key={e.reference || e.submittedAt} className="border-b border-line last:border-b-0">
+                {e.creator ? (
+                  <CreatorRow e={e} side={sideOfKind} isOpen={isOpen} onToggle={() => setOpen(isOpen ? "" : e.reference)} />
+                ) : (
                 <button
                   onClick={() => setOpen(isOpen ? "" : e.reference)}
                   aria-expanded={isOpen}
@@ -391,6 +468,7 @@ export default function LeadsTab({
                   </span>
                   <StatusPill status={e.status} />
                 </button>
+                )}
                 {isOpen && (
                   <Detail
                     e={e}

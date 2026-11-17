@@ -213,7 +213,7 @@ const actions = {
     return { ok: true };
   },
   updateSigned: (db, p) => {
-    const row = (db.signed || []).find((r) => r.Reference === p.reference);
+    const row = (db.signed || []).find((r) => r.Reference === p.reference && r.Side === p.side);
     if (!row) throw new Error("That creator is not in Signed Talent");
     const cols = { contract: "Contract", commission: "Commission", signedAt: "Signed At", modeEmailInBio: "Mode Email In Bio", dedicatedEmail: "Dedicated Email" };
     for (const [k, h] of Object.entries(cols)) if (p.patch?.[k] !== undefined) row[h] = p.patch[k];

@@ -823,6 +823,7 @@ var ACTIONS = {
       var head = values[0].map(String);
       for (var i = 1; i < values.length; i++) {
         if (!p.reference || String(values[i][0]) !== String(p.reference)) continue;
+        if (String(values[i][head.indexOf('Side')]) !== p.side) break; // another business's creator
         Object.keys(allowed).forEach(function (k) {
           if (p.patch && p.patch[k] !== undefined) sheet.getRange(i + 1, head.indexOf(allowed[k]) + 1).setValue(p.patch[k]);
         });

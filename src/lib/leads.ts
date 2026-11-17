@@ -11,14 +11,15 @@ import type { EnquiryKind, SheetTable } from "./enquiries";
 export const LEADS_TAG = "leads";
 
 type Tables = Partial<Record<EnquiryKind, SheetTable>>;
-export type LeadsSnapshot = { enquiries: Tables; at: string };
+/** the leads, and the Signed Talent tab (read in the same call; it's joined to the creator leads) */
+export type LeadsSnapshot = { enquiries: Tables; signed?: SheetTable; at: string };
 
 const read = async (): Promise<LeadsSnapshot> => {
-  const data = await callBackend<{ enquiries: Tables }>("listEnquiries");
-  return { enquiries: data.enquiries, at: new Date().toISOString() };
+  const data = await callBackend<{ enquiries: Tables; signed?: SheetTable }>("listEnquiries");
+  return { enquiries: data.enquiries, signed: data.signed, at: new Date().toISOString() };
 };
 
-const readCached = unstable_cache(read, ["leads-v1"], { tags: [LEADS_TAG], revalidate: 300 });
+const readCached = unstable_cache(read, ["leads-v2"], { tags: [LEADS_TAG], revalidate: 300 });
 
 /** The kept copy (instant), or with fresh, straight from the Sheet (the copy is then rebuilt too). */
 export async function getLeads(fresh = false): Promise<LeadsSnapshot> {

@@ -248,7 +248,7 @@ ModeSociety Tech has its own domain since 17 Nov 2026 (bought 10 Nov at **Namech
 3. Wait until Vercel shows **Valid Configuration** for both.
 4. **Vercel → Settings → Environment Variables** (Production): `NEXT_PUBLIC_TECH_SITE_URL` = `https://modesocietytech.com`, then **Redeploy**. This switches the split on. Until it is set, nothing changes and the Tech page stays at `/tech`, so the code can go live before the DNS does.
 
-With it set: modesocietytech.com shows the Tech page at its root, and www.modesocietytech.com redirects to it. Local and preview builds keep `/tech` unless the variable is set there too.
+With it set: modesocietytech.com shows the Tech page at its root, and www.modesocietytech.com redirects to it. www.modesociety.com.au/tech and the old Tech pages redirect there permanently (one hop, so search engines move their ranking): `/tech` → the root, `/tech/brands` → `#campaigns`, `/tech/creators` → `#apply` (opens the creator form), `/tech/talent` → `#who`, `/tech/contact` → `#contact`; tracking codes (`?utm_…`) are kept. Local and preview builds keep `/tech` unless the variable is set there too.
 
 ## Search (SEO)
 

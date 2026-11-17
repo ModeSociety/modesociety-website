@@ -522,7 +522,7 @@ export default function LeadsTab({
         </ul>
       )}
       <p className="mt-3 text-xs text-muted">
-        Read from the Google Sheet (one tab per form). Status changes are saved there too; a declined or lost lead stays in its tab, marked so, until
+        Read from the Google Sheet (one tab per form). Status changes are saved there too; a declined, lost or cancelled lead stays in its tab, marked so, until
         it&apos;s deleted here.
       </p>
     </div>

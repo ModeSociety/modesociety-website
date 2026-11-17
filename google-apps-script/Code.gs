@@ -53,6 +53,15 @@ var TABS = {
       .concat(['Twitch', 'YouTube', 'TikTok', 'Instagram', 'X', 'Kick'].reduce(function (a, n) { return a.concat([n + ' URL', n + ' Followers']); }, []))
       .concat(['Updated At', 'Updated By']),
   },
+  // ---- Service bookings (Services page → Book now), one tab per business ----
+  serviceBookings: {
+    name: 'Service Bookings',
+    headers: ['Submitted At', 'Status', 'Name', 'Email', 'Booking As', 'Service', 'Tier', 'Price', 'Socials / Website', 'Goals', 'Reference'],
+  },
+  techServiceBookings: {
+    name: 'Tech Service Bookings',
+    headers: ['Submitted At', 'Status', 'Name', 'Email', 'Booking As', 'Service', 'Tier', 'Price', 'Socials / Website', 'Goals', 'Reference'],
+  },
   // ---- Signed Talent (admin panel → Signed Talent): one row per signed creator, both businesses ----
   // Only the application's Reference and the contract: everything else is read from the application row.
   signed: {
@@ -110,7 +119,7 @@ var NOTIFY_DEFAULTS = {
   techBrands: 'techadmin@modesociety.com.au, patrick@modesociety.com.au',
   techCreators: 'techadmin@modesociety.com.au, patrick@modesociety.com.au',
 };
-var TECH_FORMS = { techBrands: true, techCreators: true };
+var TECH_FORMS = { techBrands: true, techCreators: true, techServiceBookings: true };
 var CREATOR_FORMS = { talent: true, techCreators: true };
 
 /**
@@ -134,12 +143,16 @@ var MAX_ATTACH_BYTES = 20 * 1024 * 1024;
 var CREATOR_STATUSES = ['New', 'Reviewing', 'Contract sent', 'Signed', 'Declined'];
 var BRAND_STATUSES = ['New', 'Contacted', 'Proposal sent', 'Won', 'Lost'];
 var CREATOR_KINDS = { talent: true, techCreators: true };
+/** a service booking's path: the team confirms it and invoices by hand (no online payment) */
+var BOOKING_STATUSES = ['New', 'Confirmed', 'Invoiced', 'Paid', 'Cancelled'];
+var BOOKING_KINDS = { services: true, techServices: true };
 /** the end of the road: only these leads can be deleted */
-var CLOSED_STATUSES = ['Declined', 'Lost'];
-function statusesFor_(kind) { return CREATOR_KINDS[kind] ? CREATOR_STATUSES : BRAND_STATUSES; }
+var CLOSED_STATUSES = ['Declined', 'Lost', 'Cancelled'];
+function statusesFor_(kind) { return CREATOR_KINDS[kind] ? CREATOR_STATUSES : BOOKING_KINDS[kind] ? BOOKING_STATUSES : BRAND_STATUSES; }
 
 /** The form tabs the admin panel reads back (panel name → TABS key). */
-var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', techBrands: 'techBrands', techCreators: 'techCreators' };
+var ENQUIRY_TABS = { talent: 'talent', brands: 'bookings', techBrands: 'techBrands', techCreators: 'techCreators',
+  services: 'serviceBookings', techServices: 'techServiceBookings' };
 
 var DEFAULT_SETTINGS = {
   heroMode: 'gravity',
@@ -194,9 +207,9 @@ function setup() {
       sheet.getRange(1, have + 1, 1, def.headers.length - have).setValues([def.headers.slice(have)])
         .setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
     }
-    if (key === 'talent' || key === 'bookings' || key === 'techBrands' || key === 'techCreators') {
-      var rule = SpreadsheetApp.newDataValidation()
-        .requireValueInList(key === 'talent' || key === 'techCreators' ? CREATOR_STATUSES : BRAND_STATUSES, true).build();
+    var kindOfTab = Object.keys(ENQUIRY_TABS).filter(function (k) { return ENQUIRY_TABS[k] === key; })[0];
+    if (kindOfTab) {
+      var rule = SpreadsheetApp.newDataValidation().requireValueInList(statusesFor_(kindOfTab), true).build();
       sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
     }
     // keep dates and times as plain text so Sheets doesn't turn them into date values
@@ -693,6 +706,30 @@ var ACTIONS = {
     return { reference: ref };
   },
 
+  /**
+   * A Book now booking from a Services page (SP-127): the site checks the service and tier against its
+   * own list and sends the price with them. Creator bookings go to the creators' inbox and brand bookings
+   * to the brands' (Mode Society: pr@ and brands@; Tech: techadmin@ and patrick@), as set in Emails.
+   */
+  submitServiceBooking: function (p) {
+    var tech = p.side === 'tech';
+    var key = tech ? 'techServiceBookings' : 'serviceBookings';
+    var ref = reference_(tech ? 'TS' : 'S');
+    var b = p.booking || {};
+    var brand = b.as === 'Brand';
+    withLock_(function () {
+      appendByColumn_(sheet_(key), [['Submitted At', new Date()], ['Status', 'New'], ['Name', b.name], ['Email', b.email], ['Booking As', b.as],
+        ['Service', b.service], ['Tier', b.tier], ['Price', b.price], ['Socials / Website', b.link], ['Goals', b.goals], ['Reference', ref]]);
+    });
+    // the inbox: the side's creators' or brands' address (the Emails settings decide, then the defaults)
+    var route = tech ? (brand ? 'techBrands' : 'techCreators') : (brand ? 'bookings' : 'talent');
+    notify_(route, 'New booking: ' + b.service + ' · ' + b.tier + ' (' + (b.name || 'Unnamed') + ')', ref, b.email, [
+      ['Service', b.service], ['Tier', b.tier], ['Price', b.price], ['Name', b.name], ['Email', b.email], ['Booking as', b.as],
+      ['Socials / website', b.link], ['Goals', b.goals], ['Next', 'Confirm the booking and send an invoice (no payment was taken).'],
+    ]);
+    return { reference: ref };
+  },
+
   submitTechCreator: function (p) {
     var f = p.fields || {};
     var ref = reference_('TC');
@@ -966,7 +1003,7 @@ var ACTIONS = {
       var folderCol = values[0].indexOf('Application Folder');
       for (var i = values.length - 1; i >= 1; i--) {
         if (!p.reference || String(values[i][refCol]) !== String(p.reference)) continue;
-        if (CLOSED_STATUSES.indexOf(String(values[i][statusCol])) < 0) throw new Error('Only declined or lost leads can be deleted');
+        if (CLOSED_STATUSES.indexOf(String(values[i][statusCol])) < 0) throw new Error('Only declined, lost or cancelled leads can be deleted');
         var folderId = folderCol < 0 ? '' : (String(values[i][folderCol]).match(/folders\/([-\w]+)/) || [])[1];
         sheet.deleteRow(i + 1);
         if (folderId) {

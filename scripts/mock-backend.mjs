@@ -25,11 +25,16 @@ const MEDIA_FOLDERS = [
 ];
 const CREATOR_STATUSES = ["New", "Reviewing", "Contract sent", "Signed", "Declined"];
 const BRAND_STATUSES = ["New", "Contacted", "Proposal sent", "Won", "Lost"];
-const statusesFor = (kind) => (kind === "talent" || kind === "techCreators" ? CREATOR_STATUSES : BRAND_STATUSES);
+const BOOKING_STATUSES = ["New", "Confirmed", "Invoiced", "Paid", "Cancelled"];
+const statusesFor = (kind) =>
+  kind === "talent" || kind === "techCreators" ? CREATOR_STATUSES : kind === "services" || kind === "techServices" ? BOOKING_STATUSES : BRAND_STATUSES;
+const BOOKING_HEADERS = ["Submitted At", "Status", "Name", "Email", "Booking As", "Service", "Tier", "Price", "Socials / Website", "Goals", "Reference"];
 /** Same columns as the Sheet tabs in Code.gs, so the admin panel parses both the same way. */
 const SIGNED_HEADERS = ["Reference", "Side", "Contract", "Commission", "Signed At", "PandaDoc ID", "Contract Link", "Mode Email In Bio",
   "Dedicated Email", "Renewal Reminders", "Updated At", "Updated By"];
 const ENQUIRY_COLUMNS = {
+  services: { store: "serviceBookings", headers: BOOKING_HEADERS, row: () => [] },
+  techServices: { store: "techServiceBookings", headers: BOOKING_HEADERS, row: () => [] },
   talent: {
     store: "talent",
     headers: ["Submitted At", "Status", "Full Name", "Email", "What They Do", "Channels (handle · followers)", "Niche",
@@ -226,7 +231,7 @@ const actions = {
     const list = db[c.store] || [];
     const rec = list.find((r) => r.reference === p.reference);
     if (!rec) throw new Error("That enquiry is no longer in the Sheet");
-    if (rec.status !== "Declined" && rec.status !== "Lost") throw new Error("Only declined or lost leads can be deleted");
+    if (!["Declined", "Lost", "Cancelled"].includes(rec.status)) throw new Error("Only declined, lost or cancelled leads can be deleted");
     db[c.store] = list.filter((r) => r !== rec);
     return { ok: true };
   },
@@ -256,6 +261,15 @@ const actions = {
       ["Profile Photo", link((f.photos || [])[0])], ["Profile Photo (Round)", link(f.thumb)], ["Photos", (f.photos || []).map(link).join(String.fromCharCode(10))],
       ["Media Kit", link(f.mediaKit) || p.mediaKitLink || ""], ["Application Folder", "https://drive.google.com/drive/folders/mock-talent"], ["Reference", reference]];
     (db[tech ? "techCreators" : "talent"] ||= []).push({ at: new Date().toISOString(), reference, columns });
+    return { reference };
+  },
+  submitServiceBooking: (db, p) => {
+    const tech = p.side === "tech";
+    const reference = ref(tech ? "TS" : "S");
+    const b = p.booking || {};
+    const columns = [["Submitted At", new Date().toISOString()], ["Status", "New"], ["Name", b.name], ["Email", b.email], ["Booking As", b.as],
+      ["Service", b.service], ["Tier", b.tier], ["Price", b.price], ["Socials / Website", b.link], ["Goals", b.goals], ["Reference", reference]];
+    (db[tech ? "techServiceBookings" : "serviceBookings"] ||= []).push({ at: new Date().toISOString(), reference, columns });
     return { reference };
   },
   submitTechCreator: (db, p) => {

@@ -2,25 +2,33 @@ import { parseChannels, profileUrl } from "./channels";
 
 /** Form submissions as the admin panel shows them (read back from the Sheet's form tabs). */
 
-export type EnquiryKind = "talent" | "brands" | "techBrands" | "techCreators";
+export type EnquiryKind = "talent" | "brands" | "techBrands" | "techCreators" | "services" | "techServices";
 
-/** creator: an application from a creator (signed with a contract); otherwise a brand lead */
-export const ENQUIRY_KINDS: { id: EnquiryKind; label: string; tab: string; side: "talent" | "tech"; creator: boolean }[] = [
+/**
+ * creator: an application from a creator (signed with a contract); booking: a Book now booking from a
+ * Services page (confirmed and invoiced by hand); otherwise a brand lead.
+ */
+export const ENQUIRY_KINDS: { id: EnquiryKind; label: string; tab: string; side: "talent" | "tech"; creator: boolean; booking?: boolean }[] = [
   { id: "talent", label: "Talent", tab: "Talent", side: "talent", creator: true },
   { id: "brands", label: "Brand calls", tab: "Book a Call", side: "talent", creator: false },
+  { id: "services", label: "Service bookings", tab: "Service Bookings", side: "talent", creator: false, booking: true },
   { id: "techBrands", label: "Tech brands", tab: "Tech Brand Enquiries", side: "tech", creator: false },
   { id: "techCreators", label: "Tech creators", tab: "Tech Creator Applications", side: "tech", creator: true },
+  { id: "techServices", label: "Service bookings", tab: "Tech Service Bookings", side: "tech", creator: false, booking: true },
 ];
 
 /** A creator lead's path to signing, and a brand lead's path to a deal (Asha's brief, 16 Nov 2026). */
 export const CREATOR_STATUSES = ["New", "Reviewing", "Contract sent", "Signed", "Declined"] as const;
 export const BRAND_STATUSES = ["New", "Contacted", "Proposal sent", "Won", "Lost"] as const;
-export const ENQUIRY_STATUSES = [...new Set([...CREATOR_STATUSES, ...BRAND_STATUSES])];
+/** a service booking: confirmed, invoiced by hand and paid (17 Nov 2026: no online payment) */
+export const BOOKING_STATUSES = ["New", "Confirmed", "Invoiced", "Paid", "Cancelled"] as const;
+export const ENQUIRY_STATUSES = [...new Set([...CREATOR_STATUSES, ...BRAND_STATUSES, ...BOOKING_STATUSES])];
 /** the end of the road: these leads can be deleted for good */
-export const CLOSED_STATUSES = new Set<string>(["Declined", "Lost"]);
+export const CLOSED_STATUSES = new Set<string>(["Declined", "Lost", "Cancelled"]);
 
 const isCreator = (kind: EnquiryKind) => ENQUIRY_KINDS.find((k) => k.id === kind)!.creator;
-export const statusesFor = (kind: EnquiryKind): readonly string[] => (isCreator(kind) ? CREATOR_STATUSES : BRAND_STATUSES);
+const isBooking = (kind: EnquiryKind) => Boolean(ENQUIRY_KINDS.find((k) => k.id === kind)!.booking);
+export const statusesFor = (kind: EnquiryKind): readonly string[] => (isCreator(kind) ? CREATOR_STATUSES : isBooking(kind) ? BOOKING_STATUSES : BRAND_STATUSES);
 
 /** A status as the Sheet holds it, in this lead type's list; statuses from before 16 Nov 2026 map to the nearest. */
 export function normalStatus(kind: EnquiryKind, raw: string): string {
@@ -33,7 +41,8 @@ export function normalStatus(kind: EnquiryKind, raw: string): string {
     "Signed / Booked": ["Signed", "Won"],
     Declined: ["Declined", "Lost"],
   };
-  return old[s]?.[isCreator(kind) ? 0 : 1] ?? "New";
+  const mapped = old[s]?.[isCreator(kind) ? 0 : 1];
+  return mapped && statusesFor(kind).includes(mapped) ? mapped : "New";
 }
 
 export type Enquiry = {
@@ -122,6 +131,8 @@ const TITLE: Record<EnquiryKind, [string, string]> = {
   brands: ["Brand Name", "Your Name"],
   techBrands: ["Brand Name", "Your Name"],
   techCreators: ["Full Name", "Applying As"],
+  services: ["Name", "Service"],
+  techServices: ["Name", "Service"],
 };
 
 /** Maps Sheet rows to enquiries by column name, so reordering columns in the Sheet doesn't break it. */

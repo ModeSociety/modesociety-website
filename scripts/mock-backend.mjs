@@ -178,10 +178,19 @@ const actions = {
 
   listEnquiries: (db) => ({
     enquiries: Object.fromEntries(
-      Object.entries(ENQUIRY_COLUMNS).map(([kind, c]) => [
-        kind,
-        { headers: c.headers, rows: [...(db[c.store] || [])].reverse().map((r) => c.row(r).map((v) => (v == null ? "" : String(v)))) },
-      ]),
+      Object.entries(ENQUIRY_COLUMNS).map(([kind, c]) => {
+        // rows written by column name (the new creator application) add their columns at the end, as in Code.gs
+        const recs = db[c.store] || [];
+        const headers = [...c.headers];
+        for (const r of recs) for (const [h] of r.columns || []) if (!headers.includes(h)) headers.push(h);
+        const rowOf = (r) => {
+          if (!r.columns) return c.row(r);
+          const vals = Object.fromEntries(r.columns);
+          vals.Status = r.status || "New";
+          return headers.map((h) => vals[h]);
+        };
+        return [kind, { headers, rows: [...recs].reverse().map((r) => rowOf(r).map((v) => (v == null ? "" : String(v)))) }];
+      }),
     ),
   }),
   setEnquiryStatus: (db, p) => {
@@ -211,6 +220,18 @@ const actions = {
   submitTechBrand: (db, p) => {
     const reference = ref("TB");
     (db.techBrands ||= []).push({ at: new Date().toISOString(), reference, ...p.fields });
+    return { reference };
+  },
+  submitCreator: (db, p) => {
+    const tech = p.side === "tech";
+    const reference = ref(tech ? "TC" : "T");
+    const link = (id) => (id ? `https://drive.google.com/file/d/${id}/view` : "");
+    const f = p.files || {};
+    for (const id of [...(f.photos || []), f.thumb, f.mediaKit].filter(Boolean)) if (db.files[id]) db.files[id].folder = "talent";
+    const columns = [["Submitted At", new Date().toISOString()], ["Status", "New"], ...(p.columns || []),
+      ["Profile Photo", link((f.photos || [])[0])], ["Profile Photo (Round)", link(f.thumb)], ["Photos", (f.photos || []).map(link).join(String.fromCharCode(10))],
+      ["Media Kit", link(f.mediaKit) || p.mediaKitLink || ""], ["Application Folder", "https://drive.google.com/drive/folders/mock-talent"], ["Reference", reference]];
+    (db[tech ? "techCreators" : "talent"] ||= []).push({ at: new Date().toISOString(), reference, columns });
     return { reference };
   },
   submitTechCreator: (db, p) => {

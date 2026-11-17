@@ -577,6 +577,43 @@ var ACTIONS = {
     return { reference: ref };
   },
 
+  /**
+   * A creator application (also the onboarding form, 16 Nov 2026) for Mode Society (Talent tab) or
+   * ModeSociety Tech (Tech Creator Applications tab). The site has already checked every answer and
+   * sends the row as [column, value] pairs; columns the tab doesn't have yet are added at its end, so
+   * older rows keep their own columns. Photos, the round profile crop and the media kit move from the
+   * incoming folder into the creator's private application folder.
+   */
+  submitCreator: function (p) {
+    var tech = p.side === 'tech';
+    var key = tech ? 'techCreators' : 'talent';
+    var ref = reference_(tech ? 'TC' : 'T');
+    var date = Utilities.formatDate(new Date(), tz_(), 'yyyy-MM-dd');
+    var person = safeName_(p.name || 'Unnamed');
+    var parent = folder_('talent');
+    if (tech) parent = childFolder_(parent, 'ModeSociety Tech');
+    var folder = parent.createFolder(date + ' — ' + person + ' (' + ref + ')');
+    var files = [];
+    var f = p.files || {};
+    var photos = claimFiles_(f.photos, folder, person + ' — photo', files);
+    var thumb = f.thumb ? claimFiles_([f.thumb], folder, person + ' — profile photo (round crop)') : [];
+    var kit = f.mediaKit ? claimFiles_([f.mediaKit], folder, person + ' — media kit') : [];
+    var cols = [['Submitted At', new Date()], ['Status', 'New']]
+      .concat(p.columns || [])
+      .concat([
+        ['Profile Photo', photos[0] || ''],
+        ['Profile Photo (Round)', thumb[0] || ''],
+        ['Photos', photos.join('\n')],
+        ['Media Kit', kit[0] || p.mediaKitLink || ''],
+        ['Application Folder', folder.getUrl()],
+        ['Reference', ref],
+      ]);
+    withLock_(function () { appendByColumn_(sheet_(key), cols); });
+    notify_(key, 'New ' + (tech ? 'Tech creator' : 'creator') + ' application: ' + (p.name || 'Unnamed'), ref, p.email,
+      (p.columns || []).concat([['Application folder', folder.getUrl()]]), files);
+    return { reference: ref };
+  },
+
   // ---- Tech roster (admin panel → Roster; also editable in the Sheet) ----
 
   listRoster: function () {
@@ -1165,6 +1202,24 @@ function isInside_(file, folderId) {
     queue = next;
   }
   return false;
+}
+
+/**
+ * Appends one row to a tab by column name: [column, value] pairs. Columns the tab doesn't have yet are
+ * added at the end of its header row (same style as setup), so rows written earlier keep their columns.
+ */
+function appendByColumn_(sheet, pairs) {
+  var headers = sheet.getLastColumn() ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String) : [];
+  var missing = pairs.map(function (p) { return p[0]; }).filter(function (h) { return headers.indexOf(h) < 0; });
+  if (missing.length) {
+    var tech = /^Tech /.test(sheet.getName());
+    sheet.getRange(1, headers.length + 1, 1, missing.length).setValues([missing])
+      .setFontWeight('bold').setBackground(tech ? '#1d3278' : '#7f090d').setFontColor('#ffffff');
+    headers = headers.concat(missing);
+  }
+  var row = headers.map(function () { return ''; });
+  pairs.forEach(function (p) { row[headers.indexOf(p[0])] = p[1] == null ? '' : p[1]; });
+  sheet.appendRow(row);
 }
 
 /** Moves staged uploads into the application folder with readable names; returns their links (and adds the files to `out`). */

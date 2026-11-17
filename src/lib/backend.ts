@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { readEmails } from "./emails";
 import { unstable_cache } from "next/cache";
 import { draftMode } from "next/headers";
 import { resolveCopy, isSectionId } from "./copy";
@@ -132,8 +133,10 @@ export function buildContent(raw: RawSite | null, preview = false): SiteContent 
     const list = slot.additive ? [...base, ...uploaded] : uploaded.length ? uploaded : base;
     images[slot.id] = slot.max ? list.slice(0, slot.max) : list;
   }
+  const emails = readEmails(raw?.settings ?? {});
   return {
     settings: parseSettings(raw?.settings),
+    contactEmail: { talent: emails.talent.replyTo, tech: emails.tech.replyTo },
     images,
     roster: (raw?.roster ?? []).map((m) => ({ ...m, photo: m.photo ? photo(m.photo) : "" })),
     press: (raw?.press ?? []).map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: photo(fileId) })) })),

@@ -134,7 +134,8 @@ export function pageMetadata(key: PageKey, extra: Partial<Metadata> = {}): Metad
 
 const ORG_ID = `${SITE_URL}/#organization`;
 
-export function organizationJsonLd() {
+/** Mode Society's business data for Google. email: its public contact address. */
+export function organizationJsonLd(email?: string) {
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -147,6 +148,7 @@ export function organizationJsonLd() {
         logo: { "@type": "ImageObject", url: `${SITE_URL}/brand/logo-512.png`, width: 512, height: 512 },
         image: `${SITE_URL}${ogImageUrl(PAGES.home.og)}`,
         description: PAGES.home.description,
+        ...(email ? { email } : {}),
         slogan: "Cast for fit, not follower count.",
         foundingDate: "2022-01",
         address: { "@type": "PostalAddress", addressLocality: "Melbourne", addressRegion: "VIC", addressCountry: "AU" },
@@ -188,21 +190,44 @@ export function organizationJsonLd() {
   };
 }
 
-/** ModeSociety Tech, as a department of Mode Society. */
-export function techOrganizationJsonLd() {
+/** Mode Society's own social accounts: never listed as ModeSociety Tech's. */
+const MODE_SOCIETY_ACCOUNTS = new Set([INSTAGRAM_URL, TIKTOK_URL, LINKEDIN_URL].map((u) => u.replace(/\/+$/, "").toLowerCase()));
+
+/**
+ * ModeSociety Tech's business data for Google, as a business of its own (since 16 Nov 2026): its own
+ * address, logo and website, its own social accounts (from the Tech footer, without any of Mode
+ * Society's) and its public contact address. Linked to nothing of Mode Society's.
+ */
+export function techOrganizationJsonLd({ email, socials = [] }: { email?: string; socials?: string[] } = {}) {
+  const id = `${TECH_BASE_URL}/#tech-organization`;
+  const sameAs = [...new Set(socials.map((u) => u.trim()).filter((u) => /^https:\/\//.test(u) && !MODE_SOCIETY_ACCOUNTS.has(u.replace(/\/+$/, "").toLowerCase())))];
   return {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": `${SITE_URL}/tech#organization`,
-    name: TECH_NAME,
-    url: `${SITE_URL}/tech`,
-    logo: { "@type": "ImageObject", url: `${SITE_URL}/brand/tech-512.png`, width: 512, height: 512 },
-    description: PAGES.techHome.description,
-    parentOrganization: { "@id": ORG_ID },
-    address: { "@type": "PostalAddress", addressLocality: "Melbourne", addressRegion: "VIC", addressCountry: "AU" },
-    areaServed: "Worldwide",
-    knowsAbout: ["Gaming influencer marketing", "Streamer sponsorships", "Esports talent management", "UGC", "Tech creator campaigns"],
-    sameAs: [INSTAGRAM_URL, TIKTOK_URL, LINKEDIN_URL],
+    "@graph": [
+      {
+        "@type": ["Organization", "ProfessionalService"],
+        "@id": id,
+        name: TECH_NAME,
+        legalName: "Mode Society Pty Ltd",
+        url: TECH_HOME_URL,
+        logo: { "@type": "ImageObject", url: `${TECH_BASE_URL}/brand/tech-512.png`, width: 512, height: 512 },
+        image: `${TECH_BASE_URL}${ogImageUrl(PAGES.techHome.og, true)}`,
+        description: PAGES.techHome.description,
+        ...(email ? { email } : {}),
+        address: { "@type": "PostalAddress", addressLocality: "Melbourne", addressRegion: "VIC", addressCountry: "AU" },
+        areaServed: "Worldwide",
+        knowsAbout: ["Gaming influencer marketing", "Streamer sponsorships", "Esports talent management", "UGC", "Tech creator campaigns"],
+        ...(sameAs.length ? { sameAs } : {}),
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${TECH_BASE_URL}/#tech-website`,
+        url: TECH_HOME_URL,
+        name: TECH_NAME,
+        inLanguage: "en-AU",
+        publisher: { "@id": id },
+      },
+    ],
   };
 }
 
@@ -213,7 +238,7 @@ export function breadcrumbJsonLd(key: PageKey) {
     "@type": "BreadcrumbList",
     itemListElement: [
       PAGES[key].tech
-        ? { "@type": "ListItem", position: 1, name: TECH_NAME, item: `${SITE_URL}/tech` }
+        ? { "@type": "ListItem", position: 1, name: TECH_NAME, item: TECH_HOME_URL }
         : { "@type": "ListItem", position: 1, name: PAGES.home.crumb, item: SITE_URL },
       { "@type": "ListItem", position: 2, name: PAGES[key].crumb, item: `${SITE_URL}${PAGES[key].path}` },
     ],

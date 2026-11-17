@@ -17,7 +17,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       {/* colours and fonts changed in the admin panel */}
       {theme.href && <link rel="stylesheet" href={theme.href} precedence="theme" />}
       {theme.css && <style>{theme.css}</style>}
-      <JsonLd data={organizationJsonLd()} />
+      <JsonLd data={organizationJsonLd(content.contactEmail.talent)} />
       <ChromeStyles content={content} side="talent" />
       <ChromeRoot root="nav">
         <Nav words={copy["site.nav"]} />

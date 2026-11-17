@@ -57,7 +57,12 @@ export default async function TechLayout({ children }: { children: React.ReactNo
       {/* colours and fonts changed in the admin panel */}
       {theme.href && <link rel="stylesheet" href={theme.href} precedence="theme" />}
       {theme.css && <style>{theme.css}</style>}
-      <JsonLd data={techOrganizationJsonLd()} />
+      <JsonLd
+        data={techOrganizationJsonLd({
+          email: content.contactEmail.tech,
+          socials: (["x", "discord", "instagram", "tiktok", "linkedin", "facebook"] as const).map((k) => copy["techSite.footer"][k]),
+        })}
+      />
       <ChromeStyles content={content} side="tech" />
       <TxShell words={copy["techSite.nav"]}>
         {preview && <PreviewBar />}

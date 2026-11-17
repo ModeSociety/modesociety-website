@@ -25,6 +25,7 @@ import {
   TALENT_FAQ,
   type StepIcon,
 } from "./content";
+import { TALENT_SERVICES, TECH_SERVICES, type ServicesCopy } from "./services";
 
 export type CopySide = "talent" | "tech";
 
@@ -59,6 +60,27 @@ const list = (label: string, itemName: string, item: Record<string, Field>, hint
 const label = text("Small label", "The small capitals above the section");
 const meta = text("Note on the right", "The small note at the right of the label. Leave empty to hide it.");
 const tag = text("Tag", "The word in brackets before the small label. Leave empty to hide it.");
+/** The priced services' fields, the same on both sites (SP-125, SP-126). */
+const pricedServices = (exclusiveOf: string) => ({
+  intro: area("Intro", "Above the services"),
+  freeBadge: text("Badge on free services", `Shown on each service marked free for ${exclusiveOf} exclusive creators`),
+  bookLabel: text("Book button", "On each tier; it opens the booking form"),
+  items: list("Services", "service", {
+    title: text("Name"),
+    body: area("What it is"),
+    free: { type: "select", label: "Free for exclusive creators?", options: ["No", "Yes"] },
+    tiers: list("Tiers", "tier", { name: text("Tier"), price: text("Price", "e.g. $500 + GST or $500 + GST / month"), includes: area("What's included") }),
+    note: area("Note under the tiers (optional)"),
+  }),
+  footer: area("Note at the bottom", "Prices, how booking works, no guarantees"),
+});
+const pricedDefaults = (d: ServicesCopy) => ({
+  intro: d.intro,
+  freeBadge: "Free for exclusive creators",
+  bookLabel: "Book now",
+  items: d.items.map((x) => ({ ...x, tiers: x.tiers.map((t) => ({ ...t })) })),
+  footer: d.footer,
+});
 /** a note with a count in it: {n} is the number, {s} an s when it's not one */
 const count = (label: string, example: string) => text(label, `{n} = the number, {s} = "s" when it's not one (e.g. ${example})`);
 
@@ -560,6 +582,16 @@ export const SECTIONS = {
     },
   },
 
+  "services.priced": {
+    side: "talent",
+    page: "Services",
+    path: "/services",
+    title: "Services and prices",
+    hint: "Each service with its tiers and prices (AUD, excl. GST). Each tier gets a Book now button.",
+    fields: pricedServices("Mode Society"),
+    defaults: pricedDefaults(TALENT_SERVICES),
+  },
+
   // =========================================================================
   // Our work
   // =========================================================================
@@ -903,6 +935,23 @@ export const SECTIONS = {
         { q: "What do you handle for me?", a: "Brand partnerships, your emails, pitching you to brands, invoicing and paperwork, plus help growing your socials." },
       ],
     },
+  },
+  "techSite.servicesHero": {
+    side: "tech",
+    page: "Services",
+    path: "/tech/services",
+    title: "Page title",
+    fields: { label: text("Small label"), heading: heading("Headline", "*stars* = the pixel words") },
+    defaults: { label: "Services", heading: "Level up your *channel.*" },
+  },
+  "techSite.services": {
+    side: "tech",
+    page: "Services",
+    path: "/tech/services",
+    title: "Services and prices",
+    hint: "Each service with its tiers and prices (AUD, excl. GST). Each tier gets a Book now button.",
+    fields: pricedServices("Mode Society Tech"),
+    defaults: pricedDefaults(TECH_SERVICES),
   },
   "techSite.nav": {
     side: "tech",

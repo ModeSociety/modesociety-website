@@ -7,6 +7,7 @@ import { Fragment } from "react";
 import JsonLd from "@/components/site/JsonLd";
 import type { SectionCopy } from "@/lib/copy";
 import { faqJsonLd } from "@/lib/seo";
+import { TxA } from "./paths";
 import { lines, pixel } from "./pixel";
 
 // ------------------------------------------------------------------ hero
@@ -499,22 +500,23 @@ export function Footer({ copy: c, nav }: { copy: SectionCopy<"techSite.footer">;
         <div className="row">
           <p>{c.blurb}</p>
           <nav>
-            <a className="pill sm" href="#contact" data-tab="brand">
+            <TxA className="pill sm" to="#contact" data-tab="brand">
               {c.brandButton} <span className="ac">→</span>
-            </a>
-            <a className="pill sm dark" href="#contact" data-tab="creator">
+            </TxA>
+            {/* #apply: from another page, the home page opens on the creator tab */}
+            <TxA className="pill sm dark" to="#apply" data-tab="creator">
               {c.creatorButton} <span className="ac">→</span>
-            </a>
+            </TxA>
           </nav>
         </div>
         <div className="lockup">
-          <a className="brand" href="#top">
+          <TxA className="brand" to="#top">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/tech/logom-white.png" alt="" />
             <span>
               {nav.brand} <b>{nav.brandAccent}</b>
             </span>
-          </a>
+          </TxA>
           {links.length > 0 && (
             <nav className="socials" aria-label="Socials">
               {links.map(([key, label, d]) => (

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { SectionCopy } from "@/lib/copy";
+import { TxA, useTechPaths } from "./paths";
 
 /**
  * The frosted bar: logo and name, the 20-segment scroll "XP" meter (hidden on phones), and the
@@ -41,25 +42,28 @@ export default function TxNav({ words }: { words: SectionCopy<"techSite.nav"> })
     setOpen((o) => !o);
   };
 
+  const paths = useTechPaths();
+  // the home page's sections, then the Services page
   const links: [string, string][] = [
-    ["#who", words.whoLink],
-    ["#campaigns", words.campaignsLink],
-    ["#services", words.runLink],
-    ["#contact", words.contactLink],
-    ["#faq", words.faqLink],
-  ];
+    [paths.section("#who"), words.whoLink],
+    [paths.section("#campaigns"), words.campaignsLink],
+    [paths.section("#services"), words.runLink],
+    [paths.section("#contact"), words.contactLink],
+    [paths.section("#faq"), words.faqLink],
+    [paths.page("/services"), words.servicesLink],
+  ].filter(([, label]) => label.trim()) as [string, string][];
 
   return (
     <>
       <header className="nav" id="nav">
         <div className="bar">
-          <a className="brand" href="#top">
+          <TxA className="brand" to="#top">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/tech/logom-gradient.png" alt="" />
             <span>
               {words.brand} <b>{words.brandAccent}</b>
             </span>
-          </a>
+          </TxA>
           <div className="xpm" aria-hidden="true">
             <span className="mono">{words.xp}</span>
             <div className="seg">
@@ -104,12 +108,12 @@ export default function TxNav({ words }: { words: SectionCopy<"techSite.nav"> })
           </nav>
           <div className="scr-foot">
             <div className="row2">
-              <a className="pill sm" href="#contact" data-tab="brand" tabIndex={open ? 0 : -1}>
+              <TxA className="pill sm" to="#contact" data-tab="brand" tabIndex={open ? 0 : -1}>
                 {words.brandButton} <span className="ac">→</span>
-              </a>
-              <a className="pill sm dark" href="#contact" data-tab="creator" tabIndex={open ? 0 : -1}>
+              </TxA>
+              <TxA className="pill sm dark" to={paths.onHome ? "#contact" : "#apply"} data-tab="creator" tabIndex={open ? 0 : -1}>
                 {words.creatorButton} <span className="ac">→</span>
-              </a>
+              </TxA>
             </div>
           </div>
         </section>

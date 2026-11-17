@@ -287,3 +287,83 @@ export function photosProblems(a: Application): string[] {
   if (!a.profileThumb) return ["Save the crop of your profile photo"];
   return [];
 }
+
+/** The web addresses each platform's links live on (Other: any link). */
+const PLATFORM_HOSTS: Record<string, RegExp> = {
+  instagram: /(^|\.)instagram\.com$/,
+  tiktok: /(^|\.)tiktok\.com$/,
+  youtube: /(^|\.)(youtube\.com|youtu\.be)$/,
+  "youtube gaming": /(^|\.)(youtube\.com|youtu\.be)$/,
+  pinterest: /(^|\.)pinterest\.[a-z.]+$/,
+  facebook: /(^|\.)(facebook\.com|fb\.com|fb\.gg)$/,
+  "facebook gaming": /(^|\.)(facebook\.com|fb\.com|fb\.gg)$/,
+  linkedin: /(^|\.)linkedin\.com$/,
+  snapchat: /(^|\.)snapchat\.com$/,
+  "x (twitter)": /(^|\.)(x\.com|twitter\.com)$/,
+  lemon8: /(^|\.)lemon8-app\.com$/,
+  twitch: /(^|\.)twitch\.tv$/,
+  kick: /(^|\.)kick\.com$/,
+  discord: /(^|\.)(discord\.gg|discord\.com)$/,
+};
+
+/**
+ * A channel as a link: what the creator typed (a link, a link without https://, or a @handle) as the
+ * profile address, or null when it isn't one for that platform.
+ */
+export function channelLink(platform: string, typed: string): string | null {
+  const t = typed.trim().replace(/\s+/g, "");
+  if (!t) return null;
+  const hosts = PLATFORM_HOSTS[platform.toLowerCase()];
+  const asUrl = /^https?:\/\//i.test(t) ? t : /^(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/|$)/i.test(t) ? `https://${t}` : null;
+  if (asUrl) {
+    try {
+      const u = new URL(asUrl);
+      if (!/^https?:$/.test(u.protocol)) return null;
+      return !hosts || hosts.test(u.hostname.toLowerCase()) ? u.href : null;
+    } catch {
+      return null;
+    }
+  }
+  // a handle: the profile address for the platforms that have one
+  const handle = t.replace(/^@+/, "");
+  if (!/^[\w.-]{1,80}$/.test(handle)) return null;
+  const make: Record<string, (h: string) => string> = {
+    instagram: (h) => `https://www.instagram.com/${h}/`,
+    tiktok: (h) => `https://www.tiktok.com/@${h}`,
+    youtube: (h) => `https://www.youtube.com/@${h}`,
+    "youtube gaming": (h) => `https://www.youtube.com/@${h}`,
+    pinterest: (h) => `https://www.pinterest.com/${h}/`,
+    facebook: (h) => `https://www.facebook.com/${h}`,
+    "facebook gaming": (h) => `https://www.facebook.com/${h}`,
+    linkedin: (h) => `https://www.linkedin.com/in/${h}`,
+    snapchat: (h) => `https://www.snapchat.com/add/${h}`,
+    "x (twitter)": (h) => `https://x.com/${h}`,
+    lemon8: (h) => `https://www.lemon8-app.com/@${h}`,
+    twitch: (h) => `https://www.twitch.tv/${h}`,
+    kick: (h) => `https://kick.com/${h}`,
+  };
+  const f = make[platform.toLowerCase()];
+  return f ? f(handle) : null;
+}
+
+/** A follower or view count typed with or without commas ("12,400"): the whole number, or null. */
+export const countOf = (v: string) => (/^\d{1,3}(,?\d{3})*$|^\d+$/.test(v.trim()) ? Number(v.trim().replace(/,/g, "")) : null);
+
+export const MEDIA_KIT_MAX_MB = 3;
+
+/** Step 3: your socials. */
+export function socialsProblems(a: Application, side: Side): string[] {
+  const out: string[] = [];
+  const platforms = APP_OPTIONS[side].platforms;
+  if (!platforms.includes(a.mainPlatform)) out.push("Choose your main platform");
+  else if (!channelLink(a.mainPlatform, a.mainLink)) out.push(`Add a valid ${a.mainPlatform} link or @handle for your main channel`);
+  if (countOf(a.mainFollowers) === null) out.push("Add your main channel's follower count (a whole number)");
+  if (a.avgViews.trim() && countOf(a.avgViews) === null) out.push(`${APP_OPTIONS[side].avgLabel}: a whole number`);
+  a.others.forEach((c, n) => {
+    if (!platforms.includes(c.platform) || !channelLink(c.platform, c.link) || countOf(c.followers) === null) {
+      out.push(`Other platform ${n + 1}: choose the platform, add its link and follower count (or remove it)`);
+    }
+  });
+  if (a.mediaKit && !/^[\w-]{10,}$/.test(a.mediaKit) && !/^https?:\/\/\S+\.\S+/.test(a.mediaKit.trim())) out.push("Media kit: upload a PDF or paste a link");
+  return out;
+}

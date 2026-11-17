@@ -46,7 +46,8 @@ export async function pandadoc<T = unknown>(path: string, init: RequestInit = {}
     body = text;
   }
   if (!res.ok) {
-    const detail = (body as { detail?: unknown; message?: unknown } | null)?.detail ?? (body as { message?: unknown } | null)?.message ?? text;
+    const b = (body ?? {}) as { detail?: unknown; message?: unknown; info_message?: unknown };
+    const detail = b.detail ?? b.message ?? b.info_message ?? text;
     throw new PandaDocError(`PandaDoc ${res.status}: ${String(typeof detail === "string" ? detail : JSON.stringify(detail)).slice(0, 300)}`, res.status);
   }
   return body as T;

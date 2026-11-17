@@ -218,6 +218,13 @@ const actions = {
     }
     return { ok: true };
   },
+  // as Code.gs, without Google Docs: the PDF for that template and part, put in .mock-backend/contracts/
+  // as "<template name> <A|B>.pdf" (e.g. made with scripts/build-contract-templates.py and Word)
+  buildContract: (db, p) => {
+    const file = join(DIR, "contracts", `${p.template} ${p.part}.pdf`);
+    if (!existsSync(file)) throw new Error(`There is no Google Doc called "${p.template}" in Drive → Contracts (mock: add ${file})`);
+    return { name: `${p.template}.pdf`, data: readFileSync(file).toString("base64") };
+  },
   setLeadContract: (db, p) => {
     // as Code.gs: the contract's own columns on a creator lead, and optionally its status
     const c = ENQUIRY_COLUMNS[p.kind];

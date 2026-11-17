@@ -239,6 +239,17 @@ The domain is registered at **Squarespace**, which also runs its DNS. **Keep it 
 
 > Vercel's free Hobby plan is for non-commercial use. For the agency's live site, upgrade the project to **Vercel Pro**.
 
+## Domain: modesocietytech.com (ModeSociety Tech)
+
+ModeSociety Tech has its own domain since 17 Nov 2026 (bought 10 Nov at **Namecheap**). The same code and the same Vercel project serve both businesses: `src/proxy.ts` looks at the domain of each request. The admin panel stays on www.modesociety.com.au.
+
+1. **Vercel** → the project → **Settings → Domains**: add `modesocietytech.com`, then `www.modesocietytech.com` and choose **Redirect to modesocietytech.com**. Vercel lists the DNS records it wants.
+2. **Namecheap** → **Domain List → modesocietytech.com → Manage → Advanced DNS**: delete the parking records (the `CNAME` `www` → `parkingpage.namecheap.com` and the `URL Redirect` on `@`) and add the records Vercel shows. Usually `A` `@` → `76.76.21.21` and `CNAME` `www` → `cname.vercel-dns.com`; if Vercel gives different values, use Vercel's. Leave any `MX`/`TXT` email records alone.
+3. Wait until Vercel shows **Valid Configuration** for both.
+4. **Vercel → Settings → Environment Variables** (Production): `NEXT_PUBLIC_TECH_SITE_URL` = `https://modesocietytech.com`, then **Redeploy**. This switches the split on. Until it is set, nothing changes and the Tech page stays at `/tech`, so the code can go live before the DNS does.
+
+With it set: modesocietytech.com shows the Tech page at its root, and www.modesocietytech.com redirects to it. Local and preview builds keep `/tech` unless the variable is set there too.
+
 ## Search (SEO)
 
 **Built into the site** (wording in `src/lib/seo.ts`; FAQ answers in `src/lib/content.ts`):

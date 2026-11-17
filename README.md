@@ -267,6 +267,39 @@ ModeSociety Tech has its own domain since 17 Nov 2026 (bought 10 Nov at **Namech
 With it set: modesocietytech.com shows the Tech page at its root, and www.modesocietytech.com redirects to it. www.modesociety.com.au/tech and the old Tech pages redirect there permanently (one hop, so search engines move their ranking): `/tech` → the root, `/tech/brands` → `#campaigns`, `/tech/creators` → `#apply` (opens the creator form), `/tech/talent` → `#who`, `/tech/contact` → `#contact`; tracking codes (`?utm_…`) are kept. The two sites share no pages: a Mode Society page asked for on modesocietytech.com (e.g. `/about`, or `/admin`) redirects to the same page on www.modesociety.com.au; only what the Tech page itself loads (`/media/…` photos, the `/og` share image, public files, the form API) is served there. Each domain has its own `robots.txt` and `sitemap.xml` (modesocietytech.com lists only the Tech page; Mode Society's drops `/tech`).
 5. **Google Search Console:** add `modesocietytech.com` as a new *Domain* property (verify with the TXT record Search Console gives, added at Namecheap like step 2), then submit `https://modesocietytech.com/sitemap.xml` under *Sitemaps*. In the Mode Society property, *Removals* isn't needed: the 308 redirects move `/tech` over by themselves. Local and preview builds keep `/tech` unless the variable is set there too.
 
+## Google Business Profile: ModeSociety Tech
+
+ModeSociety Tech is its own business, so it gets its own Google Business Profile (Mode Society keeps its existing one). Asha (or whoever holds the Tech Google login) creates it; it takes about 15 minutes, then Google's verification.
+
+**The profile's content** (ready to paste):
+
+| Field | Value |
+| --- | --- |
+| Business name | ModeSociety Tech (exactly as on the site: Google's rules don't allow extra keywords in the name) |
+| Primary category | Talent agency |
+| Additional categories | Marketing agency; Internet marketing service |
+| Location | No shop front: choose *No* to "Do you want to add a location customers can visit?" (a service-area business, so no street address is shown) |
+| Service areas | Melbourne VIC, Sydney NSW, Brisbane QLD, Perth WA, Adelaide SA, Canberra ACT, Victoria, New South Wales, Queensland, Australia (up to 20 are allowed) |
+| Website | https://modesocietytech.com (once the domain is live; until then https://www.modesociety.com.au/tech) |
+| Email (in *Contact*) | techadmin@modesociety.com.au (Tech's public contact address, as set in the admin panel → Emails) |
+| Phone | Optional: Asha's choice (a mobile can be left off) |
+| Hours | Leave empty (by appointment) |
+| Logo | `public/brand/tech-512.png` (512 × 512, the gradient M) |
+| Cover photo | `public/tech/welcome-poster.jpg` |
+| Description (679 of 750 characters) | ModeSociety Tech is a talent and creator agency for streamers, content creators and esports athletes. We connect gaming, tech and telco brands with creators their audiences actually trust, and run the whole campaign: the creator brief, casting, contracts, delivery and reporting. Campaigns include sponsored streams and videos, game key drops, product reviews, event and LAN activations, esports sponsorships and ambassador programs. For creators, we handle brand partnerships, pitching, invoicing and paperwork, and help them grow with strategy sessions, channel audits, clip editing and more. Based in Melbourne, working with creators and brands across Australia and worldwide. |
+| Services (optional) | The service names from the Services page: Social Media Strategy Session, Ongoing Strategy Support, Channel Audit, Stream Highlights & Clips, YouTube Video Editing, Email & SMS Marketing, Content Calendar & Captions, Media Kit & Sponsorship Deck, UGC Scripts & Concepts, Long-Form to Short-Form Repurposing |
+
+**Setting it up:**
+
+1. Sign in to Google with the account that should own the profile (the Tech admin account, e.g. techadmin@modesociety.com.au, so it doesn't depend on one person), and open https://business.google.com/create.
+2. Enter the business name and the primary category from the table, then **Next**.
+3. *Do you want to add a location customers can visit?* → **No**. Add the service areas from the table.
+4. Add the website and (optionally) a phone number. Skip the offers to buy a domain or ads.
+5. **Verify.** Google picks the method: for a service-area business it's usually a short video (show the business name on a screen or document, a work you do, and that you manage the business: e.g. open the admin panel at /admin and the Tech site), sometimes a phone call, text or email. Video reviews take up to 5 business days.
+6. Once verified, fill in the rest from the table: description, additional categories, email, logo, cover photo and services.
+7. Add Asha (and anyone else who should manage it) under **Business Profile settings → People and access** as an Owner or Manager.
+8. Copy the profile's link (**Share profile** in the profile on Google Search or Maps) and paste it into the admin panel: **Pages & text → ModeSociety Tech → Shared sections → Footer → Google Business Profile link**, then **Save**. The site then tells Google that the profile and modesocietytech.com are the same business (it isn't shown on the page).
+
 ## Search (SEO)
 
 **Built into the site** (wording in `src/lib/seo.ts`; FAQ answers in `src/lib/content.ts`):

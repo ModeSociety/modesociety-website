@@ -60,7 +60,7 @@ export default async function TechLayout({ children }: { children: React.ReactNo
       <JsonLd
         data={techOrganizationJsonLd({
           email: content.contactEmail.tech,
-          socials: (["x", "discord", "instagram", "tiktok", "linkedin", "facebook"] as const).map((k) => copy["techSite.footer"][k]),
+          socials: (["x", "discord", "instagram", "tiktok", "linkedin", "facebook", "google"] as const).map((k) => copy["techSite.footer"][k]),
         })}
       />
       <ChromeStyles content={content} side="tech" />

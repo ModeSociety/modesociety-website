@@ -10,6 +10,9 @@ const OLD_TECH: Record<string, string> = {
   "/tech/contact": "#contact",
 };
 
+/** The Tech site's other pages: their address on modesocietytech.com → the page that serves it. */
+const TECH_PAGES: Record<string, string> = { "/services": "/tech/services" };
+
 /** Addresses without a file extension that the Tech page needs on its own domain (Next's dev tools too). */
 const TECH_OWN = ["/media", "/og", "/__nextjs_original-stack-frame", "/__nextjs_source-map", "/__nextjs_font"];
 
@@ -39,6 +42,10 @@ export function proxy(req: NextRequest) {
     if (host !== TECH_HOST) return NextResponse.redirect(new URL(url.pathname + url.search, `https://${TECH_HOST}`), 308);
     // the Tech page at the root
     if (path === "/") return NextResponse.rewrite(new URL("/tech" + url.search, req.url));
+    if (path in TECH_PAGES) return NextResponse.rewrite(new URL(TECH_PAGES[path] + url.search, req.url));
+    // /tech/services there → /services
+    const own = Object.keys(TECH_PAGES).find((k) => TECH_PAGES[k] === path);
+    if (own) return NextResponse.redirect(new URL(own + url.search, `https://${TECH_HOST}`), 308);
     if (path in OLD_TECH) return NextResponse.redirect(new URL("/" + url.search + OLD_TECH[path], `https://${TECH_HOST}`), 308);
     // what the Tech page itself loads: Drive photos and its share image
     if (TECH_OWN.some((p) => path === p || path.startsWith(p + "/"))) return NextResponse.next();
@@ -49,6 +56,9 @@ export function proxy(req: NextRequest) {
   if (isMainHost(host) && path in OLD_TECH) {
     return NextResponse.redirect(new URL("/" + url.search + OLD_TECH[path], TECH_SITE_URL), 308);
   }
+  // the Tech site's other pages move to its domain too
+  const moved = isMainHost(host) && Object.keys(TECH_PAGES).find((k) => TECH_PAGES[k] === path);
+  if (moved) return NextResponse.redirect(new URL(moved + url.search, TECH_SITE_URL), 308);
   return NextResponse.next();
 }
 

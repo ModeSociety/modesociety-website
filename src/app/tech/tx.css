@@ -377,3 +377,23 @@ html:has(.tx),html:has(.tx) body{cursor:url("data:image/svg+xml,%3Csvg xmlns='ht
 .tx .film .play{position:absolute;left:clamp(12px,2vw,24px);bottom:clamp(12px,2vw,24px)}
 .tx .film .play .ac{font-size:11px}
 .tx .film iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+/* ---- Services page (SP-126): one frosted card per service, its tiers and prices ---- */
+.tx .svc-hero{padding-bottom:0;padding-top:clamp(130px,14vw,190px)}
+.tx .svc{padding-top:clamp(40px,5vw,64px)}
+.tx .svc-intro{font-size:clamp(18px,1.6vw,22px);color:var(--body);max-width:62ch}
+.tx .svc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:clamp(36px,5vw,60px)}
+.tx .svc-card{display:flex;flex-direction:column;padding:clamp(22px,2.4vw,34px);background:var(--ice);clip-path:var(--px-sm);scroll-margin-top:110px}
+.tx .svc-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--royal)}
+.tx .svc-free{background:var(--lime);color:var(--ink);padding:6px 10px;clip-path:var(--px-sm);font-weight:700}
+.tx .svc-card h2{font-weight:900;text-transform:uppercase;letter-spacing:-.02em;line-height:.95;font-size:clamp(26px,2.4vw,36px);margin-top:14px}
+.tx .svc-body{color:var(--body);margin-top:14px}
+.tx .svc-tiers{margin-top:22px;border-top:2px solid var(--ink)}
+.tx .svc-tiers li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 20px;padding:16px 0;border-bottom:1px solid var(--line)}
+.tx .svc-tiers h3{font-weight:700;font-size:17px}
+.tx .svc-tiers p{color:var(--body);font-size:14px;margin-top:4px}
+.tx .svc-price{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.tx .svc-price .mono{font-size:12px;color:var(--ink);white-space:nowrap}
+.tx .svc-note{color:var(--body);font-size:13px;margin-top:14px}
+.tx .svc-foot{color:var(--body);font-size:13px;max-width:80ch;margin-top:clamp(36px,4vw,56px)}
+@media (max-width:900px){.tx .svc-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.tx .svc-tiers li{grid-template-columns:minmax(0,1fr)}.tx .svc-price{flex-direction:row;align-items:center;justify-content:space-between}}

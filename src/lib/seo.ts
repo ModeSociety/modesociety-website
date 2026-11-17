@@ -12,7 +12,7 @@ export const SITE_NAME = "Mode Society";
 
 export type PageKey =
   | "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact"
-  | "techHome";
+  | "techHome" | "techServices";
 
 export const TECH_NAME = "ModeSociety Tech";
 /**
@@ -21,6 +21,11 @@ export const TECH_NAME = "ModeSociety Tech";
  */
 export const TECH_BASE_URL = TECH_SITE_URL || SITE_URL;
 export const TECH_HOME_URL = TECH_SITE_URL ? `${TECH_SITE_URL}/` : `${SITE_URL}/tech`;
+/** A Tech page's address for search engines: "/tech/services" → modesocietytech.com/services once split. */
+export const techUrl = (path: string) => {
+  const sub = path.replace(/^\/tech/, "");
+  return TECH_SITE_URL ? `${TECH_SITE_URL}${sub || "/"}` : `${SITE_URL}${path}`;
+};
 
 /**
  * Titles stay under ~60 characters and descriptions under ~155 so Google shows them whole.
@@ -99,6 +104,15 @@ export const PAGES: Record<PageKey, { path: string; title: string; description: 
     og: "Not just gaming.",
     crumb: "ModeSociety Tech",
   },
+  techServices: {
+    path: "/tech/services",
+    tech: true,
+    title: "Streamer & Gaming Creator Services | ModeSociety Tech",
+    description:
+      "Channel audits, stream clips, YouTube editing, strategy sessions and more for streamers, gaming creators and brands. Prices in AUD, free strategy for exclusive creators.",
+    og: "Level up your channel.",
+    crumb: "Services",
+  },
 };
 
 export const ogImageUrl = (line: string, tech = false) => `/og?title=${encodeURIComponent(line)}${tech ? "&theme=tech" : ""}`;
@@ -109,7 +123,7 @@ export function pageMetadata(key: PageKey, extra: Partial<Metadata> = {}): Metad
   const name = p.tech ? TECH_NAME : SITE_NAME;
   const image = { url: ogImageUrl(p.og, p.tech), width: 1200, height: 630, alt: `${name}: ${p.og}` };
   // each business's pages point search engines at its own domain
-  const url = p.tech ? TECH_HOME_URL : p.path;
+  const url = p.tech ? techUrl(p.path) : p.path;
   return {
     title: { absolute: p.title },
     description: p.description,

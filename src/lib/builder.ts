@@ -314,6 +314,8 @@ export const DEFS: Record<string, BlockDef> = {
   "x.run": f("tech", "What we run", "The bento grid on violet and magenta", ["techSite.run"], { dark: true }),
   "x.rules": f("tech", "House rules", "18+, in-house briefs and the no-go list, on black glass", ["techSite.rules"], { dark: true }),
   "x.contact": f("tech", "Get in touch", "Two ways in: the two-level form for brands and creators", ["techSite.contact"], { page: "techHome" }),
+  "x.servicesHero": f("tech", "Services: page title", "Level up your channel", ["techSite.servicesHero"]),
+  "x.services": f("tech", "Services and prices", "Each service as a card with its tiers, prices and Book now buttons", ["techSite.services"]),
   "x.faq": f("tech", "Questions", "For brands and for creators", ["techSite.faq"]),
 };
 
@@ -329,6 +331,7 @@ const DEFAULTS: Record<PageId, [string, string?][]> = {
   work: [["t.workHero", "hero"], ["t.workGallery", "gallery"], ["t.workNext"]],
   press: [["t.pressHero", "hero"], ["t.pressList"], ["t.clients"]],
   contact: [["t.contactHero", "hero"], ["t.contactCards"], ["t.contactSocials"]],
+  techServices: [["x.servicesHero", "hero"], ["x.services"]],
   techHome: [["x.hero", "hero"], ["x.ticker", "intro"], ["x.film"], ["x.who", "who"], ["x.campaigns", "talent"], ["x.run", "run"], ["x.rules", "policy"], ["x.contact"], ["x.faq"]],
 };
 

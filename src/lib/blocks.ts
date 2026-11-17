@@ -67,6 +67,7 @@ export const BLOCK_PAGES = {
   work: { side: "talent", label: "Our work", path: "/our-work", spots: [["hero", "Under the page title"], ["gallery", "After the gallery"], ["end", "At the end of the page"]] },
   press: { side: "talent", label: "Featured in", path: "/featured-in", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
   contact: { side: "talent", label: "Contact us", path: "/get-in-touch", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
+  techServices: { side: "tech", label: "Services", path: "/tech/services", spots: [["hero", "Under the page title"], ["end", "At the end of the page"]] },
   techHome: { side: "tech", label: "Home", path: "/tech", spots: [["hero", "Under the hero"], ["intro", "After the ticker"], ["who", "After Who we are"], ["talent", "After Campaigns"], ["run", "After What we run"], ["policy", "After House rules"], ["end", "At the end of the page"]] },
 } satisfies Record<string, Page>;
 export type BlockPage = keyof typeof BLOCK_PAGES;

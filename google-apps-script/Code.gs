@@ -824,9 +824,18 @@ var ACTIONS = {
   },
 
   /** A talent application's screenshot, for signed-in admins only (the site checks the session). */
+  /**
+   * A creator's photo or file, for signed-in admins only (the site checks the session and the side).
+   * side 'tech': only from Talent Applications/ModeSociety Tech; otherwise only from Talent
+   * Applications outside that folder, so an admin of one business can't open the other's files.
+   */
   getEnquiryFile: function (p) {
     var file = DriveApp.getFileById(p.fileId);
-    if (!isInside_(file, folder_('talent').getId())) throw new Error('not found');
+    var techFolder = folder_('talent').getFoldersByName('ModeSociety Tech');
+    var techId = techFolder.hasNext() ? techFolder.next().getId() : '';
+    var inTech = Boolean(techId) && isInside_(file, techId);
+    var ok = p.side === 'tech' ? inTech : isInside_(file, folder_('talent').getId()) && !inTech;
+    if (!ok) throw new Error('not found');
     var blob = file.getBlob();
     return { mimeType: blob.getContentType(), name: file.getName(), data: Utilities.base64Encode(blob.getBytes()) };
   },

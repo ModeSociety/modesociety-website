@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import type { Side } from "@/lib/side";
 
-const fileUrl = (id: string) => `/api/admin/enquiries/file/${id}`;
+/** The lead's business: its photos are only served to admins of that business. */
+const SideCtx = createContext<Side>("talent");
+/** A lead file's address (thumb: the small kept copy). */
+function useFileUrl() {
+  const side = useContext(SideCtx);
+  return useCallback((id: string, thumb = false) => `/api/admin/enquiries/file/${id}?side=${side}${thumb ? "&size=thumb" : ""}`, [side]);
+}
 const ZOOM = 2.5;
 const LENS = 300; // the zoom window, in px
 
@@ -21,7 +28,7 @@ type Hover = { id: string; x: number; y: number; px: number; py: number; w: numb
  * beside the cursor shows a zoomed view of the part under it (from the full file, loaded on first
  * hover). A click opens the image large inside the panel.
  */
-export default function LeadImages({ ids, label }: { ids: string[]; label: string }) {
+export default function LeadImages({ ids, label, side = "talent" }: { ids: string[]; label: string; side?: Side }) {
   const [hover, setHover] = useState<Hover | null>(null);
   const [shown, setShown] = useState<number | null>(null);
   const [canHover, setCanHover] = useState(false);
@@ -31,7 +38,7 @@ export default function LeadImages({ ids, label }: { ids: string[]; label: strin
   }, []);
 
   return (
-    <>
+    <SideCtx.Provider value={side}>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
         {ids.map((id, i) => (
           <Thumb
@@ -49,7 +56,7 @@ export default function LeadImages({ ids, label }: { ids: string[]; label: strin
       </div>
       {hover && <Lens hover={hover} />}
       {shown !== null && <Viewer ids={ids} index={shown} label={label} onMove={setShown} onClose={() => setShown(null)} />}
-    </>
+    </SideCtx.Provider>
   );
 }
 
@@ -66,6 +73,7 @@ function Thumb({
   onHover?: (h: Omit<Hover, "id"> | null) => void;
   onOpen: () => void;
 }) {
+  const fileUrl = useFileUrl();
   const [broken, setBroken] = useState(false);
   const src = fileUrl(id);
   if (broken)
@@ -96,7 +104,7 @@ function Thumb({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`${src}?size=thumb`}
+        src={fileUrl(id, true)}
         alt={`${label} ${n}`}
         loading="lazy"
         decoding="async"
@@ -113,6 +121,7 @@ function Thumb({
  * image's visible part the same way.
  */
 function Lens({ hover }: { hover: Hover }) {
+  const fileUrl = useFileUrl();
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const loaded = useRef("");
   useEffect(() => {
@@ -122,7 +131,7 @@ function Lens({ hover }: { hover: Hover }) {
     const img = new Image();
     img.onload = () => loaded.current === hover.id && setNatural({ w: img.naturalWidth, h: img.naturalHeight });
     img.src = fileUrl(hover.id);
-  }, [hover.id]);
+  }, [hover.id, fileUrl]);
 
   const { left, top } = lensBox(hover.x, hover.y);
   let style: React.CSSProperties = {};
@@ -170,6 +179,7 @@ function Viewer({
   onMove: (i: number) => void;
   onClose: () => void;
 }) {
+  const fileUrl = useFileUrl();
   const id = ids[index];
   const go = (d: number) => {
     const next = index + d;
@@ -192,7 +202,7 @@ function Viewer({
   // preload the neighbours so moving is instant
   useEffect(() => {
     for (const n of [index - 1, index + 1]) if (ids[n]) new Image().src = fileUrl(ids[n]);
-  }, [ids, index]);
+  }, [ids, index, fileUrl]);
   const [failed, setFailed] = useState("");
   const close = useRef<HTMLButtonElement>(null);
   // the latest onClose, so the set-up below runs once per opening (not on every render)

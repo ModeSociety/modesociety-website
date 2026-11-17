@@ -214,7 +214,9 @@ const actions = {
   },
   getEnquiryFile: (db, p) => {
     const meta = db.files[p.fileId];
-    if (!meta || meta.folder !== "talent") throw new Error("not found");
+    // as Code.gs: Tech files only for side tech, Mode Society's only otherwise
+    const want = p.side === "tech" ? "talent-tech" : "talent";
+    if (!meta || meta.folder !== want) throw new Error("not found");
     return { mimeType: meta.mimeType, name: p.fileId, data: readFileSync(join(FILES, p.fileId)).toString("base64") };
   },
   submitTechBrand: (db, p) => {
@@ -227,7 +229,7 @@ const actions = {
     const reference = ref(tech ? "TC" : "T");
     const link = (id) => (id ? `https://drive.google.com/file/d/${id}/view` : "");
     const f = p.files || {};
-    for (const id of [...(f.photos || []), f.thumb, f.mediaKit].filter(Boolean)) if (db.files[id]) db.files[id].folder = "talent";
+    for (const id of [...(f.photos || []), f.thumb, f.mediaKit].filter(Boolean)) if (db.files[id]) db.files[id].folder = tech ? "talent-tech" : "talent";
     const columns = [["Submitted At", new Date().toISOString()], ["Status", "New"], ...(p.columns || []),
       ["Profile Photo", link((f.photos || [])[0])], ["Profile Photo (Round)", link(f.thumb)], ["Photos", (f.photos || []).map(link).join(String.fromCharCode(10))],
       ["Media Kit", link(f.mediaKit) || p.mediaKitLink || ""], ["Application Folder", "https://drive.google.com/drive/folders/mock-talent"], ["Reference", reference]];

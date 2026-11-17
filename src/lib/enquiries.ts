@@ -63,6 +63,25 @@ export type Enquiry = {
   creator?: CreatorSummary;
   /** a Tech brand lead's summary for the list (enquiries from 17 Nov 2026 on) */
   brand?: BrandSummary;
+  /** a creator lead's contract, once one has been sent (or the NSW sheet ticked) */
+  contract?: LeadContract;
+};
+
+/** A creator lead's contract columns (SP-32, SP-115, SP-116). */
+export type LeadContract = {
+  type: string;
+  docId: string;
+  link: string;
+  /** ISO date-time */
+  sentAt: string;
+  /** "sent", "voided", "completed" … */
+  state: string;
+  remindedAt: string;
+  /** "admin@x · 2026-11-18T…" when the NSW Information for Performers sheet was sent */
+  nswSheetSent: string;
+};
+const CONTRACT_COLS: Record<keyof LeadContract, string> = {
+  type: "Contract Type", docId: "Contract Doc ID", link: "Contract Link", sentAt: "Contract Sent At", state: "Contract State", remindedAt: "Contract Reminded At", nswSheetSent: "NSW Sheet Sent",
 };
 
 export type BrandSummary = {
@@ -124,7 +143,7 @@ export const placeOf = (c: Pick<CreatorSummary, "country" | "region">) => [flagO
 
 export type SheetTable = { headers: string[]; rows: string[][] };
 
-const SKIP = new Set(["Submitted At", "Status", "Reference", "Email", "Screenshots", "Application Folder"]);
+const SKIP = new Set(["Submitted At", "Status", "Reference", "Email", "Screenshots", "Application Folder", ...Object.values(CONTRACT_COLS)]);
 const TITLE: Record<EnquiryKind, [string, string]> = {
   // creators: the creator name when the new application gave one (see toEnquiries)
   talent: ["Full Name", "What They Do"],
@@ -174,7 +193,7 @@ export function toEnquiries(kind: EnquiryKind, table: SheetTable | undefined): E
     status: normalStatus(kind, col(row, "Status")),
     title: col(row, titleFrom) || "Untitled",
     subtitle: col(row, subCol) || col(row, "Contact Name") || (creator ? col(row, "Main Platform") : ""),
-    ...(creator ? { creator: summary(row) } : {}),
+    ...(creator ? { creator: summary(row), contract: Object.fromEntries(Object.entries(CONTRACT_COLS).map(([k, h]) => [k, col(row, h)])) as LeadContract } : {}),
     ...(brand
       ? {
           brand: {

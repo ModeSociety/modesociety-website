@@ -12,7 +12,7 @@ export const SITE_NAME = "Mode Society";
 
 export type PageKey =
   | "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact"
-  | "techHome" | "techServices";
+  | "privacy" | "techHome" | "techServices" | "techPrivacy";
 
 export const TECH_NAME = "ModeSociety Tech";
 /**
@@ -103,6 +103,21 @@ export const PAGES: Record<PageKey, { path: string; title: string; description: 
       "Talent and creator agency for streamers, content creators and esports athletes, running brand campaigns and events across gaming and tech worldwide.",
     og: "Not just gaming.",
     crumb: "ModeSociety Tech",
+  },
+  privacy: {
+    path: "/privacy",
+    title: "Privacy Policy | Mode Society",
+    description: "How Mode Society collects, uses, shares and protects personal information, and how to access or correct yours.",
+    og: "Privacy Policy",
+    crumb: "Privacy Policy",
+  },
+  techPrivacy: {
+    path: "/tech/privacy",
+    tech: true,
+    title: "Privacy Policy | ModeSociety Tech",
+    description: "How ModeSociety Tech collects, uses, shares and protects personal information, and how to access or correct yours.",
+    og: "Privacy Policy",
+    crumb: "Privacy Policy",
   },
   techServices: {
     path: "/tech/services",

@@ -11,7 +11,7 @@ const OLD_TECH: Record<string, string> = {
 };
 
 /** The Tech site's other pages: their address on modesocietytech.com → the page that serves it. */
-const TECH_PAGES: Record<string, string> = { "/services": "/tech/services" };
+const TECH_PAGES: Record<string, string> = { "/services": "/tech/services", "/privacy": "/tech/privacy" };
 
 /** Addresses without a file extension that the Tech page needs on its own domain (Next's dev tools too). */
 const TECH_OWN = ["/media", "/og", "/__nextjs_original-stack-frame", "/__nextjs_source-map", "/__nextjs_font"];

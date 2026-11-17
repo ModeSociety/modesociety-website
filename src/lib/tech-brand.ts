@@ -102,3 +102,20 @@ export function techBrandColumns(b: TechBrand): [string, string][] {
     ["Privacy Consent", b.consent ? "Yes" : "No"],
   ];
 }
+
+/** "Sam" from "Sam Lee". */
+export const firstOf = (name: string) => name.trim().split(/\s+/)[0] || "there";
+
+/** The brand's one auto-reply: the thank-you message, from Mode Society Tech. */
+export function techBrandAutoReply(b: TechBrand) {
+  const message = tbThanks(firstOf(b.contact));
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return {
+    subject: "We've received your enquiry: Mode Society Tech",
+    text: `${message}\n\nThe Mode Society Tech partnerships team`,
+    html:
+      `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;max-width:560px">` +
+      `<p>${esc(message)}</p><p>The Mode Society Tech partnerships team</p></div>`,
+    fromName: "Mode Society Tech",
+  };
+}

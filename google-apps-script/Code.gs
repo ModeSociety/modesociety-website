@@ -547,18 +547,25 @@ var ACTIONS = {
     return { reference: ref };
   },
 
+  /**
+   * A Tech brand enquiry (Asha's spec, 16 Nov 2026): the site sends the row as [column, value] pairs
+   * and the brand's one auto-reply. An uploaded brief or deck moves to ModeSociety Tech/Brand Briefs
+   * (so admins can download it from the lead) and is attached to the email.
+   */
   submitTechBrand: function (p) {
-    var f = p.fields || {};
     var ref = reference_('TB');
-    withLock_(function () {
-      sheet_('techBrands').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.categories || []).join(', '),
-        (f.formats || []).join(', '), f.about, f.budget, f.timeline, ref]);
-    });
-    notify_('techBrands', 'New Tech brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
-      ['Brand', f.brand], ['Website', f.website], ['Name', f.name], ['Email', f.email],
-      ['Category', (f.categories || []).join(', ')], ['Formats', (f.formats || []).join(', ')],
-      ['About the campaign', f.about], ['Budget', f.budget], ['Timeline', f.timeline],
-    ]);
+    var company = safeName_(p.company || 'Unnamed');
+    var files = [];
+    var brief = p.brief
+      ? claimFiles_([p.brief], childFolder_(childFolder_(folder_('talent'), 'ModeSociety Tech'), 'Brand Briefs'), company + ' — brief (' + ref + ')', files)
+      : [];
+    var cols = [['Submitted At', new Date()], ['Status', 'New']]
+      .concat(p.columns || [])
+      .concat([['Brief', brief[0] || p.briefLink || ''], ['Reference', ref]]);
+    withLock_(function () { appendByColumn_(sheet_('techBrands'), cols); });
+    notify_('techBrands', 'New Tech brand enquiry: ' + (p.company || 'Unnamed'), ref, p.email,
+      (p.columns || []).concat([['Brief', brief[0] || p.briefLink || '']]), files);
+    autoReply_(p.email, p.autoReply);
     return { reference: ref };
   },
 

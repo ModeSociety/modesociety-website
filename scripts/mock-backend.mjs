@@ -220,8 +220,12 @@ const actions = {
     return { mimeType: meta.mimeType, name: p.fileId, data: readFileSync(join(FILES, p.fileId)).toString("base64") };
   },
   submitTechBrand: (db, p) => {
+    // as Code.gs: the row by column name; an uploaded brief moves into ModeSociety Tech's folder
     const reference = ref("TB");
-    (db.techBrands ||= []).push({ at: new Date().toISOString(), reference, ...p.fields });
+    if (p.brief && db.files[p.brief]?.folder === "incoming") db.files[p.brief].folder = "talent-tech";
+    const brief = p.brief && db.files[p.brief] ? `https://drive.google.com/file/d/${p.brief}/view` : p.briefLink || "";
+    const columns = [["Submitted At", new Date().toISOString()], ["Status", "New"], ...(p.columns || []), ["Brief", brief], ["Reference", reference]];
+    (db.techBrands ||= []).push({ at: new Date().toISOString(), reference, columns, autoReply: p.autoReply });
     return { reference };
   },
   submitCreator: (db, p) => {

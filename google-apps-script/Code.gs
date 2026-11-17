@@ -1340,7 +1340,9 @@ function safeName_(s) {
 function extensionFor_(mime, filename) {
   var fromName = String(filename || '').match(/\.[a-z0-9]{2,5}$/i);
   if (fromName) return fromName[0].toLowerCase();
-  var map = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/svg+xml': '.svg', 'application/pdf': '.pdf' };
+  var map = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/svg+xml': '.svg', 'application/pdf': '.pdf',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx' };
   return map[mime] || '';
 }
 

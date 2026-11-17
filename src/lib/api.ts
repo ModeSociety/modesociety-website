@@ -25,9 +25,10 @@ export const MAX_UPLOAD_BYTES = 3_000_000; // after client-side compression; kee
 
 export type UploadBody = { filename: string; mimeType: string; data: string };
 
-export function validateUpload(body: Partial<UploadBody>, allowPdf = false): UploadBody {
+/** An image, or one of `documents` (the MIME types a form also takes, such as a PDF media kit or a brief). */
+export function validateUpload(body: Partial<UploadBody>, documents: readonly string[] = []): UploadBody {
   const { filename = "upload", mimeType = "", data = "" } = body;
-  const okType = /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(mimeType) || (allowPdf && mimeType === "application/pdf");
+  const okType = /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(mimeType) || documents.includes(mimeType);
   if (!okType) throw new HttpError(400, "Unsupported file type");
   if (!data || !/^[A-Za-z0-9+/=]+$/.test(data)) throw new HttpError(400, "Invalid file data");
   if ((data.length * 3) / 4 > MAX_UPLOAD_BYTES) throw new HttpError(413, "File too large");

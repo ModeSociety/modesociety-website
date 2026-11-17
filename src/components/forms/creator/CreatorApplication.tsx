@@ -38,26 +38,30 @@ export default function CreatorApplication({
   const [a, setA] = useState<Application>(blankApplication);
   const [i, setI] = useState(0);
   const [restored, setRestored] = useState(false);
+  // saving waits until the saved answers have been read back, so a blank form never overwrites them
+  const [loaded, setLoaded] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const top = useRef<HTMLDivElement>(null);
 
   // pick up where this browser left off
   useEffect(() => {
     const d = readDraft(side);
-    if (!d) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the saved draft is only known in the browser
+    setLoaded(true);
+    if (!d) return;
     setA(d.a);
     setI(d.step);
     setRestored(true);
   }, [side]);
   // save after every change (photos excluded)
   useEffect(() => {
+    if (!loaded) return;
     try {
       localStorage.setItem(draftKey(side), JSON.stringify({ a: { ...a, photos: [], profileThumb: "" }, step: i }));
     } catch {
       /* storage blocked: the form still works, it just isn't kept */
     }
-  }, [a, i, side]);
+  }, [a, i, side, loaded]);
 
   useEffect(() => {
     if (!panel.current || prefersReducedMotion()) return;

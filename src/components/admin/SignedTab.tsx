@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { flagOf, formatCount, placeOf } from "@/lib/enquiries";
 import { postJson } from "@/lib/upload";
-import { localDate, nextRenewal, optOutWindow, type Contract, type SignedCreator } from "@/lib/signed";
+import { CONTRACT_TYPES, localDate, nextRenewal, optOutWindow, type Contract, type SignedCreator } from "@/lib/signed";
 import type { Side } from "@/lib/side";
 import LeadImages from "./LeadImages";
 import { Channels, Linkified } from "./LeadsTab";
@@ -305,6 +305,7 @@ function Profile({ s, side, onSave }: { s: SignedCreator; side: Side; onSave: (p
             </div>
           )}
         </dl>
+        <ContractEdit contract={k} onSave={onSave} />
         <ModeEmail contract={k} side={side} onSave={onSave} />
         {k.contractLink ? (
           <a href={k.contractLink} target="_blank" rel="noreferrer" className="link-underline w-fit text-ink-2">
@@ -375,5 +376,72 @@ function ModeEmail({ contract: k, side, onSave }: { contract: Contract; side: Si
       )}
       {error && <p className="text-pin">{error}</p>}
     </div>
+  );
+}
+
+/**
+ * Corrects the contract type or the signed date: for a creator from before 16 Nov 2026 (whose
+ * application had no representation), or when they were marked Signed later than they signed.
+ * Opens by itself while the type is still missing.
+ */
+function ContractEdit({ contract: k, onSave }: { contract: Contract; onSave: (patch: SignedPatch) => Promise<void> }) {
+  const [editing, setEditing] = useState(!k.type);
+  const [type, setType] = useState(k.type);
+  const [signed, setSigned] = useState(localDate(k.signedAt));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  if (!editing) {
+    return (
+      <button type="button" className="w-fit text-ink-2 underline underline-offset-4" onClick={() => setEditing(true)}>
+        Correct the contract type or signed date
+      </button>
+    );
+  }
+  return (
+    <form
+      className="grid gap-2"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const patch: SignedPatch = {};
+        if (type !== k.type) patch.type = type;
+        if (signed !== localDate(k.signedAt)) patch.signedAt = signed;
+        if (!Object.keys(patch).length) return setEditing(false);
+        setBusy(true);
+        setError("");
+        try {
+          await onSave(patch);
+          setEditing(false);
+        } catch (err) {
+          setError((err as Error).message);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <label className="grid gap-1">
+        <span className="eyebrow">Contract</span>
+        <select value={type} onChange={(e) => setType(e.target.value)} className="border border-line bg-white px-3 py-2" required>
+          <option value="">Choose…</option>
+          {CONTRACT_TYPES.map((t) => (
+            <option key={t}>{t}</option>
+          ))}
+        </select>
+      </label>
+      <label className="grid gap-1">
+        <span className="eyebrow">Signed on</span>
+        <input type="date" value={signed} max={localDate(new Date())} onChange={(e) => setSigned(e.target.value)} className="border border-line bg-white px-3 py-2" required />
+      </label>
+      <div className="flex gap-2">
+        <button className="chip" disabled={busy}>
+          {busy ? "Saving…" : "Save"}
+        </button>
+        {k.type && (
+          <button type="button" className="text-ink-2 underline underline-offset-4" onClick={() => setEditing(false)}>
+            Cancel
+          </button>
+        )}
+      </div>
+      {error && <p className="text-pin">{error}</p>}
+    </form>
   );
 }

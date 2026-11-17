@@ -321,6 +321,8 @@ ModeSociety Tech is its own business, so it gets its own Google Business Profile
 
 ## Visit tracking & privacy
 
+**Privacy policies** (18 Nov 2026): Mode Society's at `/privacy`, ModeSociety Tech's at `/tech/privacy` (modesocietytech.com/privacy once split), linked from both footers, the creator application's terms, the Tech brand form's consent tick and the booking form. The wording is in `src/lib/privacy.ts` (one text, each business's own name, contact address and site) and describes what the site and backend actually do: keep it in step when that changes. Asha checks the wording before it goes live.
+
 The site counts visits itself; there's no Google Analytics, cookie banner or third-party tracker. Each page view sends the page, where the visit came from (the referring site's domain and any `utm_` campaign tags) and two random ids kept in the visitor's own browser: one per browser, to count unique visitors, and one per tab session, to count visits. No names, emails, IP addresses or cookies are stored. The country comes from Vercel's edge network. The tracker ignores bots and browsers with *Do Not Track* switched on, and skips anyone signed in to the admin panel, so the team's own browsing isn't counted. Counting starts from the day this version goes live.
 
 ## Troubleshooting

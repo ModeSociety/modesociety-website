@@ -2,6 +2,7 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createRemoteJWKSet, jwtVerify, SignJWT } from "jose";
 import { callBackend } from "./backend";
+import type { Side } from "./side";
 
 export const ADMIN_COOKIE = "ms_admin";
 const COOKIE = ADMIN_COOKIE;
@@ -35,7 +36,8 @@ export async function verifyGoogleCredential(credential: string) {
 }
 
 const ADMINS_TAG = "admins";
-type AdminsData = { owner?: string; admins: string[] };
+/** sides: an admin limited to one business (Admins tab, Side column); not listed = both */
+type AdminsData = { owner?: string; admins: string[]; sides?: Record<string, string> };
 
 /**
  * The Admins tab, kept by the website (shared by every server instance) so a signed-in admin's
@@ -68,6 +70,11 @@ export async function listAdmins(fresh = false) {
   return [...new Set([...(owner ? [owner] : []), ...(data?.admins || [])])];
 }
 
+/** Admins limited to one business: { email: "talent" | "tech" } (everyone else sees both). */
+export async function adminSides(): Promise<Record<string, string>> {
+  return (await readAdmins(false))?.sides || {};
+}
+
 /** The backend's OWNER_EMAIL script property (permanent, can't be removed from the panel). */
 export async function backendOwnerEmail() {
   return (await readAdmins(false))?.owner || "";
@@ -86,6 +93,19 @@ export async function isAllowedAdmin(email: string, admins?: string[]) {
 }
 
 export type AdminSession = { email: string; name: string; picture: string };
+/** A signed-in admin, with the businesses they may see: both, or Talent or Tech only. */
+export type AdminUser = AdminSession & { sides: Side[] };
+
+const BOTH: Side[] = ["talent", "tech"];
+
+/** The sides an admin may see. The site owner and the Drive owner always have both. */
+async function sidesOf(email: string): Promise<Side[]> {
+  if (email === ownerEmail()) return BOTH;
+  const data = await readAdmins(false);
+  if (email === data?.owner) return BOTH;
+  const side = data?.sides?.[email];
+  return side === "talent" || side === "tech" ? [side] : BOTH;
+}
 
 export async function createSession(user: AdminSession) {
   const token = await new SignJWT({ name: user.name, picture: user.picture })
@@ -108,23 +128,37 @@ export async function clearSession() {
 }
 
 /** Returns the signed-in admin, or null. Re-checks the allowlist so removed admins lose access immediately. */
-export async function getAdminSession(): Promise<AdminSession | null> {
+export async function getAdminSession(): Promise<AdminUser | null> {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, sessionKey());
     const email = String(payload.sub || "");
     if (!email || !(await isAllowedAdmin(email))) return null;
-    return { email, name: String(payload.name || ""), picture: String(payload.picture || "") };
+    return { email, name: String(payload.name || ""), picture: String(payload.picture || ""), sides: await sidesOf(email) };
   } catch {
     return null;
   }
 }
 
-export async function requireAdmin() {
+/**
+ * The signed-in admin, or 401. With a side, also 403 unless they may see that business; with "both",
+ * only an admin who sees both (managing who can sign in, so nobody widens their own access).
+ */
+export async function requireAdmin(need?: Side | "both") {
   const session = await getAdminSession();
   if (!session) throw new HttpError(401, "Not signed in");
+  if (need) requireSide(session, need);
   return session;
+}
+
+const SIDE_NAME: Record<Side, string> = { talent: "Mode Society", tech: "ModeSociety Tech" };
+
+/** 403 unless this admin may see that side ("both": both sides). */
+export function requireSide(session: AdminUser, need: Side | "both") {
+  if (need === "both" ? session.sides.length < 2 : !session.sides.includes(need)) {
+    throw new HttpError(403, need === "both" ? "Only an admin of both businesses can do that" : `Your account can't open ${SIDE_NAME[need]}`);
+  }
 }
 
 export class HttpError extends Error {

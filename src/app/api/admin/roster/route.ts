@@ -13,7 +13,7 @@ function refresh(req: Request) {
 /** The whole roster, including hidden members, with a photo URL for the panel. */
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireAdmin("tech");
     const data = await callBackend<{ items: RosterMember[] }>("listRoster");
     return Response.json({ ok: true, items: data.items.map((m) => ({ ...m, photoUrl: m.photo ? mediaUrl(m.photo) : "" })) });
   } catch (err) {
@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    const session = await requireAdmin();
+    const session = await requireAdmin("tech");
     const { item: raw } = await req.json();
     const platforms: RosterMember["platforms"] = {};
     for (const p of PLATFORMS) {
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     assertSameOrigin(req);
-    await requireAdmin();
+    await requireAdmin("tech");
     const { ids } = await req.json();
     const list = (Array.isArray(ids) ? ids : []).filter((x): x is string => typeof x === "string" && ID_RE.test(x)).slice(0, 300);
     await callBackend("setRosterOrder", { ids: list });
@@ -76,7 +76,7 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     assertSameOrigin(req);
-    await requireAdmin();
+    await requireAdmin("tech");
     const { id } = await req.json();
     if (typeof id !== "string" || !ID_RE.test(id)) throw new HttpError(400, "Unknown roster member");
     await callBackend("deleteRosterMember", { id });

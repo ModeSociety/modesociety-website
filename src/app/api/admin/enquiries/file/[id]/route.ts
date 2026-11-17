@@ -34,7 +34,7 @@ const thumbnail = unstable_cache(
  */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    await requireAdmin("talent");
     const { id } = await params;
     if (!/^[\w-]{10,}$/.test(id)) return new Response("Not found", { status: 404 });
     // a Drive file's contents never change, so the browser may keep it (private: never shared caches)

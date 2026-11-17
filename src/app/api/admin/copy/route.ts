@@ -1,8 +1,8 @@
-import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
+import { errorResponse, HttpError, requireAdmin, requireSide } from "@/lib/auth";
 import { assertSameOrigin } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
 import { refreshSite } from "@/lib/refresh";
-import { isSectionId, mergeSection } from "@/lib/copy";
+import { isSectionId, mergeSection, SECTIONS } from "@/lib/copy";
 
 /** Saves one section's wording. Only the section's own fields are kept, trimmed to a sane length. */
 export async function POST(req: Request) {
@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     const session = await requireAdmin();
     const { id, value } = await req.json();
     if (!isSectionId(id)) throw new HttpError(400, "Unknown section");
+    requireSide(session, SECTIONS[id].side);
     const clamp = (v: unknown): unknown =>
       typeof v === "string" ? v.replace(/\r\n?/g, "\n").slice(0, 6000) : Array.isArray(v) ? v.map(clamp) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, clamp(x)])) : v;
     const clean = mergeSection(id, clamp(value));
@@ -26,9 +27,10 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     assertSameOrigin(req);
-    await requireAdmin();
+    const session = await requireAdmin();
     const { id } = await req.json();
     if (!isSectionId(id)) throw new HttpError(400, "Unknown section");
+    requireSide(session, SECTIONS[id].side);
     await callBackend("resetContent", { key: id });
     refreshSite(req);
     return Response.json({ ok: true });

@@ -1,4 +1,4 @@
-import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
+import { errorResponse, HttpError, requireAdmin, requireSide } from "@/lib/auth";
 import { assertSameOrigin, clean } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
 import { refreshSite } from "@/lib/refresh";
@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     const { slot, items } = await req.json();
     const def = SLOTS.find((s) => s.id === slot);
     if (!def) throw new HttpError(400, "Unknown image slot");
+    requireSide(session, def.side ?? "talent");
     const list = (Array.isArray(items) ? items : [])
       .filter((i) => typeof i?.fileId === "string" && /^[\w-]{10,}$/.test(i.fileId))
       .map((i) => ({ fileId: i.fileId as string, alt: clean(i.alt, 200) }));

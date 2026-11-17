@@ -11,7 +11,7 @@ type Row = { id: string; slug: string; photos: string[] };
 /** Every feature, including hidden ones, with photo URLs for the panel. */
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireAdmin("talent");
     const data = await callBackend<{ items: Row[] }>("listPress");
     return Response.json({ ok: true, items: data.items.map((a) => ({ ...a, photos: a.photos.map((fileId) => ({ fileId, src: mediaUrl(fileId) })) })) });
   } catch (err) {
@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    const session = await requireAdmin();
+    const session = await requireAdmin("talent");
     const { item: raw } = await req.json();
     const id = ID_RE.test(String(raw?.id || "")) ? String(raw.id) : "";
     const title = clean(raw?.title, 200);
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     assertSameOrigin(req);
-    await requireAdmin();
+    await requireAdmin("talent");
     const { ids } = await req.json();
     const list = (Array.isArray(ids) ? ids : []).filter((x): x is string => typeof x === "string" && ID_RE.test(x)).slice(0, 300);
     await callBackend("setPressOrder", { ids: list });
@@ -77,7 +77,7 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     assertSameOrigin(req);
-    await requireAdmin();
+    await requireAdmin("talent");
     const { id } = await req.json();
     if (typeof id !== "string" || !ID_RE.test(id)) throw new HttpError(400, "Unknown feature");
     await callBackend("deletePressItem", { id });

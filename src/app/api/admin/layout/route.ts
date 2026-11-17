@@ -1,4 +1,4 @@
-import { errorResponse, HttpError, requireAdmin } from "@/lib/auth";
+import { errorResponse, HttpError, requireAdmin, requireSide } from "@/lib/auth";
 import { assertSameOrigin } from "@/lib/api";
 import { callBackend } from "@/lib/backend";
 import { refreshSite } from "@/lib/refresh";
@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     if (!isPageId(page)) throw new HttpError(400, "Unknown page");
     if (!Array.isArray(items) || items.length > 60) throw new HttpError(400, "A page holds up to 60 blocks");
     const side = PAGES[page].side;
+    requireSide(session, side);
     const seen = new Set<string>();
     const clean = items
       .map((b) => cleanBlock(b, side))
@@ -47,9 +48,10 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     assertSameOrigin(req);
-    await requireAdmin();
+    const session = await requireAdmin();
     const { page, live } = await req.json();
     if (!isPageId(page)) throw new HttpError(400, "Unknown page");
+    requireSide(session, PAGES[page].side);
     await callBackend("resetContent", { key: `layoutDraft.${page}` });
     await callBackend("resetContent", { key: `chromeDraft.${PAGES[page].side}` });
     if (live) {

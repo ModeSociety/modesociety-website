@@ -1,4 +1,5 @@
 import {
+  adminSides,
   backendOwnerEmail,
   errorResponse,
   getAdminSession,
@@ -28,7 +29,7 @@ export async function GET() {
     if (!session) return Response.json({ ok: true, session: null });
     let backendError = "";
     // side by side, each from the website's kept copy
-    const [info, admins, backendOwner] = await Promise.all([
+    const [info, admins, backendOwner, sides] = await Promise.all([
       backendConfigured()
         ? getInfo().catch((err: Error) => {
             backendError = err.message;
@@ -37,6 +38,7 @@ export async function GET() {
         : null,
       listAdmins(),
       backendOwnerEmail(),
+      adminSides(),
     ]);
     return Response.json(
       {
@@ -44,6 +46,8 @@ export async function GET() {
         session,
         owner: ownerEmail(),
         admins,
+        // which admins are limited to one business (Access shows and changes it)
+        adminSides: sides,
         backendOwner,
         backendConfigured: backendConfigured(),
         backendError,

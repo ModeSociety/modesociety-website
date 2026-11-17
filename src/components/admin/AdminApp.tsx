@@ -25,8 +25,11 @@ import {
 } from "@/lib/slots";
 
 type Me = {
-  session: { email: string; name: string; picture: string } | null;
+  /** sides: what this admin may open (both, or Mode Society or Tech only) */
+  session: { email: string; name: string; picture: string; sides: Side[] } | null;
   owner?: string;
+  /** admins limited to one business: { email: "talent" | "tech" } */
+  adminSides?: Record<string, string>;
   backendOwner?: string;
   admins?: string[];
   backendConfigured?: boolean;
@@ -191,12 +194,15 @@ function MenuButton({ open, onClick }: { open: boolean; onClick: () => void }) {
   );
 }
 
-/** Talent · Tech: the panel shows one business at a time, never both (the choice is remembered per browser). */
-function SidePicker({ side, onChange }: { side: Side; onChange: (s: Side) => void }) {
-  const opts: { id: Side; label: string }[] = [
+/**
+ * Talent · Tech: the panel shows one business at a time, never both (the choice is remembered per
+ * browser). An admin limited to one business only gets that one.
+ */
+function SidePicker({ side, allowed, onChange }: { side: Side; allowed: Side[]; onChange: (s: Side) => void }) {
+  const opts = ([
     { id: "talent", label: "Talent" },
     { id: "tech", label: "Tech" },
-  ];
+  ] as { id: Side; label: string }[]).filter((o) => allowed.includes(o.id));
   return (
     <div className="flex rounded-full border border-line p-1 font-mono text-[11px] uppercase tracking-[0.06em]" role="group" aria-label="Show which side of Mode Society">
       {opts.map((o) => (
@@ -217,7 +223,11 @@ function SidePicker({ side, onChange }: { side: Side; onChange: (s: Side) => voi
 
 function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise<void>; onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>("leads");
-  const [side, setSideState] = useState<Side>("talent");
+  const allowed: Side[] = me.session?.sides?.length ? me.session.sides : ["talent", "tech"];
+  const [chosen, setSideState] = useState<Side>("talent");
+  // an admin limited to one business always sees that one
+  const side: Side = allowed.includes(chosen) ? chosen : allowed[0];
+  const full = allowed.length > 1;
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SIDE_KEY);
@@ -315,7 +325,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
             <MenuButton open={menuOpen} onClick={() => toggleMenu()} />
             <SideLogo side={side} />
             <span className="eyebrow hidden lg:inline">Admin</span>
-            <SidePicker side={side} onChange={setSide} />
+            <SidePicker side={side} allowed={allowed} onChange={setSide} />
           </div>
           <div className="flex items-center gap-3 text-sm">
             <button
@@ -345,7 +355,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           {(["Day to day", "Website", "Team"] as Group[]).map((g) => (
             <div key={g}>
               <p className="px-3 pb-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted/70">{g}</p>
-              {TABS.filter((t) => t.group === g && t.sides.includes(side)).map((t) => (
+              {TABS.filter((t) => t.group === g && t.sides.includes(side) && (t.id !== "access" || full)).map((t) => (
                 <button
                   key={t.id}
                   onClick={() => open(t.id)}
@@ -431,7 +441,7 @@ function Dashboard({ me, reloadMe, onLogout }: { me: Me; reloadMe: () => Promise
           <AnimationsTab key={JSON.stringify(content?.settings ?? null)} settings={content?.settings} disabled={!content} reload={loadContent} notify={notify} />
         )}
         {tab === "emails" && <EmailsTab side={side} disabled={!me.backendConfigured} notify={notify} />}
-        {tab === "access" && <AccessTab me={me} reload={reloadMe} notify={notify} />}
+        {tab === "access" && full && <AccessTab me={me} reload={reloadMe} notify={notify} />}
       </div>
       </div>
 
@@ -843,19 +853,28 @@ function OptionGroup<T extends string>({
 // Access
 // ---------------------------------------------------------------------------
 
+const SIDE_CHOICES: { id: "" | Side; label: string }[] = [
+  { id: "", label: "Both businesses" },
+  { id: "talent", label: "Mode Society only" },
+  { id: "tech", label: "ModeSociety Tech only" },
+];
+
 function AccessTab({ me, reload, notify }: { me: Me; reload: () => Promise<void>; notify: (m: string) => void }) {
   const [email, setEmail] = useState("");
+  const [newSide, setNewSide] = useState<"" | Side>("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const change = async (method: "POST" | "DELETE", target: string) => {
+  const change = async (method: "POST" | "DELETE" | "PUT", target: string, side: "" | Side = "") => {
     setBusy(true);
     setError("");
     try {
-      await postJson("/api/admin/admins", { email: target }, method);
+      await postJson("/api/admin/admins", { email: target, side }, method);
       await reload();
-      notify(method === "POST" ? `${target} can now sign in` : `${target} removed`);
+      const which = SIDE_CHOICES.find((c) => c.id === side)!.label;
+      notify(method === "POST" ? `${target} can now sign in (${which})` : method === "PUT" ? `${target}: ${which}` : `${target} removed`);
       setEmail("");
+      setNewSide("");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -865,28 +884,45 @@ function AccessTab({ me, reload, notify }: { me: Me; reload: () => Promise<void>
 
   const permanent = [me.owner, me.backendOwner].filter((e, i, all): e is string => Boolean(e) && all.indexOf(e) === i);
   const others = (me.admins || []).filter((a) => !permanent.includes(a));
+  const sideOf = (a: string) => (me.adminSides?.[a] === "talent" || me.adminSides?.[a] === "tech" ? (me.adminSides[a] as Side) : "");
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <p className="text-ink-2">
-        Only the Google accounts listed here can sign in to this admin panel. The list is stored in the <em>Admins</em> tab of the Google Sheet.
+        Only the Google accounts listed here can sign in to this admin panel. Each one sees both businesses, or only Mode Society or only
+        ModeSociety Tech. The list is stored in the <em>Admins</em> tab of the Google Sheet.
       </p>
       <ul className="mt-8 divide-y divide-line border-y border-line">
         {permanent.map((p) => (
-          <li key={p} className="flex items-center justify-between py-4">
-            <span>{p}</span>
-            <span className="eyebrow">{p === me.owner ? "Site owner" : "Drive owner"} · permanent</span>
+          <li key={p} className="flex flex-wrap items-center justify-between gap-3 py-4">
+            <span className="break-all">{p}</span>
+            <span className="eyebrow">{p === me.owner ? "Site owner" : "Drive owner"} · both · permanent</span>
           </li>
         ))}
         {others.map((a) => (
-          <li key={a} className="flex items-center justify-between py-4">
-            <span>{a}</span>
+          <li key={a} className="flex flex-wrap items-center justify-between gap-3 py-4">
+            <span className="break-all">{a}</span>
             {a === me.session?.email ? (
-              <span className="eyebrow">You</span>
+              <span className="eyebrow">You · {SIDE_CHOICES.find((c) => c.id === sideOf(a))!.label.toLowerCase()}</span>
             ) : (
-              <button disabled={busy} onClick={() => change("DELETE", a)} className="text-sm text-pin underline underline-offset-4">
-                Remove
-              </button>
+              <span className="flex items-center gap-4">
+                <select
+                  aria-label={`What ${a} can open`}
+                  value={sideOf(a)}
+                  disabled={busy}
+                  onChange={(e) => change("PUT", a, e.target.value as "" | Side)}
+                  className="border border-line bg-white px-3 py-2 text-sm"
+                >
+                  {SIDE_CHOICES.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <button disabled={busy} onClick={() => change("DELETE", a)} className="text-sm text-pin underline underline-offset-4">
+                  Remove
+                </button>
+              </span>
             )}
           </li>
         ))}
@@ -895,12 +931,22 @@ function AccessTab({ me, reload, notify }: { me: Me; reload: () => Promise<void>
         className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end"
         onSubmit={(e) => {
           e.preventDefault();
-          if (email) change("POST", email.trim().toLowerCase());
+          if (email) change("POST", email.trim().toLowerCase(), newSide);
         }}
       >
         <div className="field flex-1">
-          <label>Add a Google account</label>
-          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@gmail.com" />
+          <label htmlFor="new-admin">Add a Google account</label>
+          <input id="new-admin" className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@gmail.com" />
+        </div>
+        <div className="field">
+          <label htmlFor="new-admin-side">Can open</label>
+          <select id="new-admin-side" className="input" value={newSide} onChange={(e) => setNewSide(e.target.value as "" | Side)}>
+            {SIDE_CHOICES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
         </div>
         <button className="btn" disabled={busy || !me.backendConfigured}>Grant access</button>
       </form>

@@ -258,3 +258,19 @@ export function readEligibility(settings: Record<string, string>): Record<Side, 
   };
   return { talent: one("talent"), tech: one("tech") };
 }
+
+export const ADDRESS_TYPES: AddressType[] = ["Street address", "PO Box or parcel locker"];
+
+/** Step 1c: postal address for PR packages. State and country come from step 1b. */
+export function addressProblems(a: Application): string[] {
+  const out: string[] = [];
+  if (!a.addressType) out.push("Choose a street address or a PO Box");
+  if (!a.address1.trim()) out.push("Add address line 1");
+  if (!a.suburb.trim()) out.push("Add your suburb or city");
+  const pc = a.postcode.trim();
+  const country = a.based === "Australia" ? "Australia" : a.country;
+  if (!pc) out.push("Add your postcode");
+  else if (country === "Australia" && !/^\d{4}$/.test(pc)) out.push("An Australian postcode has 4 digits");
+  else if (country === "United States" && !/^\d{5}(-\d{4})?$/.test(pc)) out.push("A US ZIP code has 5 digits");
+  return out;
+}

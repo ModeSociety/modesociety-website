@@ -47,10 +47,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       if (thumb) return new Response(Buffer.from(thumb, "base64"), { headers: { "Content-Type": "image/webp", "Cache-Control": keep } });
     }
     const file = await fetchFile(id, side);
+    // ?download=1 saves it (a Tech brand's brief); otherwise it opens in the browser
+    const disposition = new URL(req.url).searchParams.get("download") === "1" ? "attachment" : "inline";
     return new Response(Buffer.from(file.data, "base64"), {
       headers: {
         "Content-Type": file.mimeType,
-        "Content-Disposition": `inline; filename="${encodeURIComponent(file.name || id)}"`,
+        "Content-Disposition": `${disposition}; filename="${encodeURIComponent(file.name || id)}"`,
         "Cache-Control": keep,
       },
     });

@@ -152,6 +152,38 @@ function CreatorRow({ e, side, isOpen, onToggle }: { e: Enquiry; side: "talent" 
   );
 }
 
+/** "15 Dec 2026" from "2026-12-15". */
+const day = (ymd: string) => {
+  const d = new Date(`${ymd}T12:00:00Z`);
+  return Number.isNaN(d.getTime()) ? ymd : d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+};
+
+/** A Tech brand lead in Asha's column order: company, contact, industry, budget, start date, platforms, date received, status. */
+function BrandRow({ e, isOpen, onToggle }: { e: Enquiry; isOpen: boolean; onToggle: () => void }) {
+  const b = e.brand!;
+  return (
+    <button
+      onClick={onToggle}
+      aria-expanded={isOpen}
+      className={`grid w-full grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-4 py-3.5 text-left transition-colors hover:bg-paper-2/50 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.1fr)_120px_100px_minmax(0,1fr)_64px_auto] md:px-6 ${
+        e.status === "New" ? "font-medium" : ""
+      }`}
+    >
+      <span className="min-w-0">
+        <span className="block truncate text-[15px] text-ink">{e.title}</span>
+        <span className="block truncate text-[12px] text-muted lg:hidden">{[b.contact, b.budget, b.start && day(b.start), when(e.submittedAt)].filter(Boolean).join(" · ")}</span>
+      </span>
+      <span className="hidden truncate text-[14px] text-ink-2 lg:block">{b.contact}</span>
+      <span className="hidden truncate text-[13px] text-ink-2 lg:block">{b.industry}</span>
+      <span className="hidden truncate text-[13px] text-ink lg:block">{b.budget}</span>
+      <span className="hidden font-mono text-[12px] text-ink-2 lg:block">{b.start && day(b.start)}</span>
+      <span className="hidden truncate text-[13px] text-ink-2 lg:block" title={b.platforms}>{b.platforms}</span>
+      <span className="hidden font-mono text-[12px] text-muted lg:block">{when(e.submittedAt)}</span>
+      <StatusPill status={e.status} />
+    </button>
+  );
+}
+
 function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: string) => void; onDelete?: () => void; saving: boolean }) {
   const subject = encodeURIComponent(`Mode Society — ${e.kind === "talent" ? "your application" : "your enquiry"} (${e.reference})`);
   return (
@@ -191,6 +223,11 @@ function Detail({ e, onStatus, onDelete, saving }: { e: Enquiry; onStatus: (s: s
         {e.email && (
           <a href={`mailto:${e.email}?subject=${subject}`} className="btn !justify-start">
             Email {e.kind === "talent" ? e.title.split(" ")[0] : e.subtitle.split(" ")[0] || "them"} <span className="arrow">→</span>
+          </a>
+        )}
+        {e.brand?.brief && (
+          <a href={`/api/admin/enquiries/file/${e.brand.brief}?side=tech&download=1`} className="link-underline w-fit text-ink-2">
+            Download the brief ↓
           </a>
         )}
         {e.folderUrl && (
@@ -448,6 +485,8 @@ export default function LeadsTab({
               <li key={e.reference || e.submittedAt} className="border-b border-line last:border-b-0">
                 {e.creator ? (
                   <CreatorRow e={e} side={sideOfKind} isOpen={isOpen} onToggle={() => setOpen(isOpen ? "" : e.reference)} />
+                ) : e.brand ? (
+                  <BrandRow e={e} isOpen={isOpen} onToggle={() => setOpen(isOpen ? "" : e.reference)} />
                 ) : (
                 <button
                   onClick={() => setOpen(isOpen ? "" : e.reference)}

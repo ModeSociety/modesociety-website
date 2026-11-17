@@ -52,6 +52,19 @@ export type Enquiry = {
   folderUrl: string;
   /** a creator lead's summary for the list (the new application's columns, or the old form's) */
   creator?: CreatorSummary;
+  /** a Tech brand lead's summary for the list (enquiries from 17 Nov 2026 on) */
+  brand?: BrandSummary;
+};
+
+export type BrandSummary = {
+  contact: string;
+  industry: string;
+  budget: string;
+  /** YYYY-MM-DD */
+  start: string;
+  platforms: string;
+  /** Drive file id of an uploaded brief or deck ("" when none, or when it was shared as a link) */
+  brief: string;
 };
 
 export type CreatorSummary = {
@@ -141,15 +154,28 @@ export function toEnquiries(kind: EnquiryKind, table: SheetTable | undefined): E
   return rows.map((row) => {
     // a creator is listed by their creator name when the new application gave one; the column shown as
     // the title isn't repeated in the details (so the legal name stays there)
-    const titleFrom = creator && col(row, "Creator Name") ? "Creator Name" : titleCol;
+    const titleFrom = creator && col(row, "Creator Name") ? "Creator Name" : col(row, "Company") ? "Company" : titleCol;
+    const brand = kind === "techBrands" && col(row, "Company") !== "";
     return {
     kind,
     reference: col(row, "Reference"),
     submittedAt: col(row, "Submitted At"),
     status: normalStatus(kind, col(row, "Status")),
     title: col(row, titleFrom) || "Untitled",
-    subtitle: col(row, subCol) || (creator ? col(row, "Main Platform") : ""),
+    subtitle: col(row, subCol) || col(row, "Contact Name") || (creator ? col(row, "Main Platform") : ""),
     ...(creator ? { creator: summary(row) } : {}),
+    ...(brand
+      ? {
+          brand: {
+            contact: col(row, "Contact Name"),
+            industry: col(row, "Industry"),
+            budget: col(row, "Budget"),
+            start: col(row, "Start Date"),
+            platforms: col(row, "Platforms"),
+            brief: idOf(col(row, "Brief")),
+          },
+        }
+      : {}),
     email: col(row, "Email"),
     fields: headers
       .map((label, i) => ({ label, value: String(row[i] ?? "").trim() }))

@@ -367,3 +367,24 @@ export function socialsProblems(a: Application, side: Side): string[] {
   if (a.mediaKit && !/^[\w-]{10,}$/.test(a.mediaKit) && !/^https?:\/\/\S+\.\S+/.test(a.mediaKit.trim())) out.push("Media kit: upload a PDF or paste a link");
   return out;
 }
+
+/** Step 4: your content. */
+export function contentProblems(a: Application, side: Side): string[] {
+  const o = APP_OPTIONS[side];
+  const out: string[] = [];
+  if (!a.niches.some((n) => o.niches.includes(n))) out.push("Choose at least one niche");
+  if (!a.work.some((w) => o.work.includes(w))) out.push("Choose at least one kind of work you're open to");
+  if (!a.represented) out.push("Tell us if you're represented by an agency or manager");
+  else if (a.represented === "Yes" && !a.agency.trim()) out.push("Add the agency's or manager's name");
+  return out;
+}
+
+export const REFERRALS = ["Referred by a creator", "Referred by a brand"];
+
+/** Step 5: how they found us. */
+export function discoveryProblems(a: Application, side: Side): string[] {
+  if (!APP_OPTIONS[side].discovery.includes(a.discovery)) return [`Tell us how you discovered ${APP_OPTIONS[side].name}`];
+  if (REFERRALS.includes(a.discovery) && !a.referrer.trim()) return ["Tell us who referred you"];
+  if (a.discovery === "Other" && !a.discoveryOther.trim()) return ["Tell us where you heard about us"];
+  return [];
+}

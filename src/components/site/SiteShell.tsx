@@ -42,7 +42,16 @@ export default function SiteShell({
     // Respect #anchors (e.g. "Apply now" → #apply); otherwise start each page at the top.
     const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
     if (target) setTimeout(() => scrollToSection(target), 300);
-    else window.scrollTo(0, 0);
+    else {
+      // the smooth scroller keeps its own position: reset it too, or it carries the last page's scroll over
+      const toTop = () => {
+        const lenis = (window as unknown as { __lenis?: Lenis }).__lenis;
+        lenis?.scrollTo(0, { immediate: true, force: true });
+        window.scrollTo(0, 0);
+      };
+      toTop();
+      requestAnimationFrame(toTop);
+    }
     const id = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(id);
   }, [pathname]);

@@ -1,15 +1,15 @@
 "use client";
 
-import { aboutProblems, ageOn } from "@/lib/application";
+import { aboutProblems, ADULTS_ONLY, ageOn, UNDER_18_TECH } from "@/lib/application";
 import { Field } from "../StepForm";
 import type { StepDef } from "./types";
 
-/** Step 1: About you. Under 18: a parent or guardian's details are required. */
+/** Step 1: About you. Under 18: a parent or guardian's details are required (Mode Society), or no application (ModeSociety Tech: 18+ only). */
 export const about: StepDef = {
   kicker: "About you",
   title: "First, who are you?",
-  problems: ({ a }) => aboutProblems(a),
-  render: ({ a, set }) => {
+  problems: ({ a, side }) => aboutProblems(a, side),
+  render: ({ a, set, side }) => {
     const age = ageOn(a.dob);
     return (
       <>
@@ -30,7 +30,12 @@ export const about: StepDef = {
             <input className="input" type="date" value={a.dob} max={new Date().toISOString().slice(0, 10)} onChange={(e) => set({ dob: e.target.value })} autoComplete="bday" />
           </Field>
         </div>
-        {age !== null && age < 18 && (
+        {age !== null && age >= 13 && age < 18 && ADULTS_ONLY[side] && (
+          <p role="alert" className="mt-6 border-l-2 border-pin pl-3 text-ink">
+            {UNDER_18_TECH} Thanks for your interest: we&apos;d love to hear from you once you turn 18.
+          </p>
+        )}
+        {age !== null && age < 18 && !ADULTS_ONLY[side] && (
           <fieldset className="grid gap-6 border border-line p-5 md:grid-cols-3">
             <legend className="px-2 text-[11px] uppercase tracking-[0.18em] text-ink">You&apos;re under 18: a parent or guardian *</legend>
             <Field label="Their name *">

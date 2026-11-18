@@ -97,7 +97,7 @@ export const APPLICATION_TERMS: Record<Side, Terms> = {
       {
         heading: "Age and location",
         paras: [
-          "You must be 18 or older to apply, or have the consent of a parent or guardian, who must also sign any later agreement. We can only represent creators based in the countries and regions listed on this form. You must tell us your true country of residence, and tell us if you move.",
+          "You must be 18 or older to apply: Mode Society Tech only represents creators who are 18 or over. We can only represent creators based in the countries and regions listed on this form. You must tell us your true country of residence, and tell us if you move.",
         ],
       },
       {

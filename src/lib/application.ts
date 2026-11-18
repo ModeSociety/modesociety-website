@@ -116,11 +116,11 @@ export type AppOptions = {
   tipsLabel: string;
 };
 
-const agreements = (name: string) => [
+const agreements = (name: string, adultsOnly = false) => [
   `I consent to ${name} using the images and content I have uploaded, as set out in the Application Terms.`,
   "I have read and agree to the Application Terms and Privacy Collection Notice.",
   "I confirm the information I have provided is true and accurate.",
-  "I am 18 or older, or my parent/guardian has consented to this application.",
+  adultsOnly ? "I am 18 or older." : "I am 18 or older, or my parent/guardian has consented to this application.",
   `I understand ${name} does not guarantee representation, work or income.`,
 ];
 
@@ -154,13 +154,13 @@ export const APP_OPTIONS: Record<Side, AppOptions> = {
     discovery: ["Instagram", "TikTok", "LinkedIn", "Twitch", "Discord", "Google search", "Referred by a creator", "Referred by a brand", "Event", "Other"],
     setup: ["PC", "PlayStation", "Xbox", "Nintendo", "Mobile", "VR"],
     avgLabel: "Average live viewers (if streaming)",
-    agreements: agreements("Mode Society Tech"),
+    agreements: agreements("Mode Society Tech", true),
     tipsLabel: "Send me Mode Society Tech creator tips and opportunities by email.",
   },
 };
 
 /** The version of the Application Terms a creator accepts (saved with the consent record). */
-export const TERMS_VERSION = "2026-11-16";
+export const TERMS_VERSION = "2026-11-18"; // 18 Nov: ModeSociety Tech signs 18+ only (its House rules)
 
 // ---------------------------------------------------------------------------
 // Rules
@@ -188,8 +188,12 @@ export const isPhone = (v: string) => /^\+?[\d\s()-]+$/.test(v.trim()) && (v.mat
 /** An Australian number: 10 digits starting 0 (e.g. 0412 345 678), or written +61. */
 const isAustralianPhone = (v: string) => /^(0\d{9}|\+?61\d{9})$/.test(v.replace(/[\s()-]/g, ""));
 
+/** ModeSociety Tech signs creators who are 18 or over only (its House rules, 18 Nov 2026); Mode Society takes under-18s with a guardian. */
+export const ADULTS_ONLY: Record<Side, boolean> = { talent: false, tech: true };
+export const UNDER_18_TECH = "ModeSociety Tech only signs creators who are 18 or over.";
+
 /** Step 1: About you. */
-export const aboutProblems = (a: Application, today = new Date()) => {
+export const aboutProblems = (a: Application, side: Side = "talent", today = new Date()) => {
   const out: string[] = [];
   if (!a.legalName.trim()) out.push("Add your full legal name");
   if (!a.creatorName.trim()) out.push("Add your creator or professional name");
@@ -199,7 +203,8 @@ export const aboutProblems = (a: Application, today = new Date()) => {
   const age = ageOn(a.dob, today);
   if (age === null) out.push("Add your date of birth");
   else if (age < 13 || age > 120) out.push("Check your date of birth");
-  if (age !== null && age < 18) {
+  if (age !== null && age >= 13 && age < 18 && ADULTS_ONLY[side]) out.push(UNDER_18_TECH);
+  else if (age !== null && age < 18) {
     if (!a.guardianName.trim()) out.push("Add your parent or guardian's name");
     if (!isEmailAddress(a.guardianEmail)) out.push("Add your parent or guardian's email");
     if (!isPhone(a.guardianPhone)) out.push("Add your parent or guardian's phone");
@@ -441,7 +446,7 @@ export const agreementsProblems = (a: Application, side: Side) =>
 /** Every step's problems at once: what the server checks before saving an application. */
 export function allProblems(a: Application, side: Side, el: Eligibility): string[] {
   return [
-    ...aboutProblems(a),
+    ...aboutProblems(a, side),
     ...basedProblems(a, el),
     ...addressProblems(a),
     ...photosProblems(a),

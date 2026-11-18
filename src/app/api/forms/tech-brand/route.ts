@@ -37,6 +37,7 @@ function tidy(raw: Record<string, unknown>): TechBrand {
     heard: pick(raw.heard, TB_HEARD),
     heardOther: clean(raw.heardOther, 200),
     consent: raw.consent === true,
+    noGo: raw.noGo === true,
   };
 }
 

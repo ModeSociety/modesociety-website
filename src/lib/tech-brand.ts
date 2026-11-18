@@ -41,11 +41,25 @@ export type TechBrand = {
   company: string; contact: string; role: string; email: string; phone: string; website: string; industry: string; market: string;
   goals: string[]; types: string[]; platforms: string[]; creators: string[]; audience: string; budget: string; start: string;
   details: string; brief: string; heard: string; heardOther: string; consent: boolean;
+  /** the House rules: the brand confirms it isn't in a no-go category */
+  noGo: boolean;
 };
+
+/** The House rules' no-go sponsors (the Tech home page lists them; Pages & text → House rules). */
+export const NO_GO_DEFAULT = ["Wagering", "Skin gambling", "Case-opening", "Crypto casino"];
+export const noGoConfirm = (list: string[]) =>
+  `We confirm our brand and campaign aren't in a category Mode Society Tech doesn't work with: ${(list.length ? list : NO_GO_DEFAULT).join(", ").toLowerCase()}.`;
+
+/** Words that suggest a no-go sponsor anywhere in the enquiry: the lead is flagged for a person to check. */
+const NO_GO_WORDS = /\b(bet(ting|s)?|wager(ing)?|gambl(e|ing)|casino|sportsbook|bookmaker|skins? (betting|gambling|trading)|case[- ]?opening|loot ?box|crash game|roulette|jackpot|slots?)\b/gi;
+export function noGoFlags(b: TechBrand): string[] {
+  const text = [b.company, b.website, b.industry, b.audience, b.details, b.heardOther, b.role].join(" ");
+  return [...new Set((text.match(NO_GO_WORDS) ?? []).map((w) => w.toLowerCase()))];
+}
 
 export const blankTechBrand = (): TechBrand => ({
   company: "", contact: "", role: "", email: "", phone: "", website: "", industry: "", market: "",
-  goals: [], types: [], platforms: [], creators: [], audience: "", budget: "", start: "", details: "", brief: "", heard: "", heardOther: "", consent: false,
+  goals: [], types: [], platforms: [], creators: [], audience: "", budget: "", start: "", details: "", brief: "", heard: "", heardOther: "", consent: false, noGo: false,
 });
 
 const isWebsite = (v: string) => /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}(\/\S*)?$/i.test(v.trim());
@@ -75,6 +89,7 @@ export function campaignProblems(b: TechBrand, today = new Date()): string[] {
   if (!TB_HEARD.includes(b.heard)) out.push("Tell us how you heard about us");
   else if (b.heard === "Other" && !b.heardOther.trim()) out.push("Tell us where you heard about us");
   if (b.brief && !/^[\w-]{10,}$/.test(b.brief) && !/^https?:\/\/\S+\.\S+/.test(b.brief.trim())) out.push("Brief: upload a file or paste a link");
+  if (!b.noGo) out.push("Confirm your brand isn't in a no-go category");
   if (!b.consent) out.push("Tick the privacy consent");
   return out;
 }
@@ -100,6 +115,9 @@ export function techBrandColumns(b: TechBrand): [string, string][] {
     ["Campaign Details", b.details.trim()],
     ["Heard About Us", b.heard === "Other" ? `Other: ${b.heardOther.trim()}` : b.heard],
     ["Privacy Consent", b.consent ? "Yes" : "No"],
+    ["No-go Confirmed", b.noGo ? "Yes" : "No"],
+    // House rules: words that suggest a no-go sponsor, for a person to check before replying
+    ["Screening", noGoFlags(b).length ? `Check: mentions ${noGoFlags(b).join(", ")}` : ""],
   ];
 }
 

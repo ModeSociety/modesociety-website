@@ -1029,12 +1029,15 @@ var ACTIONS = {
         var s = refs.indexOf(String(p.reference));
         if (s > 0) updateByColumn_(signed, s + 1, [['Contract', p.type], ['Commission', p.type === 'Exclusive' ? '20%' : '30%'],
           ['Signed At', new Date()], ['PandaDoc ID', p.docId || ''], ['Contract Link', file.getUrl()], ['Updated At', new Date()], ['Updated By', 'PandaDoc']]);
-        return { link: file.getUrl(), email: at(row, 'Email') };
+        return { link: file.getUrl(), email: at(row, 'Email'), name: at(row, 'Full Name') || name };
       }
       throw new Error('That enquiry is no longer in the Sheet');
     });
     if (done.already || done.stale) return done;
     autoReply_(done.email, p.welcome); // the welcome email, once (a repeat call stops above)
+    // and one email to the business's admins
+    notify_(key, done.name + ' signed', p.reference, done.email, [['Contract', p.type], ['Signed contract', done.link],
+      ['Next', 'They have the welcome email. Set up their details in the admin panel → Signed Talent.']]);
     return { link: done.link };
   },
 

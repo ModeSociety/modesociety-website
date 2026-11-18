@@ -407,3 +407,10 @@ html:has(.tx),html:has(.tx) body{cursor:url("data:image/svg+xml,%3Csvg xmlns='ht
 .tx .legal-body h2{font-weight:900;text-transform:uppercase;letter-spacing:-.02em;font-size:clamp(22px,2vw,28px);color:var(--ink);margin-bottom:10px}
 .tx .legal-body p+p{margin-top:10px}
 .tx .legal-body ul{list-style:square;padding-left:20px;display:grid;gap:8px;margin-top:10px}
+/* ---- House rules page ---- */
+.tx .hr-rules{display:grid;gap:14px;margin-top:30px}
+.tx .hr-rules li{background:var(--ice);clip-path:var(--px-sm);padding:22px 24px}
+.tx .hr-rules li .mono{color:var(--royal)}
+.tx .hr-rules h2{margin:8px 0 6px}
+.tx .hr-nogo{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.tx .hr-nogo span{background:var(--ink);color:#fff;padding:9px 14px;font-weight:700;font-size:14px;clip-path:var(--px-sm);text-decoration:line-through;text-decoration-color:#F0403E;text-decoration-thickness:2px}

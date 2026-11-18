@@ -12,7 +12,7 @@ export const SITE_NAME = "Mode Society";
 
 export type PageKey =
   | "home" | "about" | "brands" | "talent" | "services" | "work" | "press" | "contact"
-  | "privacy" | "techHome" | "techServices" | "techPrivacy";
+  | "privacy" | "techHome" | "techServices" | "techPrivacy" | "techHouseRules";
 
 export const TECH_NAME = "ModeSociety Tech";
 /**
@@ -118,6 +118,15 @@ export const PAGES: Record<PageKey, { path: string; title: string; description: 
     description: "How ModeSociety Tech collects, uses, shares and protects personal information, and how to access or correct yours.",
     og: "Privacy Policy",
     crumb: "Privacy Policy",
+  },
+  techHouseRules: {
+    path: "/tech/house-rules",
+    tech: true,
+    title: "House Rules: 18+ Creators Only | ModeSociety Tech",
+    description:
+      "Every ModeSociety Tech creator is 18+, every brief is written in-house, every paid post is disclosed, and we publish the sponsors we won't work with.",
+    og: "How we play.",
+    crumb: "House rules",
   },
   techServices: {
     path: "/tech/services",

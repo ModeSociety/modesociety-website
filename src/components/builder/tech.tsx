@@ -5,6 +5,7 @@
 import Contact from "@/components/tx/Contact";
 import Film from "@/components/tx/Film";
 import { Campaigns, Faq, Hero, Rules, Run, Ticker, Who } from "@/components/tx/Sections";
+import TxHouseRules from "@/components/tx/TxHouseRules";
 import TxServices, { TxServicesHero } from "@/components/tx/TxServices";
 import BookNow from "@/components/services/BookNow";
 import { shownServices } from "@/components/services/PricedServices";
@@ -19,6 +20,7 @@ export const TECH: Record<string, Feature> = {
   "x.run": { shows: ({ c }) => !c.copy["techSite.run"].hidden, render: ({ c }) => <Run copy={c.copy["techSite.run"]} /> },
   "x.rules": { shows: ({ c }) => !c.copy["techSite.rules"].hidden, render: ({ c }) => <Rules copy={c.copy["techSite.rules"]} /> },
   "x.contact": { render: ({ c }) => <Contact copy={c.copy["techSite.contact"]} eligibility={c.eligibility.tech} noGo={c.copy["techSite.rules"].nogo} /> },
+  "x.houseRules": { render: ({ c }) => <TxHouseRules copy={c.copy["techSite.houseRules"]} nogo={c.copy["techSite.rules"].nogo} /> },
   "x.servicesHero": { render: ({ c }) => <TxServicesHero copy={c.copy["techSite.servicesHero"]} /> },
   "x.services": {
     shows: ({ c }) => shownServices(c.copy["techSite.services"].items).length > 0,

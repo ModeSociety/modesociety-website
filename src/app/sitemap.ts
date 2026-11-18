@@ -17,6 +17,7 @@ const PRIORITY: Record<PageKey, number> = {
   techServices: 0.7,
   privacy: 0.2,
   techPrivacy: 0.2,
+  techHouseRules: 0.5,
 };
 
 /**
@@ -30,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       { url: `${TECH_SITE_URL}/`, lastModified: new Date(), changeFrequency: "monthly", priority: 1 },
       { url: `${TECH_SITE_URL}/services`, lastModified: new Date(), changeFrequency: "monthly", priority: PRIORITY.techServices },
+      { url: `${TECH_SITE_URL}/house-rules`, lastModified: new Date(), changeFrequency: "monthly", priority: PRIORITY.techHouseRules },
       { url: `${TECH_SITE_URL}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: PRIORITY.techPrivacy },
     ];
   }

@@ -43,6 +43,12 @@ function Stepper({ service, play, eyebrow }: { service: ServiceDetail; play: boo
       >
         {service.title}
       </h2>
+      {(service.badge || service.body) && (
+        <div className={`mt-4 grid gap-3 transition-opacity duration-700 ${phase >= 0 ? "opacity-100" : "opacity-0"}`}>
+          {service.badge && <span className="w-fit rounded-full bg-ink px-3 py-1 text-[11px] font-medium uppercase tracking-[0.06em] text-paper">{service.badge}</span>}
+          {service.body && <p className="max-w-xl text-[15px] leading-relaxed text-ink-2">{service.body}</p>}
+        </div>
+      )}
 
       <ol className="mt-8 grid">
         {service.steps.map((step, k) => {
@@ -74,12 +80,19 @@ function Stepper({ service, play, eyebrow }: { service: ServiceDetail; play: boo
               <div className={`pt-1 transition-all duration-700 ${shown ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0"}`}>
                 <span className="block text-[11px] font-semibold tracking-[0.14em] text-ink/70">{String(k + 1).padStart(2, "0")}</span>
                 <span className={`block text-[15px] leading-snug transition-colors duration-500 ${active ? "text-ink" : "text-ink-2"}`}>{step.text}</span>
+                {(step.price || step.action) && (
+                  <span className="mt-2 flex flex-wrap items-center gap-3 pb-3">
+                    {step.price && <span className="font-mono text-[13px] text-ink">{step.price}</span>}
+                    {step.action}
+                  </span>
+                )}
               </div>
             </li>
           );
         })}
       </ol>
 
+      {service.note && <p className={`mt-6 max-w-xl text-[13px] leading-relaxed text-muted transition-opacity duration-700 ${phase > n ? "opacity-100" : "opacity-0"}`}>{service.note}</p>}
       <div className={`mt-10 flex flex-wrap gap-3 transition-all duration-700 ${phase > n ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"}`}>
         {service.cta.label && (
           <Link href={service.cta.href} className="btn">

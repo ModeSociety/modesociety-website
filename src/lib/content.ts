@@ -61,7 +61,12 @@ export type StepIcon =
 export type ServiceDetail = {
   id: string;
   title: string;
-  steps: { name: string; text: string; icon: StepIcon }[];
+  /** the priced services (18 Nov 2026): a line under the title, a badge beside it, a note after the steps */
+  body?: string;
+  badge?: string;
+  note?: string;
+  /** a priced tier's step also has its price and its Book now button */
+  steps: { name: string; text: string; icon: StepIcon; price?: string; action?: React.ReactNode }[];
   cta: { label: string; href: string; external?: boolean };
   more?: { label: string; href: string; external?: boolean };
 };

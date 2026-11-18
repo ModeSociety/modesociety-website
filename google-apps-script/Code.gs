@@ -807,6 +807,8 @@ var ACTIONS = {
       var body = doc.getBody();
       body.replaceText('\\{\\{BASED\\}\\}', p.part === 'A' ? 'Australia: Domestic Talent (complete Part A)' : 'International: International Talent (complete Part B)');
       removePart_(body, p.part === 'A' ? 'B' : 'A');
+      fitFieldTags_(body);
+      trimEnd_(body);
       doc.saveAndClose();
       return { name: name + '.pdf', data: Utilities.base64Encode(copy.getAs('application/pdf').getBytes()) };
     } finally {
@@ -1671,6 +1673,46 @@ function removePart_(body, drop) {
   }
   if (start < 0) throw new Error('The contract template has no "Part ' + drop + ':" heading in Schedule 2');
   for (var k = end - 1; k >= start; k--) body.removeChild(body.getChild(k));
+}
+
+/**
+ * PandaDoc draws each field the size of its tag, so a tag must sit on one line of its table cell:
+ * a long one (a long optId with many underscores) wraps, and PandaDoc then draws a thin, tall field.
+ * Every tag with a run of underscores is made about 46 characters long in all: first each run is
+ * marked with "~" (so a tag is fitted once), then each marked tag gets its underscores back.
+ */
+function fitFieldTags_(body) {
+  body.replaceText('_{4,}\\}', '~}');
+  var MARKED = '\\{[^{}~]*~\\}';
+  for (var guard = 0, found; guard < 200 && (found = body.findText(MARKED)); guard++) {
+    var text = found.getElement().asText();
+    var start = found.getStartOffset(), end = found.getEndOffsetInclusive();
+    var tag = text.getText().substring(start, end + 1);
+    var core = tag.replace(/~\}$/, '');
+    var fitted = core + new Array(Math.max(8, 46 - core.length - 1) + 1).join('_') + '}';
+    var attrs = text.getAttributes(start);
+    text.deleteText(start, end);
+    text.insertText(start, fitted);
+    text.setAttributes(start, start + fitted.length - 1, attrs);
+  }
+}
+
+/**
+ * The end of a contract: empty paragraphs after the last words are removed (a Google Doc keeps one,
+ * which is made as small as possible), so no blank page is printed after Schedule 2.
+ */
+function trimEnd_(body) {
+  while (body.getNumChildren() > 1) {
+    var last = body.getChild(body.getNumChildren() - 1);
+    var prev = body.getChild(body.getNumChildren() - 2);
+    var empty = function (el) { return el.getType() === DocumentApp.ElementType.PARAGRAPH && !String(el.asParagraph().getText()).trim(); };
+    if (!empty(last) || !empty(prev)) break;
+    body.removeChild(prev);
+  }
+  var tail = body.getChild(body.getNumChildren() - 1);
+  if (tail.getType() === DocumentApp.ElementType.PARAGRAPH && !String(tail.asParagraph().getText()).trim()) {
+    tail.asParagraph().setSpacingBefore(0).setSpacingAfter(0).setLineSpacing(0.5).editAsText().setFontSize(1);
+  }
 }
 
 function readSettings_() {

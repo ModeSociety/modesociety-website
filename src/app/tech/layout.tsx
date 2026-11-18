@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Martian_Mono, Press_Start_2P, Schibsted_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import { ChromeRoot, ChromeStyles } from "@/components/builder/Chrome";
 import JsonLd from "@/components/site/JsonLd";
 import PreviewBar from "@/components/site/PreviewBar";
@@ -11,10 +11,15 @@ import { PAGES, TECH_BASE_URL, TECH_HOME_URL, TECH_NAME, techOrganizationJsonLd 
 import { techThemeCss } from "@/lib/theme";
 import "./tx.css";
 
-/* ModeSociety Tech type (Asha's v3.5 design), loaded only on /tech */
-const schibsted = Schibsted_Grotesk({ subsets: ["latin"], weight: ["400", "500", "700", "900"], variable: "--font-schibsted", display: "swap" });
-const martianMono = Martian_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-martian-mono", display: "swap" });
-const pressStart = Press_Start_2P({ subsets: ["latin"], weight: "400", variable: "--font-press-start", display: "swap" });
+/*
+ * ModeSociety Tech type (Asha's v3.5 design), loaded only on /tech. The files are kept here (Google
+ * Fonts' Latin files, Open Font License) rather than fetched from Google at build time: on 18 Nov 2026
+ * Vercel's build got a Martian Mono stylesheet Next couldn't read and every deploy failed.
+ * Martian Mono and Schibsted Grotesk are variable fonts: one file covers every weight.
+ */
+const schibsted = localFont({ src: "./fonts/schibsted-grotesk.woff2", weight: "400 900", variable: "--font-schibsted", display: "swap" });
+const martianMono = localFont({ src: "./fonts/martian-mono.woff2", weight: "100 800", variable: "--font-martian-mono", display: "swap" });
+const pressStart = localFont({ src: "./fonts/press-start-2p.woff2", weight: "400", variable: "--font-press-start", display: "swap" });
 
 /** ModeSociety Tech is its own business: its own name, address and keywords, none of Mode Society's. */
 export const metadata: Metadata = {

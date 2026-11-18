@@ -407,6 +407,11 @@ export function Rules({ copy: c }: { copy: SectionCopy<"techSite.rules"> }) {
         </span>
         <h2 className="h-l rv">{lines(c.heading)}</h2>
         <p className="lead rv">{c.lead}</p>
+        {c.link.trim() && (
+          <PageA to="/house-rules" className="pill sm rv" style={{ marginTop: 26 }}>
+            {c.link} <span className="ac">→</span>
+          </PageA>
+        )}
         <div className="stats">
           {c.cards.slice(0, 3).map((card, i) => (
             <div key={i} className="gcard rv">
@@ -531,6 +536,7 @@ export function Footer({ copy: c, nav }: { copy: SectionCopy<"techSite.footer">;
         </div>
         <div className="legal mono">
           <span>{c.legal}</span>
+          <PageA to="/house-rules">House rules</PageA>
           <PageA to="/privacy">Privacy Policy</PageA>
           <span>{c.place}</span>
         </div>

@@ -96,7 +96,8 @@ export function ExpectCards({ copy, href = "/get-in-touch?form=brands" }: { copy
       </div>
       <div
         ref={track}
-        className="mt-12 flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-6 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        // the first card lines up with the heading's column (the .wrap), however wide the screen
+        className="wrap-edge mt-12 flex snap-x snap-mandatory scroll-px-[var(--wrap-edge)] gap-4 overflow-x-auto px-[var(--wrap-edge)] pb-6 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {copy.cards.map((c, i) => (
           <article
@@ -114,7 +115,7 @@ export function ExpectCards({ copy, href = "/get-in-touch?form=brands" }: { copy
             </div>
           </article>
         ))}
-        <div className="w-[var(--gutter)] shrink-0" aria-hidden />
+        <div className="w-[var(--wrap-edge)] shrink-0" aria-hidden />
       </div>
       <div className="wrap mt-6 flex flex-wrap items-center justify-between gap-4">
         {copy.button ? (

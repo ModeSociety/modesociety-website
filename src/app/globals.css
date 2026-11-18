@@ -19,6 +19,8 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --gutter: clamp(16px, 4vw, 56px);
+  /* the .wrap column's width: full-width rows (card scrollers) line up with it via --wrap-edge */
+  --wrap-max: 1440px;
 }
 
 @theme inline {
@@ -118,9 +120,14 @@ img {
   font-family: var(--font-plex-mono), ui-monospace, monospace;
 }
 
+/* the left edge of the .wrap column's content, for a full-width row inside a full-width parent */
+.wrap-edge {
+  --wrap-edge: calc(max(0px, (100% - var(--wrap-max)) / 2) + var(--gutter));
+}
+
 .wrap {
   width: 100%;
-  max-width: 1440px;
+  max-width: var(--wrap-max);
   margin: 0 auto;
   padding-left: var(--gutter);
   padding-right: var(--gutter);
@@ -950,6 +957,15 @@ html:has(.tech-root) body {
 }
 .bf[data-pb] > .bf-in > :last-child {
   padding-bottom: var(--bf-pb) !important;
+}
+.bf[data-w="narrow"] {
+  --wrap-max: 1000px;
+}
+.bf[data-w="wide"] {
+  --wrap-max: 1760px;
+}
+.bf[data-w="full"] {
+  --wrap-max: 100vw;
 }
 .bf[data-w="narrow"] .wrap {
   max-width: 1000px;

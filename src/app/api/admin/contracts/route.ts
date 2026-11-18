@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { unstable_cache } from "next/cache";
 import { errorResponse, HttpError, requireAdmin, requireSide, type AdminUser } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanList } from "@/lib/api";
 import { callBackend, getSiteContent } from "@/lib/backend";
@@ -10,9 +12,29 @@ import { contractFolder, createDocumentFromPdf, deleteDocument, documentLink, Pa
 const needsNswSheet = (e: Enquiry) => (e.creator?.tags ?? []).some((t) => t.startsWith("NSW"));
 const businessName = (side: "talent" | "tech") => (side === "tech" ? "Mode Society Tech" : "Mode Society");
 
-/** The lead, read fresh from the Sheet (a contract is never sent from an old copy). */
-async function freshLead(kind: EnquiryKind, reference: string) {
-  const data = await getLeads(true);
+/** sending runs after the reply (up to a minute for PandaDoc), so the function may keep running that long */
+export const maxDuration = 60;
+
+/**
+ * A contract's PDF from its Google Doc. It's the same for every creator (their details go into
+ * PandaDoc's fields), so the site keeps each of the 8 (4 contracts × Part A or B) for 10 minutes:
+ * Asha's edits to a template reach the next contract within 10 minutes.
+ */
+const contractPdf = unstable_cache(
+  (template: string, part: string) => callBackend<{ name: string; data: string }>("buildContract", { template, part }),
+  ["contract-pdf-v1"],
+  { revalidate: 600 },
+);
+
+/** contracts being sent by this server right now (a second click doesn't send a second contract) */
+const sending = new Set<string>();
+
+/**
+ * The lead, from the website's kept copy of the Sheet (instant). Its contract columns are checked
+ * there too; the backend writes the result, so a stale copy can't send a second contract.
+ */
+async function findLead(kind: EnquiryKind, reference: string, fresh = false) {
+  const data = await getLeads(fresh);
   const lead = toEnquiries(kind, data.enquiries[kind]).find((e) => e.reference === reference);
   if (!lead) throw new HttpError(404, "That lead is no longer in the Sheet");
   return lead;
@@ -21,17 +43,23 @@ async function freshLead(kind: EnquiryKind, reference: string) {
 const field = (e: Enquiry, label: string) => e.fields.find((f) => f.label === label)?.value ?? "";
 const oneLine = (v: string) => v.replace(/\s*\n\s*/g, ", ");
 
-async function send(session: AdminUser, kind: EnquiryKind, e: Enquiry, side: "talent" | "tech", type: ContractType) {
+/** What has to be true before a contract goes out (checked before the reply). */
+function checkSend(e: Enquiry) {
   const k = e.contract;
   if (e.status === "Signed") throw new HttpError(409, "This creator has already signed");
   if (k?.state === "sent") throw new HttpError(409, "A contract is already out for signing: void it first to send a new one");
+  if (sending.has(e.reference)) throw new HttpError(409, "This contract is already being sent");
   if (needsNswSheet(e) && !k?.nswSheetSent) throw new HttpError(409, "Send the NSW Information for Performers sheet first, and tick that it's sent");
   if (!e.email) throw new HttpError(400, "This lead has no email address");
+}
+
+/** Builds and sends the contract, then records it on the lead (runs after the reply). */
+async function send(session: AdminUser, kind: EnquiryKind, e: Enquiry, side: "talent" | "tech", type: ContractType) {
   const legal = field(e, "Full Name") || e.title;
   const [first, ...rest] = legal.trim().split(/\s+/);
   const part = paymentPart(field(e, "Based"), field(e, "Country"));
   const template = templateName(side, type);
-  const pdf = await callBackend<{ name: string; data: string }>("buildContract", { template, part, reference: e.reference });
+  const pdf = await contractPdf(template, part);
   const platform = field(e, "Main Platform");
   const prefill = {
     legalName: legal,
@@ -100,13 +128,35 @@ export async function POST(req: Request) {
     if (!kind || !reference) throw new HttpError(400, "Missing lead");
     const side = ENQUIRY_KINDS.find((k) => k.id === kind)!.side;
     requireSide(session, side);
-    const e = await freshLead(kind, reference);
     const action = String(body?.action || "");
-    let out: Record<string, unknown> = {};
+    // sending is quick to ask for: the checks run now, the PandaDoc work after the reply
+    let e = await findLead(kind, reference, action !== "send");
     if (action === "send") {
       const type = cleanList([body?.type], CONTRACT_TYPES)[0] as ContractType | undefined;
       if (!type) throw new HttpError(400, "Choose Exclusive or Non-exclusive");
-      out = await send(session, kind, e, side, type);
+      try {
+        checkSend(e);
+      } catch {
+        // the kept copy can be a few seconds behind (an NSW tick just saved): check the Sheet itself
+        e = await findLead(kind, reference, true);
+        checkSend(e);
+      }
+      const lead = e;
+      sending.add(reference);
+      after(async () => {
+        try {
+          await send(session, kind, lead, side, type);
+        } catch (err) {
+          // the lead shows what went wrong (its status doesn't change), and the contract can be sent again
+          const message = err instanceof Error ? err.message : String(err);
+          console.error(`[contracts] sending ${reference} failed:`, message);
+          await callBackend("setLeadContract", { kind, reference, columns: [["Contract State", `failed: ${message.slice(0, 300)}`]] }).catch(() => {});
+        } finally {
+          sending.delete(reference);
+          leadsChanged();
+        }
+      });
+      return Response.json({ ok: true, queued: true });
     } else if (action === "nswSheet") {
       await callBackend("setLeadContract", { kind, reference, columns: [["NSW Sheet Sent", `${session.email} · ${new Date().toISOString()}`]] });
     } else if (action === "remind" || action === "void") {
@@ -123,7 +173,7 @@ export async function POST(req: Request) {
       throw new HttpError(400, "Unknown action");
     }
     leadsChanged();
-    return Response.json({ ok: true, ...out });
+    return Response.json({ ok: true });
   } catch (err) {
     if (err instanceof PandaDocError) return Response.json({ ok: false, error: err.message }, { status: err.status >= 500 ? 502 : 400 });
     return errorResponse(err, { expose: true });

@@ -18,6 +18,7 @@ import { Accordion, ExpectCards, InstagramGrid, Quote, Steps } from "@/component
 import Faq from "@/components/sections/Faq";
 import BookNow from "@/components/services/BookNow";
 import PricedServices, { shownServices } from "@/components/services/PricedServices";
+import type { PricedService } from "@/lib/services";
 import ServicesShowcase from "@/components/services/ServicesShowcase";
 import Accent, { accent, headingLines } from "@/components/site/Accent";
 import { Mark, SectionHead } from "@/components/site/Editorial";
@@ -496,13 +497,43 @@ export const TALENT: Record<string, Feature> = {
     shows: ({ c }) => shownServices(c.copy["services.priced"].items).length > 0,
     render: ({ c }) => {
       const p = c.copy["services.priced"];
+      const book = (s: PricedService, t: PricedService["tiers"][number]) =>
+        p.bookLabel.trim() && <BookNow side="talent" service={s.title.trim()} tier={t.name.trim()} price={t.price} label={p.bookLabel} />;
+      if (p.view === "Animated") {
+        // the original Services look: one service at a time beside the pinwheel, each tier a step
+        const icons: StepIcon[] = ["target", "chart", "badge", "package"];
+        const services: ServiceDetail[] = shownServices(p.items).map((s, i) => ({
+          id: slugify(s.title) || `service-${i + 1}`,
+          title: s.title,
+          body: s.body,
+          badge: s.free === "Yes" ? p.freeBadge : "",
+          note: s.note,
+          steps: s.tiers.map((t, k) => ({ name: t.name, text: t.includes, icon: icons[k % icons.length], price: t.price, action: book(s, t) })),
+          cta: { label: "", href: "" },
+        }));
+        return (
+          <>
+            {p.intro.trim() && (
+              <div className="wrap pb-10">
+                <p className="font-serif max-w-3xl text-[clamp(20px,2vw,28px)] italic leading-snug text-ink">{p.intro}</p>
+              </div>
+            )}
+            <ServicesShowcase services={services} media={c.images["services.orbit"]} eyebrow={c.copy["services.list"].eyebrow} />
+            {p.footer.trim() && (
+              <div className="wrap pb-24">
+                <p className="max-w-3xl text-[13px] leading-relaxed text-muted">{p.footer}</p>
+              </div>
+            )}
+          </>
+        );
+      }
       return (
         <PricedServices
           intro={p.intro}
           freeBadge={p.freeBadge}
           footer={p.footer}
           items={p.items}
-          book={(s, t) => p.bookLabel.trim() && <BookNow side="talent" service={s.title.trim()} tier={t.name.trim()} price={t.price} label={p.bookLabel} />}
+          book={book}
         />
       );
     },

@@ -61,6 +61,7 @@ const label = text("Small label", "The small capitals above the section");
 const meta = text("Note on the right", "The small note at the right of the label. Leave empty to hide it.");
 const tag = text("Tag", "The word in brackets before the small label. Leave empty to hide it.");
 /** The priced services' fields, the same on both sites (SP-125, SP-126). */
+const SERVICE_VIEW: Field = { type: "select", label: "How the services are shown", options: ["Animated", "Cards"], hint: "Animated: one service at a time with the pinwheel, each tier a step (the Services page's original look). Cards: every service at once, as cards." };
 const pricedServices = (exclusiveOf: string) => ({
   intro: area("Intro", "Above the services"),
   freeBadge: text("Badge on free services", `Shown on each service marked free for ${exclusiveOf} exclusive creators`),
@@ -589,8 +590,9 @@ export const SECTIONS = {
     path: "/services",
     title: "Services and prices",
     hint: "Each service with its tiers and prices (AUD, excl. GST). Each tier gets a Book now button.",
-    fields: pricedServices("Mode Society"),
-    defaults: pricedDefaults(TALENT_SERVICES),
+    // Mode Society's Services page had the animated view (Asha approved it): it stays the default
+    fields: { view: SERVICE_VIEW, ...pricedServices("Mode Society") },
+    defaults: { view: "Animated", ...pricedDefaults(TALENT_SERVICES) },
   },
 
   // =========================================================================

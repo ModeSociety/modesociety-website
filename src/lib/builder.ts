@@ -294,7 +294,7 @@ export const DEFS: Record<string, BlockDef> = {
   "t.talentFaq": f("talent", "Questions creators ask", "FAQ dropdowns", ["talent.faq"]),
   "t.talentForm": f("talent", "Talent application form", "Want Mode to represent you? + the form", ["talent.form", "site.forms"], { page: "talent" }),
   "t.servicesHero": f("talent", "Services: page title", "Grow with intention", ["services.hero"]),
-  "t.servicesPriced": f("talent", "Services and prices", "Each service as a card with its tiers, prices and Book now buttons", ["services.priced"]),
+  "t.servicesPriced": f("talent", "Services and prices", "The priced services, animated one at a time with the pinwheel or as cards (Pages & text), with Book now on every tier", ["services.priced", "services.list"], { slots: ["services.orbit"] }),
   "t.servicesShowcase": f("talent", "Services, step by step", "One service at a time with the pinwheel", ["services.list"], { slots: ["services.orbit"] }),
   "t.workHero": f("talent", "Our work: page title", "Work/archive", ["work.hero"]),
   "t.workGallery": f("talent", "Our work gallery", "Every piece, with the brand list", ["work.gallery"], { slots: ["work.gallery", "home.clients"] }),

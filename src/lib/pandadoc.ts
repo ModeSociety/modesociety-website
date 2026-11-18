@@ -151,3 +151,12 @@ export async function voidDocument(id: string): Promise<"voided" | "deleted"> {
 }
 
 export const deleteDocument = (id: string) => pandadoc(`/documents/${id}`, { method: "DELETE" });
+
+/** A completed document's sealed PDF (the signed contract). */
+export async function downloadSignedPdf(id: string): Promise<Buffer> {
+  const c = credentials();
+  if (!c) throw new PandaDocError("PandaDoc isn't connected", 503);
+  const res = await fetch(`${API}/documents/${id}/download-protected`, { headers: { Authorization: `API-Key ${c.key}` }, signal: AbortSignal.timeout(30_000), cache: "no-store" });
+  if (!res.ok) throw new PandaDocError(`PandaDoc ${res.status}: couldn't download the signed contract`, res.status);
+  return Buffer.from(await res.arrayBuffer());
+}

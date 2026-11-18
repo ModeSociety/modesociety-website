@@ -26,12 +26,16 @@ FILES = {
     "Mode Society Tech Non-Exclusive Talent Agreement": "04_Mode_Society_Tech/Mode_Society_Tech_Non-Exclusive_Talent_Agreement.docx",
 }
 ROLE = "Talent"
-W = "_" * 40  # field width
+W = None  # every tag is TAG_LEN characters (the backend's fitFieldTags_ makes them so too)
+TAG_LEN = 46  # fits one line of a value cell at 9 pt; PandaDoc draws each field the size of its tag
 
 
 def tag(kind, opt, required=True, width=W):
     star = "" if required else "*"
-    return "{" + f"{kind}{star}:{ROLE}" + (f":{opt}" if opt else "") + width + "}"
+    core = "{" + f"{kind}{star}:{ROLE}" + (f":{opt}" if opt else "")
+    if width == "":  # a checkbox: no underscores
+        return core + "}"
+    return core + "_" * max(8, TAG_LEN - len(core) - 1) + "}"
 
 
 # Schedule 1 and the Talent's block: label (start of the row's first cell) → tag

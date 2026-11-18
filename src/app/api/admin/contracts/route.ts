@@ -22,7 +22,7 @@ export const maxDuration = 60;
  */
 const contractPdf = unstable_cache(
   (template: string, part: string) => callBackend<{ name: string; data: string }>("buildContract", { template, part }),
-  ["contract-pdf-v1"],
+  ["contract-pdf-v2"],
   { revalidate: 600 },
 );
 

@@ -997,6 +997,48 @@ var ACTIONS = {
   },
 
   /**
+   * A contract signed in PandaDoc (SP-117, SP-120, SP-123; the website checks PandaDoc's signature first).
+   * Once only per lead: a second call for the same contract changes nothing. The lead moves to Signed
+   * and joins Signed Talent with its contract; the signed PDF is saved to Signed Contracts/<business>
+   * and linked from both; the creator gets one welcome email with the Creator Growth Guide.
+   */
+  contractCompleted: function (p) {
+    var key = ENQUIRY_TABS[p.kind];
+    if (!key || !CREATOR_KINDS[p.kind]) throw new Error('Only creator leads have contracts');
+    var side = TECH_FORMS[key] ? 'tech' : 'talent';
+    var done = withLock_(function () {
+      var sheet = sheet_(key);
+      var values = sheet.getDataRange().getValues();
+      var head = values[0].map(String);
+      var at = function (row, h) { var i = head.indexOf(h); return i < 0 ? '' : String(row[i] || ''); };
+      for (var i = 1; i < values.length; i++) {
+        var row = values[i];
+        if (!p.reference || at(row, 'Reference') !== String(p.reference)) continue;
+        if (at(row, 'Contract State') === 'completed') return { already: true };
+        if (p.docId && at(row, 'Contract Doc ID') && at(row, 'Contract Doc ID') !== p.docId) return { stale: true }; // an older, voided contract
+        var name = at(row, 'Creator Name') || at(row, 'Full Name') || 'Unnamed';
+        var folder = childFolder_(folder_('signed'), side === 'tech' ? 'ModeSociety Tech' : 'Mode Society');
+        var date = Utilities.formatDate(new Date(), tz_(), 'yyyy-MM-dd');
+        var file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(p.pdf), 'application/pdf',
+          date + ' — ' + safeName_(name) + ' — ' + p.type + ' agreement (' + p.reference + ').pdf'));
+        updateByColumn_(sheet, i + 1, [['Status', 'Signed'], ['Contract State', 'completed'], ['Signed Contract', file.getUrl()]]);
+        ensureSigned_(p.reference, side, at(row, 'Representation'), 'PandaDoc');
+        // the contract the creator actually signed is the one on record
+        var signed = sheet_('signed');
+        var refs = signed.getRange(1, 1, signed.getLastRow(), 1).getValues().map(function (r) { return String(r[0]); });
+        var s = refs.indexOf(String(p.reference));
+        if (s > 0) updateByColumn_(signed, s + 1, [['Contract', p.type], ['Commission', p.type === 'Exclusive' ? '20%' : '30%'],
+          ['Signed At', new Date()], ['PandaDoc ID', p.docId || ''], ['Contract Link', file.getUrl()], ['Updated At', new Date()], ['Updated By', 'PandaDoc']]);
+        return { link: file.getUrl(), email: at(row, 'Email') };
+      }
+      throw new Error('That enquiry is no longer in the Sheet');
+    });
+    if (done.already || done.stale) return done;
+    autoReply_(done.email, p.welcome); // the welcome email, once (a repeat call stops above)
+    return { link: done.link };
+  },
+
+  /**
    * Records a creator lead's contract (SP-32, SP-115, SP-116) in its own columns, added the first time:
    * Contract Type, Contract Doc ID, Contract Link, Contract Sent At, Contract State, Contract Reminded At,
    * NSW Sheet Sent; and, when given, a new Status. Only these columns can be written here.
@@ -1475,6 +1517,10 @@ function autoReply_(to, m) {
   if (!email || !m || !m.subject) return;
   try {
     var mail = { to: email, subject: String(m.subject), body: String(m.text || ''), htmlBody: String(m.html || ''), name: String(m.fromName || 'Mode Society') };
+    // files sent with it (the Creator Growth Guide with the welcome email)
+    if (m.attachments && m.attachments.length) {
+      mail.attachments = m.attachments.map(function (a) { return Utilities.newBlob(Utilities.base64Decode(a.data), a.mimeType, a.name); });
+    }
     var reply = normaliseEmail_(m.replyTo);
     if (reply) mail.replyTo = reply;
     MailApp.sendEmail(mail);

@@ -225,6 +225,25 @@ const actions = {
     if (!existsSync(file)) throw new Error(`There is no Google Doc called "${p.template}" in Drive → Contracts (mock: add ${file})`);
     return { name: `${p.template}.pdf`, data: readFileSync(file).toString("base64") };
   },
+  contractCompleted: (db, p) => {
+    // as Code.gs: once per lead; Signed, Signed Talent, the PDF kept (in the mock's files), the welcome email logged
+    const c = ENQUIRY_COLUMNS[p.kind];
+    const rec = (db[c.store] || []).find((r) => r.reference === p.reference);
+    if (!rec) throw new Error("That enquiry is no longer in the Sheet");
+    const extra = Object.fromEntries(rec.extra || []);
+    if (extra["Contract State"] === "completed") return { already: true };
+    if (p.docId && extra["Contract Doc ID"] && extra["Contract Doc ID"] !== p.docId) return { stale: true };
+    const tech = p.kind === "techCreators";
+    const fileId = storeFile(db, p.pdf, "application/pdf", tech ? "signed-tech" : "signed");
+    const link = `https://drive.google.com/file/d/${fileId}/view`;
+    actions.setLeadContract(db, { kind: p.kind, reference: p.reference, status: "Signed", columns: [["Contract State", "completed"]] });
+    (rec.extra ||= []).push(["Signed Contract", link]);
+    actions.setEnquiryStatus(db, { kind: p.kind, reference: p.reference, status: "Signed", by: "PandaDoc" });
+    const row = db.signed.find((r) => r.Reference === p.reference);
+    Object.assign(row, { Contract: p.type, Commission: p.type === "Exclusive" ? "20%" : "30%", "PandaDoc ID": p.docId || "", "Contract Link": link, "Updated By": "PandaDoc" });
+    (db.mails ||= []).push({ to: Object.fromEntries(rec.columns || []).Email, subject: p.welcome?.subject, attachments: (p.welcome?.attachments || []).map((a) => a.name) });
+    return { link };
+  },
   setLeadContract: (db, p) => {
     // as Code.gs: the contract's own columns on a creator lead, and optionally its status
     const c = ENQUIRY_COLUMNS[p.kind];

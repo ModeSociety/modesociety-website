@@ -31,7 +31,7 @@ const statusesFor = (kind) =>
 const BOOKING_HEADERS = ["Submitted At", "Status", "Name", "Email", "Booking As", "Service", "Tier", "Price", "Socials / Website", "Goals", "Reference"];
 /** Same columns as the Sheet tabs in Code.gs, so the admin panel parses both the same way. */
 const SIGNED_HEADERS = ["Reference", "Side", "Contract", "Commission", "Signed At", "PandaDoc ID", "Contract Link", "Mode Email In Bio",
-  "Dedicated Email", "Renewal Reminders", "Updated At", "Updated By"];
+  "Dedicated Email", "Renewal Reminders", "Updated At", "Updated By", "Payment Reveals"];
 const ENQUIRY_COLUMNS = {
   services: { store: "serviceBookings", headers: BOOKING_HEADERS, row: () => [] },
   techServices: { store: "techServiceBookings", headers: BOOKING_HEADERS, row: () => [] },
@@ -259,6 +259,12 @@ const actions = {
       else rec.extra.push([h, v]);
     }
     if (p.status) rec.status = p.status;
+    return { ok: true };
+  },
+  logPaymentReveal: (db, p) => {
+    const row = (db.signed || []).find((r) => r.Reference === p.reference && r.Side === p.side);
+    if (!row) throw new Error("That creator is not in Signed Talent");
+    row["Payment Reveals"] = [row["Payment Reveals"], `${p.by} · ${new Date().toISOString()}`].filter(Boolean).join("\n");
     return { ok: true };
   },
   updateSigned: (db, p) => {

@@ -1066,6 +1066,23 @@ var ACTIONS = {
     });
   },
 
+  /** Logs that an admin revealed a creator's payment details (SP-122): who and when, never the details. */
+  logPaymentReveal: function (p) {
+    return withLock_(function () {
+      var sheet = sheet_('signed');
+      var values = sheet.getDataRange().getValues();
+      var head = values[0].map(String);
+      for (var i = 1; i < values.length; i++) {
+        if (String(values[i][0]) !== String(p.reference) || String(values[i][head.indexOf('Side')]) !== p.side) continue;
+        var col = head.indexOf('Payment Reveals');
+        var log = col < 0 ? '' : String(values[i][col] || '');
+        updateByColumn_(sheet, i + 1, [['Payment Reveals', (log ? log + '\n' : '') + p.by + ' · ' + new Date().toISOString()]]);
+        return { ok: true };
+      }
+      throw new Error('That creator is not in Signed Talent');
+    });
+  },
+
   /**
    * Changes a signed creator's own details in Signed Talent: the contract (type, commission, signed date),
    * the "Mode email in bio" tick and their dedicated email. Only these columns can be written here.

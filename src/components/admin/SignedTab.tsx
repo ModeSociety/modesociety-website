@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { flagOf, formatCount, placeOf } from "@/lib/enquiries";
 import type { PaymentView } from "@/lib/payment";
-import { postJson } from "@/lib/upload";
+import Popup from "@/components/forms/creator/Popup";
+import { APP_OPTIONS, ELIGIBLE_COUNTRIES } from "@/lib/application";
+import { encodeFile, postJson } from "@/lib/upload";
 import { CONTRACT_TYPES, localDate, nextRenewal, optOutWindow, type Contract, type SignedCreator } from "@/lib/signed";
 import type { Side } from "@/lib/side";
 import LeadImages from "./LeadImages";
@@ -141,13 +143,20 @@ export default function SignedTab({ side, disabled, notify }: { side: Side; disa
         <button className="chip" onClick={load} disabled={loading}>
           {loading ? "Refreshing…" : "↻ Refresh"}
         </button>
+        <AddSignedTalent
+          side={side}
+          onAdded={async (name) => {
+            notify(`${name} added to Signed Talent`);
+            await load();
+          }}
+        />
       </div>
       {error && <p className="text-pin">{error}</p>}
       {!items ? (
         <p className="text-ink-2">Loading…</p>
       ) : !list.length ? (
         <p className="border border-line bg-white px-6 py-10 text-center text-ink-2">
-          {items.length ? "No signed creators match." : "No signed creators yet. A creator joins this list when their lead is marked Signed."}
+          {items.length ? "No signed creators match." : "No signed creators yet. A creator joins this list when they sign, or add someone who signed outside the website with + Add signed talent."}
         </p>
       ) : (
         <ul className="border border-line bg-white">
@@ -523,5 +532,121 @@ function PaymentBox({ reference, side, hasDoc }: { reference: string; side: Side
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * Adds a creator who signed outside the website (an emailed agreement, an older contract): their
+ * details, the contract and when they signed, an optional profile photo and a link to the contract.
+ */
+function AddSignedTalent({ side, onAdded }: { side: Side; onAdded: (name: string) => Promise<void> }) {
+  const blank = { legalName: "", creatorName: "", email: "", mobile: "", country: "Australia", region: "", platform: "", channel: "", followers: "", type: "", signedAt: "", contractLink: "", notes: "", photo: "" };
+  const [open, setOpen] = useState(false);
+  const [t, setT] = useState(blank);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const set = (patch: Partial<typeof blank>) => setT((cur) => ({ ...cur, ...patch }));
+  const input = "border border-line bg-white px-3 py-2 text-ink";
+  const field = (label: string, el: React.ReactNode) => (
+    <label className="grid gap-1">
+      <span className="eyebrow">{label}</span>
+      {el}
+    </label>
+  );
+  const upload = async (file?: File) => {
+    if (!file) return;
+    setBusy("photo");
+    setError("");
+    try {
+      const enc = await encodeFile(file, 1200);
+      const { fileId } = await postJson<{ fileId: string }>("/api/forms/upload", { filename: enc.filename, mimeType: enc.mimeType, data: enc.data });
+      set({ photo: fileId });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy("save");
+    setError("");
+    try {
+      await postJson("/api/admin/signed", { side, talent: t });
+      setOpen(false);
+      setT(blank);
+      await onAdded(t.creatorName || t.legalName);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+  return (
+    <>
+      <button className="chip" onClick={() => setOpen(true)}>
+        + Add signed talent
+      </button>
+      {open && (
+        <Popup title="Add signed talent" onClose={() => !busy && setOpen(false)}>
+          <p className="text-[13px]">For a creator who signed outside the website. Everything else (Mode email, renewal reminders) works as for everyone.</p>
+          <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
+            {field("Full legal name *", <input className={input} value={t.legalName} onChange={(e) => set({ legalName: e.target.value })} required />)}
+            {field("Creator name", <input className={input} value={t.creatorName} onChange={(e) => set({ creatorName: e.target.value })} />)}
+            {field("Email *", <input className={input} type="email" value={t.email} onChange={(e) => set({ email: e.target.value })} required />)}
+            {field("Mobile", <input className={input} type="tel" value={t.mobile} onChange={(e) => set({ mobile: e.target.value })} />)}
+            {field(
+              "Country",
+              <select className={input} value={t.country} onChange={(e) => set({ country: e.target.value })}>
+                {[...ELIGIBLE_COUNTRIES, "Other"].map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>,
+            )}
+            {field("State / region", <input className={input} value={t.region} onChange={(e) => set({ region: e.target.value })} placeholder="e.g. Victoria" />)}
+            {field(
+              "Main platform *",
+              <select className={input} value={t.platform} onChange={(e) => set({ platform: e.target.value })} required>
+                <option value="">Choose…</option>
+                {APP_OPTIONS[side].platforms.map((p) => (
+                  <option key={p}>{p}</option>
+                ))}
+              </select>,
+            )}
+            {field("Main channel (handle or link) *", <input className={input} value={t.channel} onChange={(e) => set({ channel: e.target.value })} required />)}
+            {field("Followers", <input className={input} value={t.followers} onChange={(e) => set({ followers: e.target.value })} placeholder="e.g. 12400" />)}
+            {field(
+              "Contract *",
+              <select className={input} value={t.type} onChange={(e) => set({ type: e.target.value })} required>
+                <option value="">Choose…</option>
+                {CONTRACT_TYPES.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>,
+            )}
+            {field("Signed on *", <input className={input} type="date" max={localDate(new Date())} value={t.signedAt} onChange={(e) => set({ signedAt: e.target.value })} required />)}
+            {field("Link to the signed contract", <input className={input} value={t.contractLink} onChange={(e) => set({ contractLink: e.target.value })} placeholder="https://drive.google.com/…" />)}
+            <label className="grid gap-1 sm:col-span-2">
+              <span className="eyebrow">Profile photo</span>
+              <input type="file" accept="image/*" onChange={(e) => upload(e.target.files?.[0])} />
+              {busy === "photo" ? <span className="text-[13px] text-muted">Uploading…</span> : t.photo && <span className="text-[13px] text-muted">✓ Photo uploaded</span>}
+            </label>
+            <label className="grid gap-1 sm:col-span-2">
+              <span className="eyebrow">Notes</span>
+              <textarea className={input} value={t.notes} onChange={(e) => set({ notes: e.target.value })} rows={3} />
+            </label>
+            {error && <p className="text-pin sm:col-span-2">{error}</p>}
+            <div className="flex gap-3 sm:col-span-2">
+              <button className="btn" disabled={Boolean(busy)}>
+                {busy === "save" ? "Adding…" : "Add"} <span className="arrow">→</span>
+              </button>
+              <button type="button" className="underline underline-offset-4" onClick={() => setOpen(false)} disabled={Boolean(busy)}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Popup>
+      )}
+    </>
   );
 }

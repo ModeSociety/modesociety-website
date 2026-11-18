@@ -136,7 +136,7 @@ type Group = "Day to day" | "Website" | "Team";
  * in order of importance: what the team uses most comes first. */
 const TABS: { id: Tab; label: string; group: Group; sides: Side[]; about: string }[] = [
   { id: "leads", label: "Leads", group: "Day to day", sides: ["talent", "tech"], about: "Every form sent from the website, newest first. Each one is also emailed to the team." },
-  { id: "signed", label: "Signed Talent", group: "Day to day", sides: ["talent", "tech"], about: "The creators who signed with this business, their contracts and renewal dates. A creator joins when their lead is marked Signed." },
+  { id: "signed", label: "Signed Talent", group: "Day to day", sides: ["talent", "tech"], about: "The creators who signed with this business, their contracts and renewal dates. A creator joins when they sign their contract (or their lead is marked Signed); add anyone who signed outside the website with + Add signed talent." },
   { id: "insights", label: "Insights", group: "Day to day", sides: ["talent", "tech"], about: "Who's visiting the site, where from, and how many leads it brings in." },
   { id: "copy", label: "Pages & text", group: "Website", sides: ["talent", "tech"], about: "Change, delete or hide the wording of any section, page by page." },
   { id: "applications", label: "Applications", group: "Website", sides: ["talent", "tech"], about: "Which countries creators can apply from, and the regions blocked within them." },

@@ -18,7 +18,7 @@ export const TECH: Record<string, Feature> = {
   "x.campaigns": { shows: ({ c }) => !c.copy["techSite.campaigns"].hidden, render: ({ c }) => <Campaigns copy={c.copy["techSite.campaigns"]} /> },
   "x.run": { shows: ({ c }) => !c.copy["techSite.run"].hidden, render: ({ c }) => <Run copy={c.copy["techSite.run"]} /> },
   "x.rules": { shows: ({ c }) => !c.copy["techSite.rules"].hidden, render: ({ c }) => <Rules copy={c.copy["techSite.rules"]} /> },
-  "x.contact": { render: ({ c }) => <Contact copy={c.copy["techSite.contact"]} eligibility={c.eligibility.tech} /> },
+  "x.contact": { render: ({ c }) => <Contact copy={c.copy["techSite.contact"]} eligibility={c.eligibility.tech} noGo={c.copy["techSite.rules"].nogo} /> },
   "x.servicesHero": { render: ({ c }) => <TxServicesHero copy={c.copy["techSite.servicesHero"]} /> },
   "x.services": {
     shows: ({ c }) => shownServices(c.copy["techSite.services"].items).length > 0,

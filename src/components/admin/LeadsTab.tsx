@@ -172,6 +172,7 @@ function BrandRow({ e, isOpen, onToggle }: { e: Enquiry; isOpen: boolean; onTogg
     >
       <span className="min-w-0">
         <span className="block truncate text-[15px] text-ink">{e.title}</span>
+        {b.screening && <span className="block truncate text-[11px] text-pin" title={b.screening}>⚑ House rules: {b.screening}</span>}
         <span className="block truncate text-[12px] text-muted lg:hidden">{[b.contact, b.budget, b.start && day(b.start), when(e.submittedAt)].filter(Boolean).join(" · ")}</span>
       </span>
       <span className="hidden truncate text-[14px] text-ink-2 lg:block">{b.contact}</span>

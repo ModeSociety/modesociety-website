@@ -93,6 +93,8 @@ export type BrandSummary = {
   platforms: string;
   /** Drive file id of an uploaded brief or deck ("" when none, or when it was shared as a link) */
   brief: string;
+  /** House rules screening: "Check: mentions casino" when the enquiry suggests a no-go sponsor */
+  screening: string;
 };
 
 export type CreatorSummary = {
@@ -203,6 +205,7 @@ export function toEnquiries(kind: EnquiryKind, table: SheetTable | undefined): E
             start: col(row, "Start Date"),
             platforms: col(row, "Platforms"),
             brief: idOf(col(row, "Brief")),
+            screening: col(row, "Screening"),
           },
         }
       : {}),

@@ -6,7 +6,7 @@ import { scrollToSection } from "@/lib/anchor";
 import type { Eligibility } from "@/lib/application";
 import type { SectionCopy } from "@/lib/copy";
 import {
-  blankTechBrand, brandProblems, campaignProblems, firstOf, TB_BRIEF_TYPES, TB_BUDGETS, TB_CONSENT, TB_CREATORS, TB_GOALS, TB_HEARD,
+  blankTechBrand, brandProblems, campaignProblems, firstOf, noGoConfirm, TB_BRIEF_TYPES, TB_BUDGETS, TB_CONSENT, TB_CREATORS, TB_GOALS, TB_HEARD,
   TB_INDUSTRIES, TB_INTRO, TB_MARKETS, TB_PLATFORMS, TB_TYPES, tbThanks, type TechBrand,
 } from "@/lib/tech-brand";
 import { encodeFile, postJson } from "@/lib/upload";
@@ -101,7 +101,7 @@ function Pick({ id, label, options, value, onChange }: { id: string; label: stri
  * spec (level 1 the brand, level 2 the campaign), checked with the same rules as the server.
  * Creators: the creator application. Any data-tab button on the page opens it on that tab.
  */
-export default function Contact({ copy: c, eligibility }: { copy: SectionCopy<"techSite.contact">; eligibility: Eligibility }) {
+export default function Contact({ copy: c, eligibility, noGo = [] }: { copy: SectionCopy<"techSite.contact">; eligibility: Eligibility; noGo?: string[] }) {
   const [mode, setMode] = useState<Mode>("brand");
   const [step, setStep] = useState(1);
   const [b, setForm] = useState<TechBrand>(blankTechBrand);
@@ -311,6 +311,10 @@ export default function Contact({ copy: c, eligibility }: { copy: SectionCopy<"t
                         <input id="tb14" value={b.heardOther} onChange={(e) => setB({ heardOther: e.target.value })} required />
                       </div>
                     )}
+                    <label className="f full" style={{ display: "flex", gap: 12, alignItems: "flex-start", color: "var(--body)" }}>
+                      <input type="checkbox" checked={b.noGo} onChange={(e) => setB({ noGo: e.target.checked })} style={{ width: 20, height: 20, padding: 0, marginTop: 2, flex: "none" }} required />
+                      <span>{noGoConfirm(noGo)} *</span>
+                    </label>
                     <label className="f full" style={{ display: "flex", gap: 12, alignItems: "flex-start", color: "var(--body)" }}>
                       <input type="checkbox" checked={b.consent} onChange={(e) => setB({ consent: e.target.checked })} style={{ width: 20, height: 20, padding: 0, marginTop: 2, flex: "none" }} required />
                       <span>

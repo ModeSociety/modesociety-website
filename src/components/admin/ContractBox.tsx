@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Popup from "@/components/forms/creator/Popup";
 import { CONTRACT_TYPES, contractTypeOf, type ContractType } from "@/lib/contract";
 import type { Enquiry } from "@/lib/enquiries";
@@ -16,8 +16,24 @@ const when = (iso: string) => (iso ? new Date(iso).toLocaleString("en-AU", { dat
  * application, Asha's signature already on it), the NSW sheet tick that has to come first for NSW
  * creators, and, while it's unsigned, one reminder or Void.
  */
-export default function ContractBox({ e, onDone }: { e: Enquiry; onDone: (message: string) => Promise<void> }) {
+export default function ContractBox({ e, onDone, onRefresh }: { e: Enquiry; onDone: (message: string) => Promise<void>; onRefresh: () => Promise<void> }) {
   const k = e.contract;
+  // a contract is sent in the background: until the lead shows the result, check back every few seconds
+  const [waiting, setWaiting] = useState(false);
+  const stateAtSend = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!waiting) return;
+    if (k?.state !== stateAtSend.current) {
+      setWaiting(false); // the lead now shows the result
+      return;
+    }
+    const started = Date.now();
+    const timer = setInterval(() => {
+      if (Date.now() - started > 120_000) setWaiting(false);
+      else onRefresh();
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [waiting, k?.state, onRefresh]);
   const [asking, setAsking] = useState(false);
   const [type, setType] = useState<ContractType | "">(contractTypeOf(e.creator?.representation ?? ""));
   const [busy, setBusy] = useState("");
@@ -30,8 +46,12 @@ export default function ContractBox({ e, onDone }: { e: Enquiry; onDone: (messag
     setBusy(action);
     setError("");
     try {
-      await postJson("/api/admin/contracts", { action, kind: e.kind, reference: e.reference, ...extra });
+      const r = await postJson<{ queued?: boolean }>("/api/admin/contracts", { action, kind: e.kind, reference: e.reference, ...extra });
       setAsking(false);
+      if (r.queued) {
+        stateAtSend.current = k?.state;
+        setWaiting(true);
+      }
       await onDone(done);
     } catch (err) {
       setError((err as Error).message);
@@ -96,8 +116,14 @@ export default function ContractBox({ e, onDone }: { e: Enquiry; onDone: (messag
         </div>
       ) : (
         <>
-          {k?.state && <p className="text-[12px] text-muted">The last contract was {k.state}.</p>}
-          <button type="button" className="btn !justify-start" disabled={(nsw && !k?.nswSheetSent) || Boolean(busy)} onClick={() => setAsking(true)}>
+          {waiting ? (
+            <p className="text-[13px] text-ink">Sending through PandaDoc… this lead updates by itself when it&apos;s out (usually 10 to 20 seconds).</p>
+          ) : k?.state?.startsWith("failed") ? (
+            <p className="text-[13px] text-pin">The last send didn&apos;t go out: {k.state.replace(/^failed:\s*/, "")}</p>
+          ) : (
+            k?.state && <p className="text-[12px] text-muted">The last contract was {k.state}.</p>
+          )}
+          <button type="button" className="btn !justify-start" disabled={(nsw && !k?.nswSheetSent) || Boolean(busy) || waiting} onClick={() => setAsking(true)}>
             Send contract <span className="arrow">→</span>
           </button>
           {nsw && !k?.nswSheetSent && <p className="text-[12px] text-muted">Tick that the NSW sheet was sent first.</p>}
@@ -126,8 +152,8 @@ export default function ContractBox({ e, onDone }: { e: Enquiry; onDone: (messag
           </p>
           {error && <p className="text-pin">{error}</p>}
           <div className="flex gap-3">
-            <button type="button" className="btn" disabled={!type || Boolean(busy)} onClick={() => run("send", { type }, `${type} contract sent to ${name}`)}>
-              {busy === "send" ? "Sending… (up to a minute)" : "Send"} <span className="arrow">→</span>
+            <button type="button" className="btn" disabled={!type || Boolean(busy)} onClick={() => run("send", { type }, `Sending the ${type} contract to ${name}…`)}>
+              {busy === "send" ? "Sending…" : "Send"} <span className="arrow">→</span>
             </button>
             <button type="button" className="underline underline-offset-4" disabled={Boolean(busy)} onClick={() => setAsking(false)}>
               Cancel

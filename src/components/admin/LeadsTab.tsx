@@ -191,6 +191,7 @@ function Detail({
   onStatus,
   onDelete,
   onContract,
+  onRefresh,
   saving,
 }: {
   e: Enquiry;
@@ -198,6 +199,8 @@ function Detail({
   onDelete?: () => void;
   /** after a contract action: the message, and the list read fresh */
   onContract: (message: string) => Promise<void>;
+  /** the list read fresh, quietly (while a contract is being sent) */
+  onRefresh: () => Promise<void>;
   saving: boolean;
 }) {
   const subject = encodeURIComponent(`Mode Society — ${e.kind === "talent" ? "your application" : "your enquiry"} (${e.reference})`);
@@ -235,7 +238,7 @@ function Detail({
             ))}
           </select>
         </label>
-        {e.creator && <ContractBox e={e} onDone={onContract} />}
+        {e.creator && <ContractBox e={e} onDone={onContract} onRefresh={onRefresh} />}
         {e.email && (
           <a href={`mailto:${e.email}?subject=${subject}`} className="btn !justify-start">
             Email {e.kind === "talent" ? e.title.split(" ")[0] : e.subtitle.split(" ")[0] || "them"} <span className="arrow">→</span>
@@ -334,6 +337,8 @@ export default function LeadsTab({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on open
     load();
   }, [load]);
+  /** a fresh read without a message (a contract being sent checks back with it) */
+  const refreshFresh = useCallback(() => load(true), [load]);
   // keep this browser's copy in step with what's on screen (status changes, deletes)
   useEffect(() => {
     if (items) kept = items;
@@ -534,6 +539,7 @@ export default function LeadsTab({
                       writes.current++;
                       await load(true);
                     }}
+                    onRefresh={refreshFresh}
                     onDelete={CLOSED_STATUSES.has(e.status) ? () => remove([e]) : undefined}
                   />
                 )}

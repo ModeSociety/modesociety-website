@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { flagOf, formatCount, placeOf } from "@/lib/enquiries";
+import type { PaymentView } from "@/lib/payment";
 import { postJson } from "@/lib/upload";
 import { CONTRACT_TYPES, localDate, nextRenewal, optOutWindow, type Contract, type SignedCreator } from "@/lib/signed";
 import type { Side } from "@/lib/side";
@@ -306,6 +307,7 @@ function Profile({ s, side, onSave }: { s: SignedCreator; side: Side; onSave: (p
           )}
         </dl>
         <ContractEdit contract={k} onSave={onSave} />
+        <PaymentBox reference={k.reference} side={side} hasDoc={Boolean(k.pandadocId)} />
         <ModeEmail contract={k} side={side} onSave={onSave} />
         {k.contractLink ? (
           <a href={k.contractLink} target="_blank" rel="noreferrer" className="link-underline w-fit text-ink-2">
@@ -443,5 +445,83 @@ function ContractEdit({ contract: k, onSave }: { contract: Contract; onSave: (pa
       </div>
       {error && <p className="text-pin">{error}</p>}
     </form>
+  );
+}
+
+/**
+ * Payment details (SP-122), read from the signed contract in PandaDoc each time: masked, with Reveal
+ * (logged with the admin's email and the time) showing them in full in this view only.
+ */
+function PaymentBox({ reference, side, hasDoc }: { reference: string; side: Side; hasDoc: boolean }) {
+  const [view, setView] = useState<PaymentView | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!hasDoc) return;
+    let live = true;
+    fetch(`/api/admin/signed/payment?side=${side}&reference=${encodeURIComponent(reference)}`)
+      .then((r) => r.json())
+      .then((d) => live && (d.ok ? setView(d.payment) : setError(d.error)))
+      .catch((err) => live && setError((err as Error).message));
+    return () => {
+      live = false;
+    };
+  }, [reference, side, hasDoc]);
+  const reveal = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const d = await postJson<{ payment: PaymentView }>("/api/admin/signed/payment", { side, reference });
+      setView(d.payment);
+      setRevealed(true);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="grid gap-2 border-y border-line py-4">
+      <span className="eyebrow">Payment details</span>
+      {!hasDoc ? (
+        <p className="text-muted">They signed before contracts went through the website: their payment details are in their signed contract.</p>
+      ) : error ? (
+        <p className="text-pin">{error}</p>
+      ) : !view ? (
+        <p className="text-muted">Reading the signed contract…</p>
+      ) : (
+        <>
+          <dl className="grid gap-1.5 text-[14px]">
+            {(
+              [
+                ["Method", view.method],
+                ["ABN", view.abn || (view.part === "A" ? "None" : "")],
+                ["GST registered", view.gst],
+                ...view.rows,
+              ] as [string, string][]
+            )
+              .filter(([, v]) => v)
+              .map(([l, v]) => (
+                <div key={l} className="grid grid-cols-[120px_1fr] gap-2">
+                  <dt className="text-muted">{l}</dt>
+                  <dd className="break-all font-mono text-[13px] text-ink">{v}</dd>
+                </div>
+              ))}
+          </dl>
+          {view.notes.map((n) => (
+            <p key={n} className="text-[13px] text-pin">
+              {n}
+            </p>
+          ))}
+          {!revealed && (
+            <button type="button" className="chip w-fit" disabled={busy} onClick={reveal}>
+              {busy ? "Revealing…" : "Reveal"}
+            </button>
+          )}
+          <p className="text-[11px] text-muted">{revealed ? "Shown in full in this view only; the reveal was logged." : "Reveal is logged with your email and the time."}</p>
+        </>
+      )}
+    </div>
   );
 }

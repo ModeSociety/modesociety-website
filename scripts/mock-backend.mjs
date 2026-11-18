@@ -261,6 +261,21 @@ const actions = {
     if (p.status) rec.status = p.status;
     return { ok: true };
   },
+  addSignedTalent: (db, p) => {
+    // as Code.gs: a short creator row (Signed, added in admin) and the Signed Talent row
+    const tech = p.side === "tech";
+    const reference = ref(tech ? "TC" : "T");
+    if (p.photo && db.files[p.photo]) db.files[p.photo].folder = tech ? "talent-tech" : "talent";
+    const link = p.photo ? `https://drive.google.com/file/d/${p.photo}/view` : "";
+    const rep = p.contract?.type === "Exclusive" ? "Exclusive (20% commission)" : "Non-exclusive (30% commission)";
+    const columns = [["Submitted At", new Date().toISOString()], ["Status", "Signed"], ...(p.columns || []), ["Representation", rep],
+      ["Source", `Added in admin by ${p.by} (signed outside the website)`], ["Profile Photo", link], ["Photos", link], ["Reference", reference]];
+    (db[tech ? "techCreators" : "talent"] ||= []).push({ at: new Date().toISOString(), reference, columns, status: "Signed" });
+    const m = rep.match(/^(Exclusive|Non-exclusive) \((\d+%)/);
+    (db.signed ||= []).push({ Reference: reference, Side: tech ? "tech" : "talent", Contract: m[1], Commission: m[2], "Signed At": p.contract?.signedAt || new Date().toISOString(),
+      "Contract Link": p.contract?.link || "", "Mode Email In Bio": "No", "Updated At": new Date().toISOString(), "Updated By": p.by || "" });
+    return { reference };
+  },
   logPaymentReveal: (db, p) => {
     const row = (db.signed || []).find((r) => r.Reference === p.reference && r.Side === p.side);
     if (!row) throw new Error("That creator is not in Signed Talent");

@@ -1066,6 +1066,40 @@ var ACTIONS = {
     });
   },
 
+  /**
+   * A creator signed outside the website, added in the admin panel (Signed Talent → Add). They get a
+   * short row in their business's creator tab (Status Signed, Source "Added in admin") so the profile,
+   * filters and reminders work as for everyone else, and their Signed Talent row with the contract.
+   */
+  addSignedTalent: function (p) {
+    var tech = p.side === 'tech';
+    var key = tech ? 'techCreators' : 'talent';
+    var ref = reference_(tech ? 'TC' : 'T');
+    var person = safeName_(p.name || 'Unnamed');
+    var photo = [];
+    var folderUrl = '';
+    if (p.photo) {
+      var parent = folder_('talent');
+      if (tech) parent = childFolder_(parent, 'ModeSociety Tech');
+      var folder = parent.createFolder(Utilities.formatDate(new Date(), tz_(), 'yyyy-MM-dd') + ' — ' + person + ' (' + ref + ', added in admin)');
+      photo = claimFiles_([p.photo], folder, person + ' — profile photo');
+      folderUrl = folder.getUrl();
+    }
+    var k = p.contract || {};
+    var rep = k.type === 'Exclusive' ? 'Exclusive (20% commission)' : 'Non-exclusive (30% commission)';
+    return withLock_(function () {
+      appendByColumn_(sheet_(key), [['Submitted At', new Date()], ['Status', 'Signed']].concat(p.columns || []).concat([
+        ['Representation', rep], ['Source', 'Added in admin by ' + (p.by || 'an admin') + ' (signed outside the website)'],
+        ['Profile Photo', photo[0] || ''], ['Photos', photo[0] || ''], ['Application Folder', folderUrl], ['Reference', ref]]));
+      ensureSigned_(ref, tech ? 'tech' : 'talent', rep, p.by);
+      var signed = sheet_('signed');
+      var refs = signed.getRange(1, 1, signed.getLastRow(), 1).getValues().map(function (r) { return String(r[0]); });
+      var row = refs.indexOf(ref);
+      if (row > 0) updateByColumn_(signed, row + 1, [['Signed At', k.signedAt || new Date()], ['Contract Link', k.link || '']]);
+      return { reference: ref };
+    });
+  },
+
   /** Logs that an admin revealed a creator's payment details (SP-122): who and when, never the details. */
   logPaymentReveal: function (p) {
     return withLock_(function () {

@@ -48,6 +48,8 @@ export type Application = {
   games: string; // Tech
   setup: string[]; // Tech
   audienceCountry: string;
+  /** ModeSociety Tech: the share of their audience that is 18+ (its House rules) */
+  adultShare: string;
   collaborations: string;
   represented: "Yes" | "No" | "";
   agency: string;
@@ -68,7 +70,7 @@ export const blankApplication = (): Application => ({
   addressType: "", address1: "", address2: "", suburb: "", postcode: "",
   photos: [], profileThumb: "",
   mainPlatform: "", mainLink: "", mainFollowers: "", avgViews: "", others: [], mediaKit: "",
-  niches: [], work: [], games: "", setup: [], audienceCountry: "", collaborations: "", represented: "", agency: "",
+  niches: [], work: [], games: "", setup: [], audienceCountry: "", adultShare: "", collaborations: "", represented: "", agency: "",
   discovery: "", referrer: "", discoveryOther: "",
   representation: "",
   agreements: [], tips: false,
@@ -374,11 +376,18 @@ export function socialsProblems(a: Application, side: Side): string[] {
 }
 
 /** Step 4: your content. */
+/**
+ * ModeSociety Tech's House rules: every partnership is checked against who the creator's audience is,
+ * so Tech creators say what share of their audience is 18+ (from their platform analytics).
+ */
+export const ADULT_SHARES = ["90% or more", "75–89%", "50–74%", "Under 50%", "I don't know yet"] as const;
+
 export function contentProblems(a: Application, side: Side): string[] {
   const o = APP_OPTIONS[side];
   const out: string[] = [];
   if (!a.niches.some((n) => o.niches.includes(n))) out.push("Choose at least one niche");
   if (!a.work.some((w) => o.work.includes(w))) out.push("Choose at least one kind of work you're open to");
+  if (side === "tech" && !(ADULT_SHARES as readonly string[]).includes(a.adultShare)) out.push("Tell us what share of your audience is 18+");
   if (!a.represented) out.push("Tell us if you're represented by an agency or manager");
   else if (a.represented === "Yes" && !a.agency.trim()) out.push("Add the agency's or manager's name");
   return out;
@@ -464,6 +473,7 @@ export function allProblems(a: Application, side: Side, el: Eligibility): string
  */
 export function tagsFor(a: Application): string[] {
   const tags: string[] = [];
+  if (a.adultShare === "Under 50%" || a.adultShare === "50–74%") tags.push("Audience under 75% adults: check each partnership's audience");
   if (a.based === "Australia" && a.region === "New South Wales") tags.push("NSW: send Information for Performers sheet before contract");
   if (a.based === "Australia" && a.region === "Queensland") tags.push("QLD: pay within 7 days");
   if (a.based === "International") tags.push("International");
@@ -507,6 +517,7 @@ export function applicationColumns(a: Application, side: Side, consent: Consent)
     ["Games", side === "tech" ? a.games.trim() : ""],
     ["Setup", side === "tech" ? a.setup.join(", ") : ""],
     ["Audience Top Country", a.audienceCountry],
+    ["Audience 18+", a.adultShare],
     ["Past Collaborations", a.collaborations.trim()],
     ["Agency", a.represented === "Yes" ? `Yes: ${a.agency.trim()}` : "No"],
     ["Discovery", [a.discovery, a.referrer.trim(), a.discoveryOther.trim()].filter(Boolean).join(": ")],

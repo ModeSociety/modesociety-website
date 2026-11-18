@@ -1,6 +1,6 @@
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds, rateLimit } from "@/lib/api";
-import { allProblems, APP_OPTIONS, applicationColumns, autoReply, blankApplication, GROWTH_GUIDE, TERMS_VERSION, type Application } from "@/lib/application";
+import { ADULT_SHARES, allProblems, APP_OPTIONS, applicationColumns, autoReply, blankApplication, GROWTH_GUIDE, TERMS_VERSION, type Application } from "@/lib/application";
 import { callBackend, getSiteContent } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
 import { isSpam } from "@/lib/spam";
@@ -54,6 +54,7 @@ function tidy(raw: Record<string, unknown>, side: Side): Application {
     games: side === "tech" ? str(raw.games, 300) : "",
     setup: side === "tech" ? list(raw.setup, o.setup) : [],
     audienceCountry: str(raw.audienceCountry, 80),
+    adultShare: side === "tech" ? pick(raw.adultShare, ADULT_SHARES) : "",
     collaborations: str(raw.collaborations, 3000),
     represented: pick(raw.represented, ["Yes", "No"] as const),
     agency: str(raw.agency, 200),

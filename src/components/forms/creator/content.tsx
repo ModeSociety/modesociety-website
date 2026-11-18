@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_OPTIONS, AUDIENCE_COUNTRIES, contentProblems } from "@/lib/application";
+import { ADULT_SHARES, APP_OPTIONS, AUDIENCE_COUNTRIES, contentProblems } from "@/lib/application";
 import { Chips, Field } from "../StepForm";
 import type { StepDef } from "./types";
 
@@ -38,6 +38,16 @@ export const content: StepDef = {
               ))}
             </select>
           </Field>
+          {side === "tech" && (
+            <Field label="How much of your audience is 18+? *">
+              <select className="input" value={a.adultShare} onChange={(e) => set({ adultShare: e.target.value })}>
+                <option value="">Choose…</option>
+                {ADULT_SHARES.map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </Field>
+          )}
         </div>
         <Field label="Past brand collaborations" optional>
           <textarea className="input" value={a.collaborations} onChange={(e) => set({ collaborations: e.target.value })} placeholder="Brands you've worked with, and what you made for them." />

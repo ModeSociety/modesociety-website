@@ -226,7 +226,7 @@ const SECTIONS: [string, string[]][] = [
   ["Location and postal address", ["Based", "Country", "State / Region", "UAE Permit", "Postal Address"]],
   [
     "Socials",
-    ["Main Platform", "Main Channel", "Main Followers", "Average views per post", "Average live viewers (if streaming)", "Other Platforms", "Audience Top Country", "Media Kit"],
+    ["Main Platform", "Main Channel", "Main Followers", "Average views per post", "Average live viewers (if streaming)", "Other Platforms", "Audience Top Country", "Audience 18+", "Media Kit"],
   ],
   ["Work", ["Niche", "Work Open To", "Games", "Setup", "Past Collaborations", "Agency", "Tags"]],
 ];

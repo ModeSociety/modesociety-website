@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -8,7 +9,15 @@ import { usePathname } from "next/navigation";
  * and its pages are under /tech, or at the root of its own domain.
  */
 export function useTechPaths() {
-  const path = usePathname() || "/";
+  const routed = usePathname() || "/";
+  // on modesocietytech.com the page is served from /tech internally, so the router reports "/tech…"
+  // while the browser shows "/…": once in the browser, the links follow the address actually shown
+  const [shown, setShown] = useState<string | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the real address is only known in the browser
+    setShown(location.pathname);
+  }, [routed]);
+  const path = shown ?? routed;
   const base = path.startsWith("/tech") ? "/tech" : "";
   const onHome = path === "/" || path === "/tech";
   return {

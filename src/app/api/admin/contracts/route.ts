@@ -6,7 +6,7 @@ import { callBackend, getSiteContent } from "@/lib/backend";
 import { CONTRACT_ROLE, CONTRACT_TYPES, contractFields, paymentPart, templateName, type ContractType } from "@/lib/contract";
 import { ENQUIRY_KINDS, toEnquiries, type Enquiry, type EnquiryKind } from "@/lib/enquiries";
 import { getLeads, leadsChanged } from "@/lib/leads";
-import { contractFolder, createDocumentFromPdf, deleteDocument, documentLink, PandaDocError, remindSigner, sendDocument, voidDocument, waitForDraft } from "@/lib/pandadoc";
+import { contractFolder, createDocumentFromPdf, deleteDocument, documentLink, pandadoc, PandaDocError, remindSigner, sendDocument, voidDocument, waitForDraft } from "@/lib/pandadoc";
 
 /** NSW creators get the NSW Fair Trading sheet before a contract (the lead's tag says so; SP-115). */
 const needsNswSheet = (e: Enquiry) => (e.creator?.tags ?? []).some((t) => t.startsWith("NSW"));
@@ -53,8 +53,14 @@ function checkSend(e: Enquiry) {
   if (!e.email) throw new HttpError(400, "This lead has no email address");
 }
 
-/** Builds and sends the contract, then records it on the lead (runs after the reply). */
-async function send(session: AdminUser, kind: EnquiryKind, e: Enquiry, side: "talent" | "tech", type: ContractType) {
+/** A prepared (unsent) contract's name in PandaDoc: the template and the creator. */
+const draftName = (template: string, legal: string) => `${template}: ${legal}`;
+
+/**
+ * Makes the contract in PandaDoc and waits until it can be sent (PandaDoc takes about 5 seconds to
+ * process it). It's marked prepared, so Send finds it and only has to send it.
+ */
+async function createDraft(kind: EnquiryKind, e: Enquiry, side: "talent" | "tech", type: ContractType) {
   const legal = field(e, "Full Name") || e.title;
   const [first, ...rest] = legal.trim().split(/\s+/);
   const part = paymentPart(field(e, "Based"), field(e, "Country"));
@@ -76,41 +82,59 @@ async function send(session: AdminUser, kind: EnquiryKind, e: Enquiry, side: "ta
     signName: legal,
   };
   const doc = await createDocumentFromPdf(Buffer.from(pdf.data, "base64"), pdf.name, {
-    name: `${template}: ${legal}`,
+    name: draftName(template, legal),
     recipients: [{ email: e.email, first_name: first || legal, last_name: rest.join(" ") || "-", role: CONTRACT_ROLE }],
     fields: contractFields(part, prefill),
-    metadata: { reference: e.reference, kind, side, type },
+    metadata: { reference: e.reference, kind, side, type, prepared: "yes" },
     tags: [side === "tech" ? "modesociety-tech" : "mode-society", "talent-agreement"],
     folder_uuid: await contractFolder(businessName(side)),
   });
   try {
     await waitForDraft(doc.id);
-    const { contactEmail } = await getSiteContent();
-    await sendDocument(
-      doc.id,
-      `Your ${businessName(side)} ${type.toLowerCase()} talent agreement`,
-      `Hi ${first || "there"}, here is your ${type.toLowerCase()} agreement with ${businessName(side)}. Please check your details in Schedule 1, add your payment details in Schedule 2, and sign. Questions? Email ${contactEmail[side]}.`,
-    );
   } catch (err) {
-    // nothing half-sent is left behind, and the lead doesn't change
     await deleteDocument(doc.id).catch(() => {});
     throw err;
   }
+  return doc.id;
+}
+
+/** This lead's prepared contracts in PandaDoc that haven't been sent. */
+async function preparedDrafts(reference: string) {
+  const list = await pandadoc<{ results: { id: string; name: string; status: string }[] }>(`/documents?metadata_reference=${encodeURIComponent(reference)}&count=20`);
+  return list.results.filter((d) => d.status === "document.draft");
+}
+
+/** Sends a ready contract and records it on the lead (status Contract sent, the document and its link). */
+async function deliver(session: AdminUser, kind: EnquiryKind, e: Enquiry, side: "talent" | "tech", type: ContractType, docId: string) {
+  const legal = field(e, "Full Name") || e.title;
+  const first = legal.trim().split(/\s+/)[0];
+  const { contactEmail } = await getSiteContent();
+  await sendDocument(
+    docId,
+    `Your ${businessName(side)} ${type.toLowerCase()} talent agreement`,
+    `Hi ${first || "there"}, here is your ${type.toLowerCase()} agreement with ${businessName(side)}. Please check your details in Schedule 1, add your payment details in Schedule 2, and sign. Questions? Email ${contactEmail[side]}.`,
+  );
   await callBackend("setLeadContract", {
     kind,
     reference: e.reference,
     status: "Contract sent",
     columns: [
       ["Contract Type", type],
-      ["Contract Doc ID", doc.id],
-      ["Contract Link", documentLink(doc.id)],
+      ["Contract Doc ID", docId],
+      ["Contract Link", documentLink(docId)],
       ["Contract Sent At", new Date().toISOString()],
       ["Contract State", "sent"],
       ["Contract Reminded At", ""],
     ],
   });
-  console.info(`[contracts] ${session.email} sent the ${type} contract ${doc.id} to ${e.reference}`);
-  return { docId: doc.id, link: documentLink(doc.id) };
+  console.info(`[contracts] ${session.email} sent the ${type} contract ${docId} to ${e.reference}`);
+}
+
+/** Records a failed send on the lead (its status doesn't change, and it can be sent again). */
+async function recordFailure(kind: EnquiryKind, reference: string, err: unknown) {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(`[contracts] sending ${reference} failed:`, message);
+  await callBackend("setLeadContract", { kind, reference, columns: [["Contract State", `failed: ${message.slice(0, 300)}`]] }).catch(() => {});
 }
 
 /**
@@ -131,26 +155,57 @@ export async function POST(req: Request) {
     const action = String(body?.action || "");
     // sending is quick to ask for: the checks run now, the PandaDoc work after the reply
     let e = await findLead(kind, reference, action !== "send");
-    if (action === "send") {
+    if (action === "prepare" || action === "send") {
       const type = cleanList([body?.type], CONTRACT_TYPES)[0] as ContractType | undefined;
       if (!type) throw new HttpError(400, "Choose Exclusive or Non-exclusive");
       try {
         checkSend(e);
       } catch {
+        // nothing to prepare for a lead that can't be sent a contract (yet)
+        if (action === "prepare") return Response.json({ ok: true, prepared: false });
         // the kept copy can be a few seconds behind (an NSW tick just saved): check the Sheet itself
         e = await findLead(kind, reference, true);
         checkSend(e);
       }
       const lead = e;
+      const template = templateName(side, type);
+      if (action === "prepare") {
+        // the Send dialog is open: get this contract ready in PandaDoc meanwhile (replacing any other
+        // prepared one for this lead), so Send only has to send it
+        after(async () => {
+          try {
+            const old = await preparedDrafts(reference);
+            const name = draftName(template, field(lead, "Full Name") || lead.title);
+            if (old.some((d) => d.name.endsWith(name))) return; // (the sandbox adds "[DEV] " in front)
+            await Promise.all(old.map((d) => deleteDocument(d.id).catch(() => {})));
+            await createDraft(kind, lead, side, type);
+          } catch (err) {
+            console.error(`[contracts] preparing ${reference} failed:`, (err as Error).message);
+          }
+        });
+        return Response.json({ ok: true, prepared: true });
+      }
       sending.add(reference);
+      // the prepared contract, when it's ready: send it now (a couple of seconds) and say so
+      const ready = (await preparedDrafts(reference).catch(() => [])).find((d) => d.name.endsWith(draftName(template, field(lead, "Full Name") || lead.title)));
+      if (ready) {
+        try {
+          await deliver(session, kind, lead, side, type, ready.id);
+          return Response.json({ ok: true, sent: true });
+        } catch (err) {
+          await recordFailure(kind, reference, err);
+          throw err;
+        } finally {
+          sending.delete(reference);
+          leadsChanged();
+        }
+      }
+      // not prepared yet: make it and send it after the reply
       after(async () => {
         try {
-          await send(session, kind, lead, side, type);
+          await deliver(session, kind, lead, side, type, await createDraft(kind, lead, side, type));
         } catch (err) {
-          // the lead shows what went wrong (its status doesn't change), and the contract can be sent again
-          const message = err instanceof Error ? err.message : String(err);
-          console.error(`[contracts] sending ${reference} failed:`, message);
-          await callBackend("setLeadContract", { kind, reference, columns: [["Contract State", `failed: ${message.slice(0, 300)}`]] }).catch(() => {});
+          await recordFailure(kind, reference, err);
         } finally {
           sending.delete(reference);
           leadsChanged();

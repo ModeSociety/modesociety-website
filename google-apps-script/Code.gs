@@ -679,12 +679,26 @@ var ACTIONS = {
       sheet_('bookings').appendRow([new Date(), 'New', f.brand, f.website, f.name, f.email, (f.services || []).join(', '),
         f.project, f.budget, f.timeline, f.notes, ref]);
     });
-    notify_('bookings', 'New brand enquiry: ' + (f.brand || f.name || 'Unnamed'), ref, f.email, [
+    sendOrQueue_(p, ref, { notify: { form: 'bookings', subject: 'New brand enquiry: ' + (f.brand || f.name || 'Unnamed'), replyTo: f.email, rows: [
       ['Brand', f.brand], ['Website / Instagram', f.website], ['Name', f.name], ['Email', f.email],
       ['Services', (f.services || []).join(', ')], ['About the project', f.project], ['Budget', f.budget],
       ['Timeline', f.timeline], ['Notes', f.notes],
-    ]);
+    ] } });
     return { reference: ref };
+  },
+
+  /**
+   * Sends the emails a form left queued (deferEmails): the website asks right after it has thanked the
+   * visitor, so nobody waits for Gmail and the attachments. Each queue is sent once.
+   */
+  sendQueuedEmails: function (p) {
+    var cache = CacheService.getScriptCache();
+    var key = 'mail:' + String(p.reference || '');
+    var raw = cache.get(key);
+    if (!raw) return { sent: false };
+    cache.remove(key);
+    runMailJob_(JSON.parse(raw));
+    return { sent: true };
   },
 
   /**
@@ -703,9 +717,11 @@ var ACTIONS = {
       .concat(p.columns || [])
       .concat([['Brief', brief[0] || p.briefLink || ''], ['Reference', ref]]);
     withLock_(function () { appendByColumn_(sheet_('techBrands'), cols); });
-    notify_('techBrands', 'New Tech brand enquiry: ' + (p.company || 'Unnamed'), ref, p.email,
-      (p.columns || []).concat([['Brief', brief[0] || p.briefLink || '']]), files);
-    autoReply_(p.email, p.autoReply);
+    sendOrQueue_(p, ref, {
+      notify: { form: 'techBrands', subject: 'New Tech brand enquiry: ' + (p.company || 'Unnamed'), replyTo: p.email,
+        rows: (p.columns || []).concat([['Brief', brief[0] || p.briefLink || '']]), fileIds: files.map(function (f) { return f.getId(); }) },
+      reply: { to: p.email, m: p.autoReply },
+    });
     return { reference: ref };
   },
 
@@ -726,10 +742,10 @@ var ACTIONS = {
     });
     // the inbox: the side's creators' or brands' address (the Emails settings decide, then the defaults)
     var route = tech ? (brand ? 'techBrands' : 'techCreators') : (brand ? 'bookings' : 'talent');
-    notify_(route, 'New booking: ' + b.service + ' · ' + b.tier + ' (' + (b.name || 'Unnamed') + ')', ref, b.email, [
+    sendOrQueue_(p, ref, { notify: { form: route, subject: 'New booking: ' + b.service + ' · ' + b.tier + ' (' + (b.name || 'Unnamed') + ')', replyTo: b.email, rows: [
       ['Service', b.service], ['Tier', b.tier], ['Price', b.price], ['Name', b.name], ['Email', b.email], ['Booking as', b.as],
       ['Socials / website', b.link], ['Goals', b.goals], ['Next', 'Confirm the booking and send an invoice (no payment was taken).'],
-    ]);
+    ] } });
     return { reference: ref };
   },
 
@@ -780,9 +796,11 @@ var ACTIONS = {
         ['Reference', ref],
       ]);
     withLock_(function () { appendByColumn_(sheet_(key), cols); });
-    notify_(key, 'New ' + (tech ? 'Tech creator' : 'creator') + ' application: ' + (p.name || 'Unnamed'), ref, p.email,
-      (p.columns || []).concat([['Application folder', folder.getUrl()]]), files);
-    autoReply_(p.email, p.autoReply);
+    sendOrQueue_(p, ref, {
+      notify: { form: key, subject: 'New ' + (tech ? 'Tech creator' : 'creator') + ' application: ' + (p.name || 'Unnamed'), replyTo: p.email,
+        rows: (p.columns || []).concat([['Application folder', folder.getUrl()]]), fileIds: files.map(function (f) { return f.getId(); }) },
+      reply: { to: p.email, m: p.autoReply },
+    });
     return { reference: ref };
   },
 
@@ -1562,6 +1580,34 @@ function isInside_(file, folderId) {
     queue = next;
   }
   return false;
+}
+
+/**
+ * A form's emails: the team's notification (with uploads attached) and the sender's auto-reply. When the
+ * website asks (p.deferEmails), they wait in the script cache (6 hours) for sendQueuedEmails, which the
+ * website calls just after replying; otherwise they go now.
+ */
+function sendOrQueue_(p, ref, job) {
+  job.ref = ref;
+  if (p.deferEmails) {
+    try {
+      CacheService.getScriptCache().put('mail:' + ref, JSON.stringify(job), 21600);
+      return;
+    } catch (err) {
+      console.error('Could not queue the emails for ' + ref + ', sending them now: ' + err);
+    }
+  }
+  runMailJob_(job);
+}
+
+function runMailJob_(job) {
+  if (job.notify) {
+    var files = (job.notify.fileIds || []).map(function (id) {
+      try { return DriveApp.getFileById(id); } catch (e) { return null; }
+    }).filter(Boolean);
+    notify_(job.notify.form, job.notify.subject, job.ref, job.notify.replyTo, job.notify.rows, files);
+  }
+  if (job.reply) autoReply_(job.reply.to, job.reply.m);
 }
 
 /**

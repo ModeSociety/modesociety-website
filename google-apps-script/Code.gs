@@ -785,6 +785,7 @@ var ACTIONS = {
     var photos = claimFiles_(f.photos, folder, person + ' — photo', files);
     var thumb = f.thumb ? claimFiles_([f.thumb], folder, person + ' — profile photo (round crop)') : [];
     var kit = f.mediaKit ? claimFiles_([f.mediaKit], folder, person + ' — media kit') : [];
+    var shots = claimFiles_(f.screenshots, folder, person + ' — insights screenshot', files);
     var cols = [['Submitted At', new Date()], ['Status', 'New']]
       .concat(p.columns || [])
       .concat([
@@ -792,6 +793,7 @@ var ACTIONS = {
         ['Profile Photo (Round)', thumb[0] || ''],
         ['Photos', photos.join('\n')],
         ['Media Kit', kit[0] || p.mediaKitLink || ''],
+        ['Screenshots', shots.join('\n')],
         ['Application Folder', folder.getUrl()],
         ['Reference', ref],
       ]);

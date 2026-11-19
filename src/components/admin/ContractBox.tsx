@@ -42,6 +42,12 @@ export default function ContractBox({ e, onDone, onRefresh }: { e: Enquiry; onDo
   const out = k?.state === "sent";
   const name = e.fields.find((f) => f.label === "Full Name")?.value || e.title;
 
+  // while the Send dialog is open, the contract is made ready in PandaDoc, so Send takes a couple of seconds
+  useEffect(() => {
+    if (!asking || !type) return;
+    postJson("/api/admin/contracts", { action: "prepare", kind: e.kind, reference: e.reference, type }).catch(() => {});
+  }, [asking, type, e.kind, e.reference]);
+
   const run = async (action: string, extra: Record<string, unknown>, done: string) => {
     setBusy(action);
     setError("");
@@ -51,6 +57,7 @@ export default function ContractBox({ e, onDone, onRefresh }: { e: Enquiry; onDo
       if (r.queued) {
         stateAtSend.current = k?.state;
         setWaiting(true);
+        done = `Sending the contract to ${name} in the background…`;
       }
       await onDone(done);
     } catch (err) {
@@ -152,7 +159,7 @@ export default function ContractBox({ e, onDone, onRefresh }: { e: Enquiry; onDo
           </p>
           {error && <p className="text-pin">{error}</p>}
           <div className="flex gap-3">
-            <button type="button" className="btn" disabled={!type || Boolean(busy)} onClick={() => run("send", { type }, `Sending the ${type} contract to ${name}…`)}>
+            <button type="button" className="btn" disabled={!type || Boolean(busy)} onClick={() => run("send", { type }, `${type} contract sent to ${name}`)}>
               {busy === "send" ? "Sending…" : "Send"} <span className="arrow">→</span>
             </button>
             <button type="button" className="underline underline-offset-4" disabled={Boolean(busy)} onClick={() => setAsking(false)}>

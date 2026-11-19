@@ -1,6 +1,7 @@
+import { after } from "next/server";
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, rateLimit } from "@/lib/api";
-import { callBackend, getSiteContent } from "@/lib/backend";
+import { callBackend, sendQueuedEmails, getSiteContent } from "@/lib/backend";
 import { blankBooking, bookingProblems, findTier, type Booking } from "@/lib/booking";
 import { leadsChanged } from "@/lib/leads";
 import { isSpam } from "@/lib/spam";
@@ -35,8 +36,10 @@ export async function POST(req: Request) {
     const { copy } = await getSiteContent();
     const found = findTier(copy[side === "tech" ? "techSite.services" : "services.priced"].items, b.service, b.tier);
     if (!found) throw new HttpError(400, "That service or tier is no longer offered. Please refresh the page and choose again.");
-    const data = await callBackend<{ reference: string }>("submitServiceBooking", { side, booking: { ...b, ...found } });
+    const data = await callBackend<{ reference: string }>("submitServiceBooking", { deferEmails: true, side, booking: { ...b, ...found } });
     leadsChanged();
+    // the emails (the team's, with uploads attached, and the auto-reply) go out just after the reply
+    after(() => sendQueuedEmails(data.reference));
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

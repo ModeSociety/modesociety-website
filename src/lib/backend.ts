@@ -201,3 +201,12 @@ export async function getAllPressFresh(): Promise<PressItem[]> {
 export async function getSiteContentFresh(): Promise<SiteContent> {
   return buildContent(await callBackend<RawSite>("getSite"));
 }
+
+/** Asks the backend to send the emails a form left queued (deferEmails); a failure is only logged. */
+export async function sendQueuedEmails(reference: string) {
+  try {
+    await callBackend("sendQueuedEmails", { reference });
+  } catch (err) {
+    console.error(`[forms] the emails for ${reference} weren't sent:`, (err as Error).message);
+  }
+}

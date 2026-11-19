@@ -1,6 +1,7 @@
+import { after } from "next/server";
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanList, rateLimit } from "@/lib/api";
-import { callBackend } from "@/lib/backend";
+import { callBackend, sendQueuedEmails } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
 import { BUDGETS, SERVICES, TIMELINES } from "@/lib/forms";
 import { isSpam } from "@/lib/spam";
@@ -31,8 +32,10 @@ export async function POST(req: Request) {
       throw new HttpError(400, "Brand name, website or Instagram, your name and a valid email are required");
     }
     if (!fields.project || !fields.budget || !fields.timeline) throw new HttpError(400, "Tell us about the project, budget and timeline");
-    const data = await callBackend<{ reference: string }>("submitBooking", { fields });
+    const data = await callBackend<{ reference: string }>("submitBooking", { deferEmails: true, fields });
     leadsChanged();
+    // the emails (the team's, with uploads attached, and the auto-reply) go out just after the reply
+    after(() => sendQueuedEmails(data.reference));
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

@@ -1,6 +1,7 @@
+import { after } from "next/server";
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds, cleanList, rateLimit } from "@/lib/api";
-import { callBackend, getSiteContent } from "@/lib/backend";
+import { callBackend, sendQueuedEmails, getSiteContent } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
 import { isSpam } from "@/lib/spam";
 import {
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     if (problems.length) throw new HttpError(400, problems[0]);
     const { contactEmail } = await getSiteContent();
     const uploaded = cleanIds([b.brief], 1)[0] || "";
-    const data = await callBackend<{ reference: string }>("submitTechBrand", {
+    const data = await callBackend<{ reference: string }>("submitTechBrand", { deferEmails: true,
       columns: techBrandColumns(b),
       brief: uploaded,
       briefLink: uploaded ? "" : b.brief,
@@ -65,6 +66,8 @@ export async function POST(req: Request) {
       autoReply: { ...techBrandAutoReply(b), replyTo: contactEmail.tech },
     });
     leadsChanged();
+    // the emails (the team's, with uploads attached, and the auto-reply) go out just after the reply
+    after(() => sendQueuedEmails(data.reference));
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

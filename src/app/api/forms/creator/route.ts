@@ -1,7 +1,8 @@
+import { after } from "next/server";
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds, rateLimit } from "@/lib/api";
 import { ADULT_SHARES, allProblems, APP_OPTIONS, applicationColumns, autoReply, blankApplication, GROWTH_GUIDE, TERMS_VERSION, type Application } from "@/lib/application";
-import { callBackend, getSiteContent } from "@/lib/backend";
+import { callBackend, sendQueuedEmails, getSiteContent } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
 import { isSpam } from "@/lib/spam";
 import { SITE_URL, TECH_BASE_URL } from "@/lib/seo";
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
     if (problems.length) throw new HttpError(400, problems[0]);
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim();
     const consent = { at: new Date().toISOString(), ip, terms: TERMS_VERSION };
-    const data = await callBackend<{ reference: string }>("submitCreator", {
+    const data = await callBackend<{ reference: string }>("submitCreator", { deferEmails: true,
       side,
       columns: applicationColumns(a, side, consent),
       files: { photos: a.photos, thumb: a.profileThumb, mediaKit: /^[\w-]{10,}$/.test(a.mediaKit) ? a.mediaKit : "" },
@@ -96,6 +97,8 @@ export async function POST(req: Request) {
       autoReply: { ...autoReply(side, a, (side === "tech" ? TECH_BASE_URL : SITE_URL) + GROWTH_GUIDE[side]), replyTo: contactEmail[side] },
     });
     leadsChanged();
+    // the emails (the team's, with uploads attached, and the auto-reply) go out just after the reply
+    after(() => sendQueuedEmails(data.reference));
     return Response.json({ ok: true, reference: data.reference });
   } catch (err) {
     return errorResponse(err);

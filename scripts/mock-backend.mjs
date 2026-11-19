@@ -328,6 +328,8 @@ const actions = {
     (db[tech ? "techCreators" : "talent"] ||= []).push({ at: new Date().toISOString(), reference, columns });
     return { reference };
   },
+  // the mock sends no email: nothing is ever queued
+  sendQueuedEmails: () => ({ sent: false }),
   submitServiceBooking: (db, p) => {
     const tech = p.side === "tech";
     const reference = ref(tech ? "TS" : "S");

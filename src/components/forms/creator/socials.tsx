@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { APP_OPTIONS, MEDIA_KIT_MAX_MB, socialsProblems, type Channel } from "@/lib/application";
+import { APP_OPTIONS, MAX_SCREENSHOTS, MEDIA_KIT_MAX_MB, socialsProblems, type Channel } from "@/lib/application";
 import { encodeFile, postJson } from "@/lib/upload";
 import { Field } from "../StepForm";
 import type { StepDef, StepProps } from "./types";
@@ -113,7 +113,73 @@ function Socials(props: StepProps) {
         + Add another platform
       </button>
       <MediaKit {...props} />
+      <Screenshots {...props} />
     </>
+  );
+}
+
+/** Previews of uploaded screenshots by Drive file id (kept while the form is open). */
+const shotPreviews = new Map<string, string>();
+
+/**
+ * Optional screenshots of their insights or analytics (reach, audience, engagement), like the old form
+ * asked for: images of any size, up to MAX_SCREENSHOTS, shown with the lead's photos.
+ */
+function Screenshots({ a, set }: StepProps) {
+  const [status, setStatus] = useState("");
+  const input = useRef<HTMLInputElement>(null);
+  const add = async (files: FileList | null) => {
+    const list = Array.from(files || []).filter((f) => f.type.startsWith("image/")).slice(0, MAX_SCREENSHOTS - a.screenshots.length);
+    if (!list.length) return;
+    let ids = [...a.screenshots];
+    try {
+      for (const [n, file] of list.entries()) {
+        setStatus(`Uploading ${n + 1} of ${list.length}…`);
+        const enc = await encodeFile(file, 1800, 0.85);
+        const { fileId } = await postJson<{ fileId: string }>("/api/forms/upload", { filename: enc.filename, mimeType: enc.mimeType, data: enc.data });
+        shotPreviews.set(fileId, enc.previewUrl);
+        ids = [...ids, fileId];
+        set({ screenshots: ids });
+      }
+      setStatus("");
+    } catch (err) {
+      setStatus((err as Error).message);
+    } finally {
+      if (input.current) input.current.value = "";
+    }
+  };
+  return (
+    <Field label="Screenshots of your insights" optional>
+      <div className="grid gap-3">
+        <p className="text-sm text-muted">Your reach, audience and engagement from your platforms&apos; analytics help us pitch you. Up to {MAX_SCREENSHOTS}.</p>
+        {a.screenshots.length > 0 && (
+          <ul className="flex flex-wrap gap-3">
+            {a.screenshots.map((id, n) => (
+              <li key={id} className="grid gap-1 text-xs">
+                <span className="block h-24 w-24 overflow-hidden border border-line bg-paper-2">
+                  {shotPreviews.get(id) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={shotPreviews.get(id)} alt={`Screenshot ${n + 1}`} className="h-full w-full object-cover" />
+                  )}
+                </span>
+                <button type="button" className="w-fit text-pin underline underline-offset-2" onClick={() => set({ screenshots: a.screenshots.filter((x) => x !== id) })}>
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {a.screenshots.length < MAX_SCREENSHOTS && (
+            <button type="button" className="chip" onClick={() => input.current?.click()}>
+              + Add screenshots
+            </button>
+          )}
+          {status && <span className="text-sm text-muted">{status}</span>}
+        </div>
+      </div>
+      <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => add(e.target.files)} />
+    </Field>
   );
 }
 

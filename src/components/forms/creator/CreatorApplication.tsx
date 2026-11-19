@@ -16,7 +16,7 @@ function readDraft(side: Side): Draft | null {
     const raw = localStorage.getItem(draftKey(side));
     if (!raw) return null;
     const d = JSON.parse(raw) as Draft;
-    return { a: { ...blankApplication(), ...d.a, photos: [], profileThumb: "" }, step: Math.max(0, Math.min(Number(d.step) || 0, STEPS.length - 1)) };
+    return { a: { ...blankApplication(), ...d.a, photos: [], profileThumb: "", screenshots: [] }, step: Math.max(0, Math.min(Number(d.step) || 0, STEPS.length - 1)) };
   } catch {
     return null;
   }
@@ -60,7 +60,7 @@ export default function CreatorApplication({
   useEffect(() => {
     if (!loaded) return;
     try {
-      localStorage.setItem(draftKey(side), JSON.stringify({ a: { ...a, photos: [], profileThumb: "" }, step: i }));
+      localStorage.setItem(draftKey(side), JSON.stringify({ a: { ...a, photos: [], profileThumb: "", screenshots: [] }, step: i }));
     } catch {
       /* storage blocked: the form still works, it just isn't kept */
     }

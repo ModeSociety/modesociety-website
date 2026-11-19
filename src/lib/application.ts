@@ -42,6 +42,8 @@ export type Application = {
   avgViews: string;
   others: Channel[];
   mediaKit: string; // a Drive file id or a link
+  /** optional screenshots of their insights or analytics (Drive file ids), up to MAX_SCREENSHOTS */
+  screenshots: string[];
   // Step 4: content
   niches: string[];
   work: string[];
@@ -69,7 +71,7 @@ export const blankApplication = (): Application => ({
   based: "", country: "", region: "", uaePermit: "",
   addressType: "", address1: "", address2: "", suburb: "", postcode: "",
   photos: [], profileThumb: "",
-  mainPlatform: "", mainLink: "", mainFollowers: "", avgViews: "", others: [], mediaKit: "",
+  mainPlatform: "", mainLink: "", mainFollowers: "", avgViews: "", others: [], mediaKit: "", screenshots: [],
   niches: [], work: [], games: "", setup: [], audienceCountry: "", adultShare: "", collaborations: "", represented: "", agency: "",
   discovery: "", referrer: "", discoveryOther: "",
   representation: "",
@@ -283,6 +285,8 @@ export function addressProblems(a: Application): string[] {
 }
 
 export const MAX_PHOTOS = 6;
+/** optional insights screenshots on the socials step (no minimum size: they're screenshots) */
+export const MAX_SCREENSHOTS = 6;
 export const MIN_PHOTO_SIDE = 1080;
 export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 export const PHOTO_TOO_SMALL = "This image is too small. Please upload a high-quality photo at least 1080 x 1080 pixels.";

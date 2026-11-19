@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { errorResponse, HttpError } from "@/lib/auth";
 import { assertSameOrigin, clean, cleanIds, rateLimit } from "@/lib/api";
-import { ADULT_SHARES, allProblems, APP_OPTIONS, applicationColumns, autoReply, blankApplication, GROWTH_GUIDE, TERMS_VERSION, type Application } from "@/lib/application";
+import { ADULT_SHARES, allProblems, APP_OPTIONS, MAX_SCREENSHOTS, applicationColumns, autoReply, blankApplication, GROWTH_GUIDE, TERMS_VERSION, type Application } from "@/lib/application";
 import { callBackend, sendQueuedEmails, getSiteContent } from "@/lib/backend";
 import { leadsChanged } from "@/lib/leads";
 import { isSpam } from "@/lib/spam";
@@ -50,6 +50,7 @@ function tidy(raw: Record<string, unknown>, side: Side): Application {
       followers: str(c?.followers, 20),
     })),
     mediaKit: str(raw.mediaKit, 400),
+    screenshots: cleanIds(raw.screenshots, MAX_SCREENSHOTS),
     niches: list(raw.niches, o.niches),
     work: list(raw.work, o.work),
     games: side === "tech" ? str(raw.games, 300) : "",
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
     const data = await callBackend<{ reference: string }>("submitCreator", { deferEmails: true,
       side,
       columns: applicationColumns(a, side, consent),
-      files: { photos: a.photos, thumb: a.profileThumb, mediaKit: /^[\w-]{10,}$/.test(a.mediaKit) ? a.mediaKit : "" },
+      files: { photos: a.photos, thumb: a.profileThumb, mediaKit: /^[\w-]{10,}$/.test(a.mediaKit) ? a.mediaKit : "", screenshots: a.screenshots },
       mediaKitLink: /^https?:\/\//.test(a.mediaKit) ? a.mediaKit : "",
       name: a.creatorName || a.legalName,
       email: a.email,

@@ -808,6 +808,7 @@ var ACTIONS = {
       body.replaceText('\\{\\{BASED\\}\\}', p.part === 'A' ? 'Australia: Domestic Talent (complete Part A)' : 'International: International Talent (complete Part B)');
       removePart_(body, p.part === 'A' ? 'B' : 'A');
       fitFieldTags_(body);
+      roomForSignature_(body);
       trimEnd_(body);
       doc.saveAndClose();
       return { name: name + '.pdf', data: Utilities.base64Encode(copy.getAs('application/pdf').getBytes()) };
@@ -1695,6 +1696,18 @@ function fitFieldTags_(body) {
     text.insertText(start, fitted);
     text.setAttributes(start, start + fitted.length - 1, attrs);
   }
+}
+
+/**
+ * The creator's signature field is taller than one line, and PandaDoc grows it up from its tag: the
+ * tag's line gets space above it, so the field sits inside its table row instead of over the text above.
+ */
+function roomForSignature_(body) {
+  var found = body.findText('\\{s\\*?:Talent');
+  if (!found) return;
+  var el = found.getElement();
+  while (el && el.getType() !== DocumentApp.ElementType.PARAGRAPH) el = el.getParent();
+  if (el) el.asParagraph().setSpacingBefore(34).setSpacingAfter(4);
 }
 
 /**
